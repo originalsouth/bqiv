@@ -1,3 +1,9 @@
+/*
+  Up to release 1.3 of imlib2 there is a problem with the includes.
+  Imlib2.h does not load Xlib.h.
+  Workaround: add the following line:
+#include <X11/Xlib.h>
+*/
 #include <gdk/gdk.h>
 #include <Imlib2.h>
 #include <unistd.h>
@@ -19,8 +25,8 @@
 #include <X11/extensions/xf86vmode.h> // for XF86VidModeGetModeLine
 */
 
-#define VERSION "2.2"
-#define VERSION_FULL "QIV - Quick Image Viewer v2.2 - http://qiv.spiegl.de/"
+#define VERSION "2.2.1"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.2.1 - http://qiv.spiegl.de/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
@@ -103,6 +109,9 @@ extern time_t           current_mtime;
 extern qiv_deletedfile  *deleted_files;
 extern int              delete_idx;
 extern char             select_dir[FILENAME_LEN];
+extern PangoLayout     *layout;
+extern PangoFontDescription *fontdesc;
+extern PangoFontMetrics *metrics;
 
 extern int     filter;
 extern gint    center;
@@ -119,6 +128,7 @@ extern int     statusbar_fullscreen;
 extern int     statusbar_window;
 extern int     slide;
 extern int     scale_down;
+extern int     recursive;
 extern int     to_root;
 extern int     to_root_t;
 extern int     to_root_s;

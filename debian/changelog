@@ -1,9 +1,15 @@
+qiv (2.2.1) unstable; urgency=low
+
+  * new upstream version; see Changelog for details
+
+ -- Andy Spiegl <debian.andy@spiegl.de>  Wed, 26 May 2009 18:30:00 +0200
+
 qiv (2.2) unstable; urgency=low
 
   * migration from imlib1 to imlib2
   * new upstream version; see Changelog for details
 
- -- Andy Spiegl <debian.andy@spiegl.de>  Thu, 05 Mar 2009 23:19:00 +0100
+ -- Andy Spiegl <debian.andy@spiegl.de>  Thu, 30 Apr 2009 12:00:00 +0200
 
 qiv (2.1) unstable; urgency=low
 

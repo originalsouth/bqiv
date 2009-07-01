@@ -5,7 +5,6 @@ int		first = 1; /* TRUE if this is first image or after fullscreen or iconifying
 char		infotext[BUF_LEN];
 GMainLoop	*qiv_main_loop;
 gint		screen_x, screen_y; /* Size of the screen in pixels */
-GdkFont		*text_font; /* font for statusbar and help text */
 GdkColormap	*cmap; /* global colormap */
 char		*image_bg_spec = IMAGE_BG;
 GdkColor	image_bg; /* default background */
@@ -19,6 +18,11 @@ time_t          current_mtime; /* modification time of file currently loaded */
 qiv_deletedfile *deleted_files;
 int		delete_idx;
 char    select_dir[FILENAME_LEN];
+
+/* stuff for rendering statusbar, infotext, etc ... */
+PangoLayout     *layout;
+PangoFontMetrics *metrics;
+PangoFontDescription *fontdesc;
 
 /* Options and such */
 
@@ -37,6 +41,7 @@ int	statusbar_fullscreen = 1; /* TRUE if statusbar in fullscreen is turned on (d
 int	statusbar_window = 0; /* FALSE if statusbar in window is turned off (default) */
 int	slide; /* 1=slide show running */
 int	scale_down; /* resize down if image x/y > screen */
+int	recursive; /* descend recursively */
 int	to_root; /* display on root (centered) */
 int	to_root_t; /* display on root (tiled) */
 int	to_root_s; /* display on root (stretched) */

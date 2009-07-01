@@ -72,9 +72,14 @@ int main(int argc, char **argv)
 
   qiv_main_loop = g_main_new(TRUE);
   cmap = gdk_colormap_get_system();
-  text_font = gdk_font_load(STATUSBAR_FONT);
   screen_x = gdk_screen_width();
   screen_y = gdk_screen_height();
+
+ /* statusbar with pango */
+  layout = pango_layout_new(gdk_pango_context_get()); 
+  fontdesc = pango_font_description_from_string (STATUSBAR_FONT);
+  metrics = pango_context_get_metrics (gdk_pango_context_get(), fontdesc, NULL);
+  pango_layout_set_font_description (layout, fontdesc); 
 
 /*
   // [as] thinks that this is not portable enough
@@ -152,9 +157,12 @@ int main(int argc, char **argv)
 
 void qiv_exit(int code)
 {
-  if (text_font) gdk_font_unref(text_font);
   if (cmap) gdk_colormap_unref(cmap);
   destroy_image(&main_img);
+
+  pango_font_description_free (fontdesc);
+  g_object_unref (layout);
+  pango_font_metrics_unref(metrics);
 
   g_main_destroy(qiv_main_loop);
   finish(SIGTERM);        /* deprecated, subject to change */
@@ -203,7 +211,7 @@ static gboolean qiv_handle_timer(gpointer data)
 
 static void qiv_timer_restart(gpointer dummy)
 {
-  g_timeout_add_full(G_PRIORITY_LOW, delay,
+  g_timeout_add_full(G_PRIORITY_DEFAULT_IDLE, delay,
                      qiv_handle_timer, &slide,
                      qiv_timer_restart);
 }

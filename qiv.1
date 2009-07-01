@@ -10,13 +10,13 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "05 Mar 2009" "qiv version 2.2" "X Tools"
+.TH qiv 1 "qiv" "fast image viewer for X" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
 .br
 
 .br
-Version: 2.2, released on 2009-04-30
+Version: 2.2.1, released on 2009-05-28
 .br
 by Andy Spiegl - http://qiv.spiegl.de/ - qiv.andy@spiegl.de
 .br
@@ -45,10 +45,9 @@ Read file names from \fIfile\fR or \fIstdin\fR, one name per line. This option c
 specified multiple times to read from several files, and will not
 affect other file names passed on the command-line.
 .TP
-.B \-u, \-\-recursivedir \fIdir\fB
-Recursively include all files from \fIdir\fR. This option can be
-specified multiple times to include from several directories, and
-will not affect other file names passed on the command-line.
+.B \-u, \-\-recursivedir
+Change the behavior of qiv to recursively descend into the directories given
+on the command line.
 .TP
 .B \-e, \-\-center
 Disable window centering.

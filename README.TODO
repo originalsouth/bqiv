@@ -1,16 +1,3 @@
-- a bug in imlib1 leads to a nasty crash:
-   Gdk-ERROR: BadMatch
-  if it's started under XOrg with the Composite extension.
-  Ubuntu does that by default, since version 6.10! *sigh*
-  The bug has been identified in the imlib1 library:
-   https://bugs.launchpad.net/ubuntu/+source/imlib/+bug/70367
-  Here is the link to the bug report about qiv:
-   https://bugs.launchpad.net/ubuntu/+source/qiv/+bug/41056
-  Debian has written a workaround: (Debian Bug #326849)
-   a wrapper for qiv which sets the environment variable XLIB_SKIP_ARGB_VISUALS=1
-  [as] included it directly in main.c to avoid the wrapper
-
-
 - wishlist for the XINERAMA support:  (like feh does it)
   + fullscreen mode: unused screens shouldn't go black
   + ungrab mouse and keyboard in unused screens
@@ -49,4 +36,16 @@
  order, and wouldn't work if they're using any of the PgDn, jt[n],
  jf[n] shortcuts.  But for the most common case, I think it would be a
  very nice performance optimization.
+
+- option to exit slideshow after showing all images
+ Such an option would allow the following:
+
+ | while true ; do
+ |  qiv -s --exit-on-endofslideshow -u mypictures/
+ | done
+
+ This wrapper would recognize added images.
+
+- use nifty new features of imlib2 (compared to imlib1)
+ I am sure there are lots!  :-)
 

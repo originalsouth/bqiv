@@ -495,7 +495,7 @@ void show_help(char *name, int exit_status)
           "    --scale_down, -t       Shrink image(s) larger than the screen to fit\n"
           "    --transparency, -p     Enable transparency for transparent images\n"
           "    --watch, -T            Reload the image if it has changed on disk\n"
-          "    --recursivedir, -u x   Recursively include all files from dir x\n"
+          "    --recursivedir, -u     Recursively include all files\n"
           "    --select_dir, -A x     Store the selected files in dir x (default is .qiv-select)\n"
           "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
           "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"

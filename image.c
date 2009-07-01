@@ -114,24 +114,29 @@ void qiv_load_image(qiv_image *q)
   stat(image_name, &statbuf);
   current_mtime = statbuf.st_mtime;
   Imlib_Image * im = imlib_load_image( (char*)image_name );
-#ifdef HAVE_EXIF
-  if (autorotate) {
-    transform( q, orient( image_name));
-  }
-#endif
 
   if (!im) { /* error */
     q->error = 1;
     q->orig_w = 400;
     q->orig_h = 300;
   } else { /* Retrieve image properties */
-    q->error = 0;
     imlib_context_set_image(im);
+    q->error = 0;
     q->orig_w = imlib_image_get_width();
     q->orig_h = imlib_image_get_height();
+#ifdef HAVE_EXIF
+    if (autorotate) {
+      transform( q, orient( image_name));
+    }
+#endif
   }
 
   check_size(q, TRUE);
+
+  if (first) {
+    setup_win(q);
+    first = 0;
+  }
 
   /* desktop-background -> exit */
   if (to_root || to_root_t || to_root_s) {
@@ -144,11 +149,6 @@ void qiv_load_image(qiv_image *q)
       return;
     else
       qiv_exit(0);
-  }
-
-  if (first) {
-    setup_win(q);
-    first = 0;
   }
 
   gdk_window_set_background(q->win, im ? &image_bg : &error_bg);
@@ -589,10 +589,10 @@ void update_image(qiv_image *q, int mode)
   }
 
   gdk_window_set_title(q->win, q->win_title);
-
+  
   q->text_len = strlen(q->win_title);
-  q->text_w = gdk_text_width(text_font, q->win_title, q->text_len);
-  q->text_h = text_font->ascent + text_font->descent;
+  pango_layout_set_text(layout, q->win_title, -1);
+  pango_layout_get_pixel_size (layout, &(q->text_w), &(q->text_h));
 
   if (!fullscreen) {
     GdkGeometry geometry = {
@@ -624,26 +624,6 @@ void update_image(qiv_image *q, int mode)
       }
     }
     gdk_window_clear(q->win);
-/**
-    if (statusbar_window) {
-#ifdef DEBUG
-      g_print("*** print statusbar at (%d, %d)\n", MAX(2,q->win_w-q->text_w-10), MAX(2,q->win_h-q->text_h-10));
-#endif
-//printf(">>> statusbar_w %d %d %d %d\n",
-// MAX(2,q->win_w-text_w-10), MAX(2,q->win_h-text_h-10), text_w+5, text_h+5);
-
-      gdk_draw_rectangle(q->win, q->bg_gc, 0,
-                         MAX(2,q->win_w-q->text_w-10), MAX(2,q->win_h-q->text_h-10),
-                         q->text_w+5, q->text_h+5);
-      gdk_draw_rectangle(q->win, q->status_gc, 1,
-                         MAX(3,q->win_w-q->text_w-9), MAX(3,q->win_h-q->text_h-9),
-                         q->text_w+4, q->text_h+4);
-      gdk_draw_text(q->win, text_font, q->text_gc,
-                    MAX(5,q->win_w-q->text_w-7), MAX(5,q->win_h-7-text_font->descent),
-                    q->win_title, q->text_len);
-    }
-    gdk_flush();
- **/
   } // if (!fullscreen)
   else
   {
@@ -696,14 +676,18 @@ void update_image(qiv_image *q, int mode)
       gdk_draw_drawable(q->win, q->bg_gc, q->p, 0, 0,
                         q->win_x, q->win_y, q->win_w, q->win_h);
 
+
     if (statusbar_fullscreen) {
-      gdk_draw_rectangle(q->win, q->bg_gc, 0,
+      {
+
+        gdk_draw_rectangle(q->win, q->bg_gc, 0,
           statusbar_x-q->text_w-10, statusbar_y-q->text_h-10, q->text_w+5, q->text_h+5);
-      gdk_draw_rectangle(q->win, q->status_gc, 1,
+
+        gdk_draw_rectangle(q->win, q->status_gc, 1,
           statusbar_x-q->text_w-9, statusbar_y-q->text_h-9, q->text_w+4, q->text_h+4);
-      gdk_draw_text(q->win, text_font, q->text_gc,
-          statusbar_x-q->text_w-7, statusbar_y-7-text_font->descent,
-          q->win_title, q->text_len);
+
+        gdk_draw_layout (q->win, q->text_gc, statusbar_x-q->text_w-7, statusbar_y-7-q->text_h, layout);
+      }
     }
 
     q->win_ox = q->win_x;

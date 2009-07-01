@@ -1,7 +1,9 @@
+Please read the "README" file first!
 
-Pleas read the "README" file first!
+If you are using Debian/GNU Linux (or a derivative thereof) just type:
+ dpkg-buildpackage -uc -B -m"your@email.address" -rfakeroot
 
-..just type: "make install" (or "gmake install", if your standard 
+Otherwise type: "make install" (or "gmake install", if your standard
 make doesn't like the Makefile) to compile and install qiv.
 
 If you are compiling on FreeBSD, Solaris, or any other system without

@@ -32,6 +32,23 @@ Authors:
   tw: Thomas Wiegner          <wiegner@gmx.de>
   bd: Barry deFreese          <bdefreese@debian.org>
   pw: Peter deWachter         <pdewacht@gmail.com>
+  ap: Akos Pasztory           <akos.pasztory@gmail.com>
+
+
+2.2.1
+=====
+ 28.05.2009         [tw] recognize changed files, using --slideshow and --watch
+                    [tw] sanitize infotextdisplay
+                    [tw] check EXIF tags only after successful file loading
+                    [tw] shuffle now implies not to sort filenames
+                    [tw] fix autorotate with EXIF-tag
+                    [tw] avoid crash calling qiv -x without argument
+                    [ap] fix behaviour of "recursivedir" switch
+                    [as] added note in README and qiv.h explaining a
+	                    problem of includes with imlib2 up to v1.2
+                    [as] migrated notes in README from imlib1 to imlib2
+                    [tw] migrated gdk_draw_text() to gdk_draw_layout()
+                        fixing wrong display of utf-8 filenames
 
 
 2.2

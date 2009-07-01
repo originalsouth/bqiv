@@ -97,6 +97,12 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   int temp, text_w = 0, text_h, i, maxlines;
   int width, height, text_left;
 
+  int ascent;
+  int descent;
+
+  ascent  = PANGO_PIXELS(pango_font_metrics_get_ascent(metrics));
+  descent = PANGO_PIXELS(pango_font_metrics_get_descent(metrics));
+
   if (fullscreen) {
     width = screen_x;
     height = screen_y;
@@ -106,20 +112,22 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   }
 
   /* Calculate maximum number of lines to display */
-  if (text_font->ascent + text_font->descent > 0)
-    maxlines = height / (text_font->ascent + text_font->descent) - 3;
+  if (ascent + descent > 0)
+    maxlines = height / (ascent + descent) - 3;
   else
     maxlines = 60;
 
-  text_w = gdk_text_width(text_font, continue_msg, strlen(continue_msg));
+  pango_layout_set_text(layout, continue_msg, -1);
+  pango_layout_get_pixel_size (layout, &text_w, NULL);
   for (i = 0; strs[i] && i < maxlines; i++) {
-    temp = gdk_text_width(text_font, strs[i], strlen(strs[i]));
+    pango_layout_set_text(layout, strs[i], -1);
+    pango_layout_get_pixel_size (layout, &temp, NULL);
     if (text_w < temp) text_w = temp;
   }
 
-  text_h = (i + 2) * (text_font->ascent + text_font->descent);
+  text_h = (i + 2) * ( ascent + descent );
 
-  snprintf(infotext, sizeof infotext, infotextdisplay);
+  snprintf(infotext, sizeof infotext, "%s", infotextdisplay);
   update_image(q, REDRAW);
 
   text_left = width/2 - text_w/2 - 4;
@@ -134,19 +142,18 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
                      height/2 - text_h/2 - 3,
                      text_w + 6, text_h + 6);
   for (i = 0; strs[i] && i < maxlines; i++) {
-    gdk_draw_text(q->win, text_font, q->text_gc, text_left + 4,
-                  height/2 - text_h/2 - text_font->descent +
-                  (i+1) * (text_font->ascent + text_font->descent),
-                  strs[i], strlen(strs[i]));
+       pango_layout_set_text(layout, strs[i], -1);
+       gdk_draw_layout (q->win, q->text_gc, text_left + 4, height/2 - text_h/2  +
+                  i * (ascent + descent), layout);
   }
 
   /* Display Push Any Key... message */
-  gdk_draw_text(q->win, text_font, q->text_gc,
-                width/2 - gdk_text_width(text_font, continue_msg, strlen(continue_msg))/2,
-                height/2 - text_h/2 - text_font->descent +
-                (i+2) * (text_font->ascent + text_font->descent),
-                continue_msg, strlen(continue_msg));
-
+  pango_layout_set_text(layout, continue_msg, -1);
+  pango_layout_get_pixel_size (layout, &temp, NULL);
+  gdk_draw_layout (q->win, q->text_gc, 
+                   width/2 - temp/2,
+                   height/2 - text_h/2 - descent + (i+1) * (ascent + descent),
+                   layout);
   displaying_textwindow = TRUE;
 
   /* print also on console */
@@ -214,9 +221,10 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
         gdk_draw_rectangle(q->win, q->status_gc, 1,
                            MAX(3,q->win_w-q->text_w-9), MAX(3,q->win_h-q->text_h-9),
                            q->text_w+4, q->text_h+4);
-        gdk_draw_text(q->win, text_font, q->text_gc,
-                      MAX(5,q->win_w-q->text_w-7), MAX(5,q->win_h-7-text_font->descent),
-                      q->win_title, q->text_len);
+
+        pango_layout_set_text(layout, q->win_title, -1);
+        pango_layout_get_pixel_size (layout, &(q->text_w), &(q->text_h));
+        gdk_draw_layout (q->win, q->text_gc, MAX(5,q->win_w-q->text_w-7),  MAX(5,q->win_h-7-q->text_h), layout);
       }
 
       break;

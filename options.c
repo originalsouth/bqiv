@@ -23,7 +23,7 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-static char *short_options = "ab:c:d:efg:hilmno:prstu:vw:xyzA:BDF:GIMNPRSTW:X:";
+static char *short_options = "ab:c:d:efg:hilmno:prstuvw:xyzA:BDF:GIMNPRSTW:X:";
 static struct option long_options[] =
 {
     {"do_grab",          0, NULL, 'a'},
@@ -43,7 +43,7 @@ static struct option long_options[] =
     {"random",           0, NULL, 'r'},
     {"slide",            0, NULL, 's'},
     {"scale_down",       0, NULL, 't'},
-    {"recursivedir",     1, NULL, 'u'},
+    {"recursivedir",     0, NULL, 'u'},
     {"version",          0, NULL, 'v'},
     {"fixed_width",      1, NULL, 'w'},
     {"root",             0, NULL, 'x'},
@@ -247,10 +247,7 @@ void options_read(int argc, char **argv, qiv_image *q)
                 break;
             case 't': scale_down=1;
                 break;
-            case 'u': if(rreaddir(optarg,1) < 0) {
-                  g_print("Error: %s is not a directory.\n",optarg);
-                  gdk_exit(1);
-                }
+            case 'u': recursive = 1;
                 break;
             case 'v': g_print("qiv (Quick Image Viewer) v%s\n", VERSION);
                 gdk_exit(0);
@@ -286,7 +283,7 @@ void options_read(int argc, char **argv, qiv_image *q)
                 break;
             case 'R': readonly=1;
                 break;
-            case 'S': shuffle=1;
+            case 'S': shuffle=1;need_sort=0;
                 break;
             case 'T': watch_file=1;
                 break;
@@ -319,7 +316,7 @@ void options_read(int argc, char **argv, qiv_image *q)
         }
         while (cnt-- > 0) {
             if (stat(argv[optind], &sb) >= 0 && S_ISDIR(sb.st_mode)) {
-                rreaddir(argv[optind++],1);
+                rreaddir(argv[optind++],recursive);
             }
             else {
                 if (images >= max_image_cnt) {
@@ -343,18 +340,18 @@ void options_read(int argc, char **argv, qiv_image *q)
         }
     }
 
-     if (need_sort) {
-         if (browse) {
-             char *tmp = (char *)xmalloc(strlen(image_names[0])+1);
-             strcpy(tmp,image_names[0]);
-             rreaddir(dirname(image_names[0]),0);
-             qsort(image_names, images, sizeof *image_names, my_strcmp);
-             image_idx = find_image(images,image_names,tmp);
-             free(tmp);
-         } else {
-             qsort(image_names, images, sizeof *image_names, my_strcmp);
-         }
-     } else if (browse) {
-         rreaddir(dirname(image_names[0]),0);
-     }
+    if (need_sort) {
+        if (browse) {
+            char *tmp = (char *)xmalloc(strlen(image_names[0])+1);
+            strcpy(tmp,image_names[0]);
+            rreaddir(dirname(image_names[0]),0);
+            qsort(image_names, images, sizeof *image_names, my_strcmp);
+            image_idx = find_image(images,image_names,tmp);
+            free(tmp);
+        } else {
+            qsort(image_names, images, sizeof *image_names, my_strcmp);
+        }
+    } else if (browse) {
+        rreaddir(dirname(image_names[0]),0);
+    }
 }
