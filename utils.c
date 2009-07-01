@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <gdk/gdkx.h>
 #include <dirent.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "qiv.h"
 
 #ifdef STAT_MACROS_BROKEN
@@ -31,6 +33,9 @@ int move2trash()
   char trashfile[FILENAME_LEN], path_result[PATH_MAX];
   int i;
 
+  if (readonly)
+    return 0;
+  
   if(!(ptr = strrchr(filename, '/'))) {   /* search rightmost slash */
     /* no slash in filename */
     strncpy(path_result, filename, PATH_MAX);
@@ -50,7 +55,7 @@ int move2trash()
     strncat(path_result, "/", PATH_MAX);
     strncat(path_result, ptr + 1, PATH_MAX);
     *ptr = '/';
-}
+  }
 
 #ifdef DEBUG
   g_print("*** trashfile: '%s'\n",trashfile);
@@ -72,12 +77,12 @@ int move2trash()
   }
 
   unlink(trashfile); /* Just in case it already exists... */
-  if(link(filename,trashfile)) {
+  if(rename(filename,trashfile)) {
     g_print("Error: Could not link file into '%s'\a\n",trashfile);
     return 1;
   }
 
-  if(!unlink(filename)) {
+  if(rename(filename,trashfile)) {
     qiv_deletedfile *del;
 
     if (!deleted_files)
@@ -99,7 +104,7 @@ int move2trash()
 
     /* If deleting the last file out of x */
     if(images == image_idx)
-      --image_idx;
+      image_idx = 0;
     
     /* If deleting the only file left */    
     if(!images)
@@ -112,12 +117,79 @@ int move2trash()
   return 0;
 }
 
+/* copy current image to SELECTDIR */
+int copy2select()
+{
+  char *ptr, *filename = image_names[image_idx];
+  char dstfile[FILENAME_LEN], buf[BUFSIZ];
+  int fdi, fdo, n;
+
+  /* try to create something; if select_dir doesn't exist, create one */
+  snprintf(dstfile, sizeof dstfile, "%s/.qiv-select", select_dir);
+  if((n = open(dstfile, O_CREAT, 0666)) == -1) {
+    switch(errno) {
+      case EEXIST:
+        unlink(dstfile);
+        break;
+      case ENOTDIR:
+      case ENOENT:
+        if(mkdir(select_dir, 0777) == -1) {
+          g_print("*** Error: Cannot create select_dir '%s': %s\a\n", select_dir, strerror(errno));
+          return -1;
+        }
+        break;
+      default:
+        g_print("*** Error: Cannot open select_dir '%s': %s\a\n", select_dir, strerror(errno));
+        return -1;
+    }
+  } else {
+    close(n);
+    unlink(dstfile);
+  }
+
+  if((ptr = strrchr(filename, '/')) != NULL) {   /* search rightmost slash */
+    ptr++;
+  } else {
+    ptr = filename;
+  }
+  snprintf(dstfile, sizeof dstfile, "%s/%s", select_dir, ptr);
+
+#ifdef DEBUG
+  g_print("*** selectfile: '%s'\n",dstfile);
+#endif
+  ptr = dstfile;
+
+  unlink(dstfile); /* Just in case it already exists... */
+  if(link(filename,dstfile)) {
+    if(errno != EXDEV) {
+      g_print("Error: Could not link file into '%s'\a\n",dstfile);
+      return 1;
+    }
+#ifdef DEBUG
+    g_print("*** Cross-filesystem link.\a\n");
+#endif
+    fdi = open(filename, O_RDONLY);
+    fdo = open(dstfile, O_CREAT | O_WRONLY, 0666);
+    if(fdi == -1 || fdo == -1) {
+      g_print("*** Error: Could not copy file: '%s'\a\n", strerror(errno));
+    }
+    while((n = read(fdi, buf, BUFSIZ)) > 0) write(fdo, buf, n);
+    close(fdi);
+    close(fdo);
+  }
+  return 0;
+}
+
+
 /* move the last deleted image out of the delete list */
 int undelete_image()
 {
   int i;
   qiv_deletedfile *del;
   char *ptr;
+
+  if (readonly)
+    return 0;
 
   if (!deleted_files) {
     g_print("Error: nothing to undelete\a\n");
@@ -131,13 +203,12 @@ int undelete_image()
     return 1;
   }
 
-  if (link(del->trashfile,del->filename) < 0) {
+  if (rename(del->trashfile,del->filename) < 0) {
     g_print("Error: undelete_image '%s' failed\a\n", del->filename);
     del->filename = NULL;
     free(del->trashfile);
     return 1;
   }
-  unlink(del->trashfile);
 
   /* unlink TRASH_DIR if empty */
   ptr = del->trashfile;
@@ -174,10 +245,15 @@ void run_command(qiv_image *q, int n, char *filename)
 	    abort();
 	}
     wait(NULL);
+
+    qiv_load_image(q);
+
+    /* 
+    zoom_factor = fixed_zoom_factor;
     reload_image(q);
-    zoom_factor = fixed_zoom_factor; /* reset zoom */
     check_size(q, TRUE);
-    update_image(q, REDRAW);
+    update_image(q, REDRAW); 
+    */
 }
 
   
@@ -258,6 +334,19 @@ void next_image(int direction)
     image_idx = (image_idx + direction + images) % images;
 }
 
+int checked_atoi (const char *s)
+{
+    char *endptr;
+    int num = strtol(s, &endptr, 0);
+
+    if (endptr == s || *endptr != '\0') {
+	g_print("Error: %s is not a valid number.\n", s);
+	gdk_exit(1);
+    }
+
+    return num;
+}
+
 void usage(char *name, int exit_status)
 {
     g_print("qiv (Quick Image Viewer) v%s\n"
@@ -278,16 +367,20 @@ void show_help(char *name, int exit_status)
 
     g_print(
           "General options:\n"
+	  "    --file, -F x           Read file names from text file x\n"
           "    --bg_color, -o x       Set root background color to x\n"
           "    --brightness, -b x     Set brightness to x (-32..32)\n"
           "    --center, -e           Disable window centering\n"
           "    --contrast, -c x       Set contrast to x (-32..32)\n"
           "    --display x            Open qiv window on display x\n"
           "    --do_grab, -a          Grab the pointer in windowed mode\n"
+          "    --fixed_width, -w x    Window with fixed width x\n"
+          "    --fixed_zoom, -W x     Window with fixed zoom factor (percentage x)\n"
           "    --fullscreen, -f       Use fullscreen window on start-up\n"
           "    --gamma, -g x          Set gamma to x (-32..32)\n"
           "    --help, -h             This help screen\n"
           "    --ignore_path_sort, -I Sort filenames by the name only\n"
+          "    --readonly, -R         Disable the deletion feature\n"
           "    --maxpect, -m          Zoom to screen size and preserve aspect ratio\n"
           "    --merged_case_sort, -M Sort filenames with AaBbCc... alpha order\n"
           "    --no_filter, -n        Do not filter images by extension\n"
@@ -299,10 +392,8 @@ void show_help(char *name, int exit_status)
           "    --root_s, -z           Set stretched desktop background and exit\n"
           "    --scale_down, -t       Shrink image(s) larger than the screen to fit\n"
           "    --transparency, -p     Enable transparency for transparent images\n"
-          "    --recursive, -u x      Recursively retrieve all files from directory x\n"
           "    --version, -v          Print version information and exit\n"
-          "    --fixed_width x, -w x  Window with fixed width x\n"
-          "    --fixed_zoom x, -W x   Window with fixed zoom factor (percentage x)\n"
+          "    --watch, -T            Reload the image if it has changed on disk\n"
           "\n"
           "Slideshow options:\n"
           "    --slide, -s            Start slideshow immediately\n"
@@ -383,9 +474,10 @@ int rreaddir(const char *dirname)
     if(!(d = opendir(cdirname)))
 	return -1;
     while((entry = readdir(d)) != NULL) {
-	if(!strcmp(entry->d_name,".") || !strcmp(entry->d_name,"..")) {
+	if (strcmp(entry->d_name,".") == 0
+	 || strcmp(entry->d_name,"..") == 0
+	 || strcmp(entry->d_name,TRASH_DIR) == 0)
 	    continue;
-	}
 	snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
 	if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
 	    rreaddir(name);
@@ -402,6 +494,48 @@ int rreaddir(const char *dirname)
 	}
     }
     closedir(d);
+    return images - before_count;
+}
+
+/* Read image filenames from a file */
+int rreadfile(const char *filename)
+{
+	FILE *fp;
+	struct stat sb;
+    int before_count = images;
+
+	fp = fopen(filename, "r");
+	if(!fp) return -1;
+
+	if (!images) {
+		max_image_cnt = 8192;
+		image_names = (char**)malloc(max_image_cnt * sizeof(char*));
+	}
+
+	while (1) {
+		char line[ BUFSIZ ];
+		size_t linelen;
+
+		if (fgets(line, sizeof(line), fp) == NULL ) {
+			if (ferror(fp))
+				g_print("Error while reading %s: %s\n", filename, strerror(errno));
+			fclose(fp);
+			break;
+		}
+		linelen = strlen(line) -1;
+		if (line[linelen] == '\n') line[linelen--]  = '\0';
+		if (line[linelen] == '\r') line[linelen--]  = '\0';
+
+		if (stat(line, &sb) >= 0 && S_ISDIR(sb.st_mode))
+			rreaddir(line);
+		else {
+			if (images >= max_image_cnt) {
+				max_image_cnt += 8192;
+				image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
+			}
+			image_names[images++] = strdup(line);
+		}
+	}
     return images - before_count;
 }
 
@@ -438,4 +572,24 @@ void swap(int *a, int *b)
 int round( double a )
 {
   return( (a-(int)a > 0.5) ? (int)a+1 : (int)a);
+}
+
+/* File watcher, an idle thread checking whether the loaded file has changed */
+
+gboolean qiv_watch_file (gpointer data)
+{
+  struct stat statbuf;
+  qiv_image *q=data;
+  if(!watch_file)
+  	return FALSE;
+
+  stat(image_names[image_idx], &statbuf);
+
+  if(current_mtime!=statbuf.st_mtime && statbuf.st_size){ 
+	  reload_image(q);
+          update_image(q, REDRAW);
+  }
+  usleep(200);  /* avoid eating 100% cpu */
+
+  return TRUE;
 }

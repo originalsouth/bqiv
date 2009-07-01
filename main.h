@@ -4,7 +4,6 @@
 
 int		first = 1; /* TRUE iff this is first image */
 char		infotext[BUF_LEN];
-GdkCursor	*cursor, *visible_cursor, *invisible_cursor;
 GMainLoop	*qiv_main_loop;
 gint		screen_x, screen_y; /* Size of the screen in pixels */
 GdkFont		*text_font; /* font for statusbar and help text */
@@ -14,11 +13,13 @@ GdkColor	image_bg; /* default background */
 GdkColor	text_bg; /* statusbar and help backgrounf */
 GdkColor	error_bg; /* for the error window/screen */
 int		images;	/* Number of images in current collection */
-char		**image_names; /* Filenames of the images */
+char		**image_names = NULL; /* Filenames of the images */
 int		image_idx; /* Index of current image displayed. 0 = 1st image */
-int		max_image_cnt; /* # images currently allocated into arrays */
+int		max_image_cnt = 0; /* # images currently allocated into arrays */
+time_t          current_mtime; /* modification time of file currently loaded */
 qiv_deletedfile *deleted_files;
 int		delete_idx;
+char    select_dir[FILENAME_LEN];
 
 /* Options and such */
 
@@ -28,6 +29,7 @@ gint	default_brightness = DEFAULT_BRIGHTNESS;
 gint	default_contrast = DEFAULT_CONTRAST;
 gint	default_gamma = DEFAULT_GAMMA;
 gint	delay = SLIDE_DELAY; /* delay in slideshow mode in seconds */
+int	readonly = 0; /* TRUE if (un)deletion of images should be impossible */
 int	random_order; /* TRUE if random delay in slideshow */
 int	random_replace = 1; /* random with replacement by default */
 int	fullscreen; /* TRUE if fullscreen mode */
@@ -45,12 +47,14 @@ int	max_rand_num; /* the largest random number range we will ask for */
 int	fixed_window_size = 0; /* window width fixed size/off */
 int	fixed_zoom_factor = 0; /* window fixed zoom factor (percentage)/off */
 int zoom_factor = 0; /* zoom factor/off */
+int watch_file = 0; /* watch current files Timestamp, reload if changed */
 
 /* Used for the ? key */
 
 const char *helpstrs[] =
 {
-    "Quick Image Viewer (qiv) Keys:",
+    " ",
+    "Quick Image Viewer (qiv) Keys:", 
     "",
     "space/left mouse/wheel down      next picture",
     "backspace/right mouse/wheel up   previous picture",
@@ -59,7 +63,9 @@ const char *helpstrs[] =
     "q/ESC/middle mouse               exit",
     "",
     "0-9                Run 'qiv-command <key> <current-img>'",
-    "?                  show keys (in fullscreen mode)",
+    "?/F1               show keys (in fullscreen mode)",
+    "F11/F12            in/decrease slideshow delay (1 second)",
+    "a/A                copy current image to .qiv-select",
     "d/D/del            move picture to .qiv-trash",
     "u                  undelete the previously trashed image",
     "+/=                zoom in (10%)",
@@ -88,9 +94,11 @@ const char *helpstrs[] =
     "enter/return       reset zoom and color settings",
     "i                  statusbar on/off",
     "I                  iconify window",
+    "w                  watch file on/off",
     "x                  center image on background",
     "y                  tile image on background",
     "z                  stretch image on background",
+    " ",
     NULL
 };
 
@@ -102,7 +110,7 @@ const char **helpkeys = helpstrs+2;
 
 const char *image_extensions[] = {
 #ifdef EXTN_JPEG
-    ".jpg",".jpeg",
+    ".jpg",".jpeg", ".jpe",
 #endif
 #ifdef EXTN_GIF
     ".gif",
@@ -126,7 +134,7 @@ const char *image_extensions[] = {
     ".pnm",
 #endif
 #ifdef EXTN_PGM
-    ".pgm",
+    ".pgm",  ".pbm",
 #endif
 #ifdef EXTN_PCX
     ".pcx",

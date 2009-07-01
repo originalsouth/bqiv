@@ -10,10 +10,10 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "16 Jul 2002" "qiv version 1.8" "X Tools"
+.TH qiv 1 "14 Jan 2003" "qiv version 1.9" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
-Version: 1.8, released on 16.07.2002
+Version: 1.9, released on 13.12.2003
 by Adam Kopacz / KLOGRAFX.DE Network
 http://www.klografx.net/qiv/ - adam.k@klografx.de
 .SH SYNOPSIS
@@ -33,14 +33,19 @@ Print out a brief help message.
 .B \-\-display \fIdisp\fB
 Open qiv window on display \fIdisp\fR.
 .TP
+.B \-F, \-\-file \fIfile\fB
+Read file names from \fIfile\fR, one name per line. This option can be 
+specified multiple times to read from several files, and will not 
+affect other file names passed on the command-line.
+.TP
 .B \-e, \-\-center
 Disable window centering.
 .TP
-.B \-w x, \-\-fixed_width x
-Window with fixed width x.
+.B \-w, \-\-fixed_width \fIx\fB
+Window with fixed width \fIx\fR.
 .TP
-.B \-W x, \-\-fixed_zoom x
-Window with fixed zoom factor (percentage x).
+.B \-W, \-\-fixed_zoom \fIx\fB.
+Window with fixed zoom factor (percentage \fIx\fR).
 .TP
 .B \-x, \-\-root \fIfile\fB
 Set \fIfile\fR as the current desktop background (centered) and exit.
@@ -94,14 +99,14 @@ Start slideshow immediately.
 .B \-r, \-\-random
 Randomize slideshow.
 .TP
+.B \-R, \-\-readonly
+Disable the deletion feature.
+.TP
 .B \-S, \-\-shuffle
 Shuffle images (random order with next/previous functionality).
 .TP
 .B \-d, \-\-delay \fIx\fB
 Set slideshow delay to \fIx\fR seconds.
-.TP
-.B \-u, \-\-recursive \fIdirectory\fB
-Recursively find all files in a given directory
 .TP
 .B \-f, \-\-fullscreen
 Use fullscreen window on start-up.
@@ -119,6 +124,9 @@ through 10foo.jpg sorts after 1bar.jpg through 15bar.jpg (because "foo"
 comes after "bar"); and baz0001.jpg through baz0010.jpg sorts after
 baz01.jpg through baz99.jpg (because the longer group of zero-padded
 digits indicates that they shouldn't be intermingled).
+.TP
+.B \-T, \-\-watch
+Reload the image if it has changed on disk.
 .SH EXAMPLES
 qiv \-atsd2 *.jpg
 .br
@@ -139,9 +147,11 @@ PgDn                               5 pictures forward
 PgUp                               5 pictures backward
 q/ESC/middle mouse                 exit
 
-0-9                Run 'qiv-command <key> <current-img>'
-?                  show keys (only in fullscreen-mode)
-d/D/del            move picture to .qiv-trash
+0-9                run 'qiv-command <key> <current-img>'
+?/F1               show keys
+F11/F12            in/decrease slideshow delay (1 second)
+a/A                copy picture to .qiv-select
+d/D/del            move picture to .qiv-trash (-R disables this feature)
 u                  undelete the previously trashed image
 +/=                zoom in (10%)
 -                  zoom out (10%)
@@ -163,23 +173,25 @@ h                  flip horizontal
 v                  flip vertical
 k                  rotate right
 l                  rotate left
-jtx<return>        jump to image number x
-jfx<return>        jump forward x images
-jbx<return>        jump backward x images
+jt\fIx\fR<return>        jump to image number \fIx\fR
+jf\fIx\fR<return>        jump forward \fIx\fR images
+jb\fIx\fR<return>        jump backward \fIx\fR images
 enter/return       reset zoom and color settings
 i                  statusbar on/off
 I                  iconify window
+w                  watch file on/off
 x                  center image on background
 y                  tile image on background
 z                  stretch image on background
 .EE
 .SH MOUSE CONTROLS
 .EX
-Button 1   next picture
-Button 2   quit
-Button 3   previous picture
-Wheel Up   next picture
-Wheel Dn   previous picture
+Button 1                            next picture
+Button 1 (hold down) & Mouse-Move   moving picture
+Button 2                            quit
+Button 3                            previous picture
+Wheel Up                            next picture
+Wheel Dn                            previous picture
 .EE
 .SH DELETING
 qiv doesn't actually delete files. It creates a directory named ".qiv-trash"
@@ -188,6 +200,8 @@ structure of your "deleted" images.  You can also undelete the most
 recently trashed images in reverse order, which moves each file back
 into its original directory.  There is a limit to how many deletions
 can be undone, but it should be pretty large (currently 1024 items).
+Sometimes this feature might be unwanted. To prevent accidents you can
+specify the "-R" option to disable this feature.
 .SH IMWHEEL SUPPORT
 With XFree86 3.3.2+ server, using the wheel is seen as button 4 and
 5 pressed. You only have to use "IMPS/2" or "Intellimouse" for
@@ -252,6 +266,7 @@ Ask Bjoern Hansen      <ask@valueclick.com>
 Adrian Lopez           <adrian2@caribe.net>
 Y Furuhashi            <y_furuhashi@ot.olympus.co.jp>
 Wayne Davison          <wayned@users.sourceforge.net>
+OEyvind Kolaas         <pippin@users.sourceforge.net>
 .EE
 .SH MISC
 .P

@@ -1,7 +1,6 @@
 
 
-after displaying one transparent image, the window border doesn't
-reappear when displaying in non-transparency mode              (as)
+- after displaying one transparent image, the window border doesn't
+  reappear when displaying in non-transparency mode (as)
 
-
-an XV-like (clickable) list of the image-names would be great  (as)
+- an XV-like (clickable) list of the image-names would be great (as)

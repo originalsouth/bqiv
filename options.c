@@ -8,6 +8,9 @@
 #include "qiv.h"
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <stdio.h>
 #ifdef HAVE_GETOPT_LONG
 #include <getopt.h>
 #else
@@ -17,39 +20,43 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 extern int rreaddir(const char *);
+extern int rreadfile(const char *);
 
-static char *short_options = "hexyzmtb:c:g:niIpavo:srSd:u:fw:W:PMN";
+static char *short_options = "hexyzmtb:c:g:niIpaA:vo:srRSd:u:fw:W:PMNF:T";
 static struct option long_options[] =
 {
-    {"help",		0, NULL, 'h'},
-    {"center",		0, NULL, 'e'},
-    {"root",		0, NULL, 'x'},
-    {"root_t",		0, NULL, 'y'},
-    {"root_s",		0, NULL, 'z'},
-    {"maxpect",		0, NULL, 'm'},
-    {"scale_down",	0, NULL, 't'},
-    {"brightness",	1, NULL, 'b'},
-    {"contrast",	1, NULL, 'c'},
-    {"gamma",		1, NULL, 'g'},
-    {"no_filter",	0, NULL, 'n'},
-    {"no_statusbar",	0, NULL, 'i'},
-    {"statusbar",	0, NULL, 'I'},
-    {"transparency",	0, NULL, 'p'},
-    {"do_grab",		0, NULL, 'a'},
-    {"version",		0, NULL, 'v'},
-    {"bg_color",	1, NULL, 'o'},
-    {"slide",		0, NULL, 's'},
-    {"random",		0, NULL, 'r'},
-    {"shuffle",         0, NULL, 'S'},
-    {"delay",		1, NULL, 'd'},
-    {"recursive",   	1, NULL, 'u'},
-    {"fullscreen",	0, NULL, 'f'},
-    {"fixed_width",		1, NULL, 'w'},
-    {"fixed_zoom",		1, NULL, 'W'},
-    {"ignore_path_sort",0, NULL, 'P'},
-    {"merged_case_sort",0, NULL, 'M'},
-    {"numeric_sort",	0, NULL, 'N'},
-    {0,			0, NULL, 0}
+    {"help",             0, NULL, 'h'},
+    {"center",           0, NULL, 'e'},
+    {"root",             0, NULL, 'x'},
+    {"root_t",           0, NULL, 'y'},
+    {"root_s",           0, NULL, 'z'},
+    {"maxpect",          0, NULL, 'm'},
+    {"scale_down",       0, NULL, 't'},
+    {"brightness",       1, NULL, 'b'},
+    {"contrast",         1, NULL, 'c'},
+    {"gamma",            1, NULL, 'g'},
+    {"no_filter",        0, NULL, 'n'},
+    {"no_statusbar",     0, NULL, 'i'},
+    {"statusbar",        0, NULL, 'I'},
+    {"transparency",     0, NULL, 'p'},
+    {"do_grab",	         0, NULL, 'a'},
+    {"select_dir",       1, NULL, 'A'},
+    {"version",          0, NULL, 'v'},
+    {"bg_color",         1, NULL, 'o'},
+    {"slide",            0, NULL, 's'},
+    {"random",           0, NULL, 'r'},
+    {"readonly",         0, NULL, 'R'},
+    {"shuffle",          0, NULL, 'S'},
+    {"delay",            1, NULL, 'd'},
+    {"fullscreen",       0, NULL, 'f'},
+    {"fixed_width",      1, NULL, 'w'},
+    {"fixed_zoom",       1, NULL, 'W'},
+    {"ignore_path_sort", 0, NULL, 'P'},
+    {"merged_case_sort", 0, NULL, 'M'},
+    {"numeric_sort",     0, NULL, 'N'},
+    {"file",             1, NULL, 'F'},
+    {"watch",            0, NULL, 'T'},
+    {0,                  0, NULL, 0}
 };
 
 static int numeric_sort = 0, merged_case_sort = 0, ignore_path_sort = 0;
@@ -182,6 +189,7 @@ void options_read(int argc, char **argv, qiv_image *q)
     int long_index, shuffle = 0, need_sort = 0;
     int c, cnt;
     int force_statusbar=-1;             /* default is don't force */
+    struct stat sb;
 
     while ((c = getopt_long(argc, argv, short_options,
 	    long_options, &long_index)) != -1) {
@@ -199,15 +207,15 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'm': maxpect=1;
 		      break;
-	    case 'b': q->mod.brightness = (atoi(optarg)+32)*8;
+	    case 'b': q->mod.brightness = (checked_atoi(optarg)+32)*8;
 		      if ((q->mod.brightness<0) || (q->mod.brightness>512))
 			  usage(argv[0],1);
 		      break;
-	    case 'c': q->mod.contrast = (atoi(optarg)+32)*8;
+	    case 'c': q->mod.contrast = (checked_atoi(optarg)+32)*8;
 		      if ((q->mod.contrast<0) || (q->mod.contrast>512))
 			  usage(argv[0],1);
 		      break;
-	    case 'g': q->mod.gamma = (atoi(optarg)+32)*8;
+	    case 'g': q->mod.gamma = (checked_atoi(optarg)+32)*8;
 		      if ((q->mod.gamma<0) || (q->mod.gamma>512))
 			  usage(argv[0],1);
 		      break;
@@ -221,6 +229,8 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'a': do_grab=1;
 		      break;
+        case 'A': snprintf(select_dir, sizeof select_dir, "%s", optarg);
+              break;
 	    case 'v': g_print("qiv (Quick Image Viewer) v%s\n", VERSION);
 		      gdk_exit(0);
 		      break;
@@ -230,11 +240,19 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'r': random_order=1;
 		      break;
+	    case 'R': readonly=1;
+		      break;
 	    case 'S': shuffle=1;
 		      break;
-	    case 'd': delay=atoi(optarg)*1000+1;
-		      if (delay<1) usage(argv[0],1);
-		      break;
+	    case 'd': delay=(int) (atof (optarg) * 1000);
+		      if (delay < 0) {
+                          g_print("Error: %s is an invalid slide show delay.\n",optarg);
+                          gdk_exit(1);
+		      }
+		      else if (delay == 0)
+			  /* make sure we get the "quit key" */
+		          do_grab = 1;
+                      break;
 	    case 'u': if(rreaddir(optarg) < 0) {
                           g_print("Error: %s is not a directory.\n",optarg);
                           gdk_exit(1);
@@ -243,15 +261,23 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'f': fullscreen=1;
 		      break;
-	    case 'w': q->win_w = fixed_window_size = atoi(optarg);
+	    case 'w': q->win_w = fixed_window_size = checked_atoi(optarg);
 		      break;
-	    case 'W': fixed_zoom_factor = (atoi(optarg) - 100) / 10;
+	    case 'W': fixed_zoom_factor = (checked_atoi(optarg) - 100) / 10;
 		      break;
 	    case 'P': need_sort = ignore_path_sort = 1;
 		      break;
 	    case 'M': need_sort = merged_case_sort = 1;
 		      break;
 	    case 'N': need_sort = numeric_sort = 1;
+		      break;
+	    case 'F': if(rreadfile(optarg) < 0) {
+                          g_print("Error: %s could not be opened: %s.\n",optarg, strerror(errno));
+                          gdk_exit(1);
+                      }
+                      need_sort=1;
+		      break;
+        case 'T': watch_file=1;
 		      break;
 	    case 0:
 	    case '?': usage(argv[0], 1);
@@ -266,17 +292,22 @@ void options_read(int argc, char **argv, qiv_image *q)
     }
 
     if((cnt = argc - optind) > 0) {
-	if(images) {
-	    if(cnt > max_image_cnt - images) {
-		max_image_cnt = images + cnt;
-		image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
-	    }
-	    while (cnt-- > 0)
-		image_names[images++] = argv[optind++];
-	}
-	else {
-	    image_names = &argv[optind];
-	    images = cnt;
+        if (!images) {
+            max_image_cnt = 8192;
+            image_names = (char**)malloc(max_image_cnt * sizeof(char*));
+        }
+        while (cnt-- > 0) {
+            if (stat(argv[optind], &sb) >= 0 && S_ISDIR(sb.st_mode)) {
+                rreaddir(argv[optind++]);
+                need_sort=1;
+            }
+            else {
+                if (images >= max_image_cnt) {
+                    max_image_cnt += 8192;
+                    image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
+                }
+                image_names[images++] = argv[optind++];
+            }
 	}
     }
 

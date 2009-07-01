@@ -28,7 +28,7 @@ GETOPT_LONG = -DHAVE_GETOPT_LONG
 
 # This program will be run on the manual page after it is installed.
 # If you don't want to compress the manpage, change it to 'true'.
-COMPRESS_PROG = gzip -9f 
+COMPRESS_PROG = gzip -9f
 
 ######################################################################
 
@@ -108,7 +108,10 @@ $(OBJS_G): %.g: %.c $(HEADERS)
 
 clean :  
 	@echo "Cleaning up..."
-	rm -f $(PROGRAM) $(PROGRAM_G) $(OBJS) $(OBJS_G)
+	rm -f $(OBJS) $(OBJS_G)
+
+distclean : clean
+	rm -f $(PROGRAM) $(PROGRAM_G)
 
 install: $(PROGRAM)
 	@echo "Installing..."

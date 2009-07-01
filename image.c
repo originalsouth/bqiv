@@ -10,6 +10,9 @@
 #include <string.h>
 #include <gdk/gdkx.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "qiv.h"
 
 static void setup_win(qiv_image *);
@@ -17,6 +20,7 @@ static void really_set_static_grav(GdkWindow *);
 static int used_masks_before=0;
 static struct timeval load_before, load_after;
 static double load_elapsed;
+static GdkCursor *cursor, *visible_cursor, *invisible_cursor;
 
 /*
  *	Load & display image
@@ -25,6 +29,7 @@ static double load_elapsed;
 void qiv_load_image(qiv_image *q)
 {
   GdkImlibColor color;
+  struct stat statbuf;
 
   gettimeofday(&load_before, 0);
 
@@ -34,6 +39,8 @@ void qiv_load_image(qiv_image *q)
     q->im = NULL;
   }
 
+  stat(image_names[image_idx], &statbuf);
+  current_mtime = statbuf.st_mtime;
   q->im = gdk_imlib_load_image(image_names[image_idx]);
 
   /* this function doesn't seem to work :-(  */
@@ -90,7 +97,7 @@ void qiv_load_image(qiv_image *q)
   load_elapsed = ((load_after.tv_sec +  load_after.tv_usec / 1.0e6) -
                  (load_before.tv_sec + load_before.tv_usec / 1.0e6));
 
-  update_image(q, REDRAW);
+  update_image(q, FULL_REDRAW);
 }
 
 static gchar blank_cursor[1];
@@ -109,7 +116,6 @@ static void setup_win(qiv_image *q)
     attr.width  = q->win_w;
     attr.height = q->win_h;
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
-    gdk_window_set_cursor(q->win, cursor);
 
     if (center) {
       gdk_window_set_hints(q->win,
@@ -141,13 +147,29 @@ static void setup_win(qiv_image *q)
     gdk_window_show(q->win);
   }
 
-  q->black_gc = gdk_gc_new(q->win);
+  q->bg_gc = gdk_gc_new(q->win);
+  q->text_gc = gdk_gc_new(q->win); /* black is default */
   q->status_gc = gdk_gc_new(q->win);
+  gdk_gc_set_foreground(q->bg_gc, &image_bg);
   gdk_gc_set_foreground(q->status_gc, &text_bg);
 
   cursor_pixmap = gdk_bitmap_create_from_data(q->win, blank_cursor, 1, 1);
   invisible_cursor = gdk_cursor_new_from_pixmap(cursor_pixmap, cursor_pixmap,
 						&text_bg, &text_bg, 0, 0);
+  cursor = visible_cursor = gdk_cursor_new(CURSOR);
+  gdk_window_set_cursor(q->win, cursor);
+}
+
+void hide_cursor(qiv_image *q)
+{
+  if (cursor != invisible_cursor)
+    gdk_window_set_cursor(q->win, cursor = invisible_cursor);
+}
+
+void show_cursor(qiv_image *q)
+{
+  if (cursor != visible_cursor)
+    gdk_window_set_cursor(q->win, cursor = visible_cursor);
 }
 
 /* XXX: fix GDK. it's setting bit gravity instead of wm gravity, so we
@@ -284,10 +306,33 @@ void zoom_maxpect(qiv_image *q)
 
 void reload_image(qiv_image *q)
 {
-  gdk_imlib_destroy_image(q->im);
-  q->im = gdk_imlib_load_image(image_names[image_idx]);
-  q->orig_w = q->im->rgb_width;
-  q->orig_h = q->im->rgb_height;
+  if(watch_file) {
+    GdkImlibImage *new_im = gdk_imlib_load_image(image_names[image_idx]);
+	if(new_im){
+	  struct stat statbuf;
+	  stat(image_names[image_idx], &statbuf);
+	  current_mtime = statbuf.st_mtime;
+
+      gdk_imlib_destroy_image(q->im);
+	  q->im = new_im;
+      q->orig_w = q->im->rgb_width;
+      q->orig_h = q->im->rgb_height;
+	}
+  } else {
+    gdk_imlib_destroy_image(q->im);
+    q->im = gdk_imlib_load_image(image_names[image_idx]);
+  }
+  if (!q->im) { /* error */
+    q->im = NULL;
+    q->error = 1;
+    q->orig_w = 400;
+    q->orig_h = 300;
+  } else { /* Retrieve image properties */
+    q->error = 0;
+    q->orig_w = q->im->rgb_width;
+    q->orig_h = q->im->rgb_height;
+  }
+  
   q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
   q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
   reset_mod(q);
@@ -298,10 +343,9 @@ void check_size(qiv_image *q, gint reset)
 {
   if (maxpect || (scale_down && (q->orig_w>screen_x || q->orig_h>screen_y))) {
     zoom_maxpect(q);
-  } else if (reset) {
-    reset_coords(q);
+  } else if (reset || (scale_down && (q->win_w<q->orig_w || q->win_h<q->orig_h))) {
+     reset_coords(q);
   }
-
   center_image(q);
 }
 
@@ -335,7 +379,7 @@ void update_image(qiv_image *q, int mode)
         "qiv: ERROR! cannot load image: %s", image_names[image_idx]);
     gdk_beep();
   } else {
-    if (mode == REDRAW) {
+    if (mode == REDRAW || mode == FULL_REDRAW) {
       gdk_imlib_set_image_modifier(q->im, &q->mod);
       gdk_imlib_changed_image(q->im);
     }
@@ -392,6 +436,7 @@ void update_image(qiv_image *q, int mode)
       gdk_window_set_hints(q->win,
         q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
         GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_POS);
+      really_set_static_grav(q->win);
       gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
     } else {
       gdk_window_set_hints(q->win,
@@ -420,19 +465,40 @@ void update_image(qiv_image *q, int mode)
 
     gdk_flush();
     if (statusbar_window) {
-      gdk_draw_rectangle(q->win, q->black_gc, 0,
+      gdk_draw_rectangle(q->win, q->bg_gc, 0,
                          MAX(2,q->win_w-text_w-10), MAX(2,q->win_h-text_h-10),
                          text_w+5, text_h+5);
       gdk_draw_rectangle(q->win, q->status_gc, 1,
                          MAX(3,q->win_w-text_w-9), MAX(3,q->win_h-text_h-9),
                          text_w+4, text_h+4);
-      gdk_draw_text(q->win, text_font, q->black_gc,
+      gdk_draw_text(q->win, text_font, q->text_gc,
                     MAX(5,q->win_w-text_w-7), MAX(5,q->win_h-7-text_font->descent),
                     win_title, text_len);
     }
   }
   else {
-    gdk_window_clear(q->win);
+    if (mode == FULL_REDRAW)
+      gdk_window_clear(q->win);
+    else {
+      if (q->win_x > q->win_ox)
+        gdk_draw_rectangle(q->win, q->bg_gc, 1,
+          q->win_ox, q->win_oy, q->win_x - q->win_ox, q->win_oh);
+      if (q->win_y > q->win_oy)
+        gdk_draw_rectangle(q->win, q->bg_gc, 1,
+          q->win_ox, q->win_oy, q->win_ow, q->win_y - q->win_oy);
+      if (q->win_x + q->win_w < q->win_ox + q->win_ow)
+        gdk_draw_rectangle(q->win, q->bg_gc, 1,
+          q->win_x + q->win_w, q->win_oy, q->win_ox + q->win_ow, q->win_oh);
+      if (q->win_y + q->win_h < q->win_oy + q->win_oh)
+        gdk_draw_rectangle(q->win, q->bg_gc, 1,
+          q->win_ox, q->win_y + q->win_h, q->win_ow, q->win_oy + q->win_oh);
+
+      if (q->statusbar_was_on && (!statusbar_fullscreen ||
+                                  q->text_ow > text_w || q->text_oh > text_h))
+        gdk_draw_rectangle(q->win, q->bg_gc, 1,
+            screen_x-q->text_ow-9, screen_y-q->text_oh-9,
+            q->text_ow+4, q->text_oh+4);
+    }
 
     /* remove or set transparency mask */
     if (used_masks_before) {
@@ -450,17 +516,25 @@ void update_image(qiv_image *q, int mode)
     }
 
     if (!q->error)
-      gdk_draw_pixmap(q->win, q->black_gc, q->p, 0, 0,
+      gdk_draw_pixmap(q->win, q->bg_gc, q->p, 0, 0,
                       q->win_x, q->win_y, q->win_w, q->win_h);
 
     if (statusbar_fullscreen) {
-      gdk_draw_rectangle(q->win, q->black_gc, 0,
+      gdk_draw_rectangle(q->win, q->bg_gc, 0,
           screen_x-text_w-10, screen_y-text_h-10, text_w+5, text_h+5);
       gdk_draw_rectangle(q->win, q->status_gc, 1,
           screen_x-text_w-9, screen_y-text_h-9, text_w+4, text_h+4);
-      gdk_draw_text(q->win, text_font, q->black_gc,
+      gdk_draw_text(q->win, text_font, q->text_gc,
           screen_x-text_w-7, screen_y-7-text_font->descent, win_title, text_len);
     }
+
+    q->win_ox = q->win_x;
+    q->win_oy = q->win_y;
+    q->win_ow = q->win_w;
+    q->win_oh = q->win_h;
+    q->text_ow = text_w;
+    q->text_oh = text_h;
+    q->statusbar_was_on = statusbar_fullscreen;
   }
   gdk_flush();
 }
@@ -476,7 +550,8 @@ void reset_mod(qiv_image *q)
 void destroy_image(qiv_image *q)
 {
   if (q->p) gdk_imlib_free_pixmap(q->p);
-  if (q->black_gc) gdk_gc_destroy(q->black_gc);
+  if (q->bg_gc) gdk_gc_destroy(q->bg_gc);
+  if (q->text_gc) gdk_gc_destroy(q->text_gc);
   if (q->status_gc) gdk_gc_destroy(q->status_gc);
 }
 

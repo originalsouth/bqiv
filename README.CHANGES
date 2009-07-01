@@ -24,6 +24,56 @@ Other contributors:
   al: Adrian Lopez            (adrian2@caribe.net)
   yf: Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
   wd: Wayne Davison           (wayned@users.sourceforge.net)
+  js: Johannes Stezenbach     (js@convergence.de)
+  ok: OEyvind Kolaas          (pippin@users.sourceforge.net)
+
+
+1.9
+===
+ 13.12.03 [-----] [ak] Cleaned up version-stuff and released 1.9 :-)
+ 10.11.03 [pre19] [ok] added patch: capability to watch a file for changes, --watch/-T options
+ 27.09.03 [pre18] [ak] removed qiv_set_cursor_timeout from fullscreen-key-event. It hangs with FVWM2.
+ 27.09.03 [pre18] [js] added patch: capability to drag the image with the mouse in fullscreen mode
+                       and fixed bugs related to background repainting with --bg_color
+ 23.09.03 [pre17] [ak] added patch by Johannes Stezenbach <js@convergence.de>
+                       which hides the mouse cursor after one second and redisplays it when the mouse
+		       is moved. I also cleaned up bugs with the delay adjustments (F11/F12), and made 
+		       sure the 'q' key comes through even when starting with delay 0.
+ 13.09.03 [pre16] [ak] added patch / undelete (link) replaced by rename. Now also works on FAT. 
+ 09.09.03 [pre15] [ak] added patch / delete (link) replaced by rename. Now also works on FAT. 
+                       http://bugs.debian.org/209079
+ 16.06.03 [pre14] [ak] added patch by Robert R. Pavlis <rpavlis@pittstate.edu>
+                       fixed event queues (KeyComands). Now a key can be hold down for a while ;)
+ 25.05.03 [pre13] [ak] added patch by Martin Pitt <martin@piware.de> / DEBIAN
+                       Fixed handling of non existing images (no crash anymore)
+ 24.05.03 [pre12] [ak] added patch by Martin Pitt <martin@piware.de> / DEBIAN
+                       Now -d can contain 0.5 seconds or so.. 
+ 16.02.03 [pre11] [ak] added patch by Drew Cohan <drewcohan@drewcohan.com>
+                       Key F11/F12 now in-/decrease the Slideshow-Delay (+/- 1 sec).
+		       Think its maybe time for QIV v2.0 ?! :-) 
+ 13.01.03 [pre10] [ak] added patch by J'raxis 270145 <software@jraxis.com>
+                       --file=<file> (-F) option to qiv to allow it to read 
+                       image/directory names from a text file
+ 24.12.02 [pre9] [ak] added PBM support (just the extension)
+ 20.10.02 [pre8] [ak] added patch by Wayne Davison <wayne@blorf.net>
+                      scale-down rotation quirk.
+ 20.10.02 [pre7] [ak] added patch by Kim Rasmussen <kr@get2net.dk>
+                      fixed WM "wmx v6" centering problem.
+ 04.10.02 [pre6] [ak] added patch by Lin Zhemin <ljm@ljm.idv.tw> 
+                      A-key to copy images to "./.qiv-select".
+ 26.09.02 [pre5] [ak] added patch by Wayne Davison <wayned@users.sourceforge.net>
+                      (some small changes)
+ 11.09.02 [pre4] [ak] added patch by Geoff Richards <qef@rosies-dumplings.co.uk>
+                      great patch to reduce flicker while moving in fullscreen :-)
+ 26.08.02 [pre3] [ak] added patch by Simon Budig <Simon.Budig@unix-ag.org>
+                      removed "-u". qiv is now detecting directorys.
+		      added "-R" (readonly option).
+ 10.08.02        [ak] added jpeg ".jpe" support (just the extension).
+ 05.08.02 [pre2] [ak] added patch by Qef Richards <qef@rosies-dumplings.co.uk>:
+                      changed the option handling slightly so that invalid arguments to 
+		      options which want numbers will be detected and a suitable error message printed.
+
+ 20.07.02 [pre1] [ak] now using qiv_load_image after qiv-command (no segfaults anymore)
 
 
 1.8

@@ -5,7 +5,12 @@
 ### this file will be launched by QIV if you push 0-9
 ### just put it in a directory that is in your path
 ###
+###
+###
 ### syntax: qiv-command [pushed_number] [image_filename_with_full_path]
+###
+### example: copy current image to /tmp/ :
+### cp "$2" "/tmp/";
 ###
 
 
@@ -13,7 +18,13 @@ case "$1" in
 
     1)
 	# do something with the image ($2) -> 
+	#
+	# example: copy
 	# cp "$2" "/home/myfiles/download/";
+	#
+	# example: move
+	# mv "$2" "/home/myfiles/download/";
+	#
 	echo -ne "$0: 1 was pushed... \n\n";
 	
     ;;

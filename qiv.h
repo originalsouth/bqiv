@@ -3,8 +3,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define VERSION "1.8"
+#define VERSION "1.9"
 #define TRASH_DIR ".qiv-trash"
+#define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
 #define IMAGE_BG "black"
 #define STATUSBAR_BG "#FFB900"
@@ -29,8 +30,18 @@ typedef struct _qiv_image {
     int error; /* 1 if Imlib couldn't load image */
     gint win_x, win_y, win_w, win_h; /* window co-ordinates */
     gint orig_w, orig_h; /* Size of original image in pixels */
-    GdkGC *black_gc; /* Background GC (black), also for statusbar font */
-    GdkGC *status_gc; /* Background for the statusbar-background ;) */
+    GdkGC *bg_gc;     /* image window background */
+    GdkGC *text_gc;   /* statusbar text color */
+    GdkGC *status_gc; /* statusbar background */
+
+    /* These are used to work out how to redraw in fullscreen mode */
+    gint win_ox, win_oy, win_ow, win_oh; /* co-ordinates currently drawn at */
+    gint text_ow, text_oh; /* old size of the statusbar */
+    int statusbar_was_on; /* true if statusbar was visible last frame */
+    int exposed;		/* window became visible */
+    int drag;			/* user is currently dragging the image */
+    double drag_start_x, drag_start_y; /* position of cursor at drag start */
+    int drag_win_x, drag_win_y; /* position of win at drag start */
 } qiv_image;
 
 typedef struct _qiv_deletedfile {
@@ -40,11 +51,8 @@ typedef struct _qiv_deletedfile {
 
 extern int		first;
 extern char		infotext[BUF_LEN];
-extern GdkCursor	*cursor, *visible_cursor, *invisible_cursor;
 extern GMainLoop	*qiv_main_loop;
 extern gint		screen_x, screen_y;
-extern GdkGC		*black_gc;
-extern GdkGC		*status_gc;
 extern GdkFont		*text_font;
 extern GdkColormap	*cmap;
 extern char		*image_bg_spec;
@@ -55,8 +63,10 @@ extern int		images;
 extern char		**image_names;
 extern int		image_idx;
 extern int		max_image_cnt;
+extern time_t		current_mtime;
 extern qiv_deletedfile	*deleted_files;
 extern int		delete_idx;
+extern char     select_dir[FILENAME_LEN];
 
 extern int		filter;
 extern gint		center;
@@ -64,6 +74,7 @@ extern gint		default_brightness;
 extern gint		default_contrast;
 extern gint		default_gamma;
 extern gint		delay;
+extern int		readonly;
 extern int		random_order;
 extern int		random_replace;
 extern int		fullscreen;
@@ -81,6 +92,7 @@ extern int		max_rand_num;
 extern int		fixed_window_size;
 extern int		fixed_zoom_factor;
 extern int		zoom_factor;
+extern int		watch_file;
 
 extern const char	*helpstrs[], **helpkeys, *image_extensions[];
 
@@ -95,6 +107,7 @@ extern void qiv_load_image();
 #define REDRAW 0
 #define MOVED  1
 #define ZOOMED 2
+#define FULL_REDRAW 3
 
 extern void qiv_load_image(qiv_image *);
 extern void set_desktop_image(qiv_image *);
@@ -106,11 +119,11 @@ extern void reset_coords(qiv_image *);
 extern void check_size(qiv_image *, gint);
 extern void render_to_pixmap(qiv_image *, double *);
 extern void update_image(qiv_image *, int);
-extern void update_m_image(qiv_image *);
-extern void update_z_image(qiv_image *);
 extern void reset_mod(qiv_image *);
 extern void destroy_image(qiv_image *q);
 extern void center_image(qiv_image *q);
+extern void hide_cursor(qiv_image *q);
+extern void show_cursor(qiv_image *q);
 
 /* event.c */
 
@@ -123,14 +136,17 @@ extern void options_read(int, char **, qiv_image *);
 /* utils.c */
 
 extern int  move2trash(void);
+extern int  copy2select(void);
 extern int  undelete_image(void);
 extern void jump2image(char *);
 extern void run_command(qiv_image *, int, char *);
 extern void finish(int);
 extern void next_image(int);
+extern int checked_atoi(const char *);
 extern void usage(char *, int);
 extern void show_help(char *, int);
 extern int get_random(int, int, int);
 extern gboolean color_alloc(const char *, GdkColor *);
 extern void swap(int *, int *);
 extern int round(double);
+extern gboolean qiv_watch_file (gpointer);

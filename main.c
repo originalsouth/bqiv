@@ -8,6 +8,7 @@
 
 #include <gdk/gdkx.h>
 #include <gtk/gtkwidget.h>
+#include <gtk/gtkmain.h>
 #include <stdio.h>
 #include <signal.h>
 #include <sys/time.h>
@@ -49,7 +50,6 @@ int main(int argc, char **argv)
   text_font = gdk_font_load(STATUSBAR_FONT);
   screen_x = gdk_screen_width();
   screen_y = gdk_screen_height();
-  cursor = visible_cursor = gdk_cursor_new(CURSOR);
 
   gtk_widget_push_visual(gdk_imlib_get_visual());
   gtk_widget_push_colormap(gdk_imlib_get_colormap());
@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 
   /* Set up our options, image list, etc */
 
+  strncpy(select_dir, SELECT_DIR, sizeof select_dir);
   reset_mod(&main_img);
   options_read(argc, argv, &main_img);
   max_rand_num = images;
@@ -106,6 +107,11 @@ int main(int argc, char **argv)
   /* Load & display the first image */
 
   qiv_load_image(&main_img);
+  
+  if(watch_file){
+  	gtk_idle_add (qiv_watch_file, &main_img);
+  }
+
   g_main_run(qiv_main_loop); /* will never return */
   return 0;
 }

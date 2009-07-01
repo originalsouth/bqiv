@@ -1,5 +1,5 @@
-Quick Image Viewer (qiv) version 1.8  by Adam Kopacz / KLOGRAFX.DE Network
-http://www.klografx.net/qiv/ - adam.k@klografx.de - Released on: 16.07.2002
+Quick Image Viewer (qiv) version 1.9  by Adam Kopacz / KLOGRAFX.DE Network
+http://www.klografx.net/qiv/ - adam.k@klografx.de - Released on: 13.12.2003
 ===========================================================================
 
 
@@ -41,7 +41,7 @@ Authors:
 --------
 
   Adam Kopacz             <adam.k@klografx.de>
-  Andy Spiegl            <qiv.andy@spiegl.de>
+  Andy Spiegl             <qiv.andy@spiegl.de>
   Darren Smith            <darren.smith@verinet.com>
   Pavel Andreev           <paxvel@vumsoft.cz>   
   Decklin Foster          <decklin@red-bean.com>
@@ -63,6 +63,7 @@ Authors:
   Ask Bjoern Hansen      <ask@valueclick.com>
   Adrian Lopez           <adrian2@caribe.net>
   Y Furuhashi            <y_furuhashi@ot.olympus.co.jp>
+  OEyvind Kolaas         <pippin@users.sourceforge.net>
 
 Homepage:   
 ---------
@@ -100,7 +101,7 @@ Thumbnails:
 
   i don't plan on adding a thumbnail function.  sorry, but qiv is a
   QUICK image VIEWER and nothing more.  if you want more features
-  (with Imlib) then try Electric Eyes or gqview ...
+  (with Imlib) then try Electric Eyes or gqview ... 
 
   
 Image caching:
