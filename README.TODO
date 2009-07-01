@@ -1,0 +1,4 @@
+
+we need a better function that checks if the moved image (in fullscreenmode) is outside the viewable area. 
+this isn't easy because the qiv window can be bigger than the screen-size .. 
+

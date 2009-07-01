@@ -14,28 +14,34 @@
 #include <dirent.h>
 #include "qiv.h"
 
-/* copy current image to .qiv-trash */
-int move2trash(char *filename)
+#ifdef STAT_MACROS_BROKEN
+#undef S_ISDIR
+#endif
+
+#if !defined(S_ISDIR) && defined(S_IFDIR)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
+/* move current image to .qiv-trash */
+int move2trash()
 {
-  char *ptr,*ptr2;
-  char trashfile[FILENAME_LEN];
-  int i=0;
+  char *ptr, *ptr2, *filename = image_names[image_idx];
+  char trashfile[FILENAME_LEN], path_result[PATH_MAX];
+  int i;
 
-  ptr2 = malloc(sizeof(char) * FILENAME_LEN);
-
-  if(!realpath(filename,ptr2)) {
-    g_print("Error: Could not move file to trash\n");
+  if(!realpath(filename,path_result)) {
+    g_print("Error: realpath failure moving file to trash\a\n");
     return 1;
   }
 
-  snprintf(trashfile, sizeof trashfile, "%s%s", TRASH_DIR, ptr2);
+  snprintf(trashfile, sizeof trashfile, "%s%s", TRASH_DIR, path_result);
 
   ptr = ptr2 = trashfile;
   while((ptr = strchr(ptr,'/'))) {
     *ptr = '\0';
     if(access(ptr2,F_OK)) {
       if(mkdir(ptr2,0700)) {
-	g_print("Error: Could not make directory %s\n",ptr2);
+	g_print("Error: Could not make directory %s\a\n",ptr2);
 	return 1;
       }
     }
@@ -43,12 +49,27 @@ int move2trash(char *filename)
     ptr += 1;
   }
 
+  unlink(trashfile); /* Just in case it already exists... */
   if(link(filename,trashfile)) {
-    g_print("Error: Could not copy file to %s\n",trashfile);
+    g_print("Error: Could not link file into %s\a\n",trashfile);
     return 1;
   }
 
   if(!unlink(filename)) {
+    qiv_deletedfile *del;
+
+    if (!deleted_files)
+      deleted_files = (qiv_deletedfile*)calloc(MAX_DELETE,sizeof *deleted_files);
+
+    del = &deleted_files[delete_idx++];
+    if (delete_idx == MAX_DELETE)
+      delete_idx = 0;
+    if (del->filename)
+	free(del->realpath);
+    del->filename = filename;
+    del->realpath = strdup(path_result);
+    del->pos = image_idx;
+
     --images;
     for(i=image_idx;i<images;++i) {
       image_names[i] = image_names[i+1];
@@ -63,20 +84,66 @@ int move2trash(char *filename)
       gdk_exit(0);
   }
   else {
-    g_print("Error: Could not write to %s\n", TRASH_DIR);
+    g_print("Error: Could not write to %s\a\n", TRASH_DIR);
     return 1;
   }
+  return 0;
+}
+
+/* move the last deleted image out of the delete list */
+int undelete_image()
+{
+  int i;
+  char trashfile[FILENAME_LEN];
+  qiv_deletedfile *del;
+
+  if (!deleted_files) {
+    g_print("Error: nothing to undelete\a\n");
+    return 1;
+  }
+  if (--delete_idx < 0)
+    delete_idx = MAX_DELETE - 1;
+  del = &deleted_files[delete_idx];
+  if (!del->filename) {
+    g_print("Error: nothing to undelete\a\n");
+    return 1;
+  }
+
+  snprintf(trashfile, sizeof trashfile, "%s%s", TRASH_DIR, del->realpath);
+
+  if (link(trashfile,del->realpath) < 0) {
+    del->filename = NULL;
+    free(del->realpath);
+    g_print("Error: undelete_image failed\a\n");
+    return 1;
+  }
+  unlink(trashfile);
+
+  image_idx = del->pos;
+  for(i=images;--i>=image_idx;) {
+    image_names[i+1] = image_names[i];
+  }
+  images++;
+  image_names[image_idx] = del->filename;
+  del->filename = NULL;
+  free(del->realpath);
+
   return 0;
 }
 
 /* run a command ... */
 void run_command(qiv_image *q, int n, char *filename)
 {
-    static char command[BUF_LEN];
+    static char nr[10];
     snprintf(infotext, sizeof infotext, "Running: 'qiv-command %i %s'", n, filename);
     update_image(q);
-    snprintf(command, sizeof command, "qiv-command %i %s", n, filename);
-    system(command);
+    
+    snprintf(nr, sizeof nr, "%i", n);
+	if (!fork()) {
+	    execlp("qiv-command", "qiv-command", nr, filename, 0);
+	    perror("error calling qiv-command");
+	    abort();
+	}
 }
 
   
@@ -146,25 +213,15 @@ void finish(int sig)
 void next_image(int direction)
 {
   static int last_modif = 1;	/* Delta of last change of index of image */
-  if (direction) {
-    if (random_order)
-      image_idx = get_random(random_replace, images, direction);
-    else 
-      image_idx += direction;
-    
+
+  if (!direction)
+    direction = last_modif;
+  else
     last_modif = direction;
-  } 
-  else {
-    /* Default action */
-    if (random_order) {
-      /* Select a random image */
-      image_idx = get_random(random_replace, images, last_modif);
-    } else
-      /* Repeat our last direction change */
-      image_idx += last_modif;
-  }
-  /* Correct out-of-bound indices */
-  image_idx = (image_idx + images) % images;
+  if (random_order)
+    image_idx = get_random(random_replace, images, direction);
+  else
+    image_idx = (image_idx + direction + images) % images;
 }
 
 void usage(char *name, int exit_status)
@@ -187,31 +244,35 @@ void show_help(char *name, int exit_status)
 
     g_print(
           "General options:\n"
-          "    --help, -h           This help screen\n"
-          "    --display x          Open qiv window on display x\n"
-          "    --center, -e         Disable window centering\n"
-          "    --root, -x           Set centered desktop background and exit\n"
-          "    --root_t, -y         Set tiled desktop background and exit\n"
-          "    --root_s, -z         Set stretched desktop background and exit\n"
-          "    --maxpect, -m        Zoom to screen size and preserve aspect ratio\n"
-          "    --scale_down, -t     Shrink image(s) larger than the screen to fit\n"
-          "    --fullscreen, -f     Use fullscreen window on start-up\n"
-          "    --brightness, -b x   Set brightness to x (-32..32)\n"
-          "    --contrast, -c x     Set contrast to x (-32..32)\n"
-          "    --gamma, -g x        Set gamma to x (-32..32)\n"
-          "    --no_filter, -n      Do not filter images by extension\n"
-          "    --no_statusbar, -i   Disable statusbar in fullscreen_mode\n"
-          "    --transparency, -p   Enable transparency for transparent images\n"
-          "    --do_grab, -a        Grab the pointer in windowed mode\n"
-          "    --version, -v        Print version information and exit\n"
-          "    --bg_color, -o x     Set root background color to x\n"
-          "    --recursive, -u x    Recursively retrieve all files from directory x\n"
+          "    --bg_color, -o x       Set root background color to x\n"
+          "    --brightness, -b x     Set brightness to x (-32..32)\n"
+          "    --center, -e           Disable window centering\n"
+          "    --contrast, -c x       Set contrast to x (-32..32)\n"
+          "    --display x            Open qiv window on display x\n"
+          "    --do_grab, -a          Grab the pointer in windowed mode\n"
+          "    --fullscreen, -f       Use fullscreen window on start-up\n"
+          "    --gamma, -g x          Set gamma to x (-32..32)\n"
+          "    --help, -h             This help screen\n"
+          "    --ignore_path_sort, -I Sort filenames by the name only\n"
+          "    --maxpect, -m          Zoom to screen size and preserve aspect ratio\n"
+          "    --merged_case_sort, -M Sort filenames with AaBbCc... alpha order\n"
+          "    --no_filter, -n        Do not filter images by extension\n"
+          "    --no_statusbar, -i     Disable statusbar in fullscreen_mode\n"
+          "    --numeric_sort, -N     Sort filenames with numbers intuitively\n"
+          "    --root, -x             Set centered desktop background and exit\n"
+          "    --root_t, -y           Set tiled desktop background and exit\n"
+          "    --root_s, -z           Set stretched desktop background and exit\n"
+          "    --scale_down, -t       Shrink image(s) larger than the screen to fit\n"
+          "    --transparency, -p     Enable transparency for transparent images\n"
+          "    --recursive, -u x      Recursively retrieve all files from directory x\n"
+          "    --version, -v          Print version information and exit\n"
+          "    --width x, -w x        Disable window with fixed width x\n"
           "\n"
           "Slideshow options:\n"
-          "    --slide, -s          Start slideshow immediately\n"
-          "    --random, -r         Random order\n"
-          "    --shuffle, -S        Shuffled order\n"
-          "    --delay, -d x        Wait x seconds between images [default=%d]\n"
+          "    --slide, -s            Start slideshow immediately\n"
+          "    --random, -r           Random order\n"
+          "    --shuffle, -S          Shuffled order\n"
+          "    --delay, -d x          Wait x seconds between images [default=%d]\n"
           "\n"
           "Keys:\n", SLIDE_DELAY/1000);
 
@@ -237,14 +298,17 @@ void show_help(char *name, int exit_status)
 int get_random(int replace, int num, int direction)
 {
   static int index = -1;
-
-  
   static int *rindices = NULL;  /* the array of random intgers */
+  static int rsize;
 
   int n,m,p,q;
 
   if (!rindices)
-    rindices = (int *) malloc((unsigned) num*sizeof(int));
+    rindices = (int *) malloc((unsigned) max_rand_num*sizeof(int));
+  if (rsize != num) {
+    rsize = num;
+    index = -1;
+  }
 
   if (index < 0)         /* no more indices left in this cycle. Build a new */
     {		         /* array of random numbers, by not sorting on random keys */
@@ -264,44 +328,45 @@ int get_random(int replace, int num, int direction)
 	}
     }
 
-  if (shuffle) {
-    index = index - direction;
-    index = (index + num) % num;
-  }
-
-  return rindices[shuffle?index:index--];
+  return rindices[index--];
 }
 
 /* Recursively gets all files from a directory */
 
-int rreaddir(const char *dirname, char **files)
+int rreaddir(const char *dirname)
 {
-    DIR *d,*tmp;
+    DIR *d;
     struct dirent *entry;
     char cdirname[FILENAME_LEN], name[FILENAME_LEN];
-    int i=0;
+    struct stat sb;
+    int before_count = images;
 
     strncpy(cdirname, dirname, sizeof cdirname);
     cdirname[FILENAME_LEN-1] = '\0';
 
-    d = opendir(cdirname);
-    if(d) {
-        while((entry = readdir(d))) {
-            if(!strcmp(entry->d_name,".") ||
-                !strcmp(entry->d_name,"..")) {
-                continue;
-            }
-            snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
-            files[i++] = strdup(name);
-            if((tmp = opendir(name))) {
-                closedir(tmp);
-                --i;
-                i += rreaddir(name,&files[i]);
-            }
-        }
-        closedir(d);
+    if(!(d = opendir(cdirname)))
+	return -1;
+    while((entry = readdir(d)) != NULL) {
+	if(!strcmp(entry->d_name,".") || !strcmp(entry->d_name,"..")) {
+	    continue;
+	}
+	snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
+	if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
+	    rreaddir(name);
+	}
+	else {
+	    if (images >= max_image_cnt) {
+		max_image_cnt += 8192;
+		if (!image_names)
+		    image_names = (char**)malloc(max_image_cnt * sizeof(char*));
+		else
+		    image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
+	    }
+	    image_names[images++] = strdup(name);
+	}
     }
-    return i;
+    closedir(d);
+    return images - before_count;
 }
 
 gboolean color_alloc(const char *name, GdkColor *color)

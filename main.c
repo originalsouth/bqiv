@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   text_font = gdk_font_load(STATUSBAR_FONT);
   screen_x = gdk_screen_width();
   screen_y = gdk_screen_height();
-  cursor = gdk_cursor_new(CURSOR);
+  cursor = visible_cursor = gdk_cursor_new(CURSOR);
 
   gtk_widget_push_visual(gdk_imlib_get_visual());
   gtk_widget_push_colormap(gdk_imlib_get_colormap());
@@ -61,18 +61,10 @@ int main(int argc, char **argv)
 
   /* Set up our options, image list, etc */
 
-  files = calloc(MAX_FILES, FILENAME_LEN);
   reset_mod(&main_img);
-  options_read(argc, argv, &main_img, &image_idx);
+  options_read(argc, argv, &main_img);
+  max_rand_num = images;
 
-  if (read_directory) {
-    images = nfiles;
-    image_names = files;
-  } else {
-    images = argc - image_idx;	/* Number of images */
-    image_names = &argv[image_idx];
-  }
-  
   if (filter) /* Filter graphic images */
     filter_images(&images,image_names);
   
@@ -90,7 +82,7 @@ int main(int argc, char **argv)
   /* Display first image first, except in random mode */
 
   image_idx = 0;
-  if (random_order || shuffle)
+  if (random_order)
     next_image(0);
 
   //disabled because 'params' is never used, see above

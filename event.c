@@ -7,6 +7,7 @@
 */	
 
 #include <stdio.h>
+#include <string.h>
 #include <gdk/gdkkeysyms.h>
 #include "qiv.h"
 
@@ -27,6 +28,13 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
     case GDK_BUTTON_PRESS:
       jumping=0;		/* abort jump mode if a button is pressed */
+      if (cursor == visible_cursor)
+	gdk_window_set_cursor(q->win, cursor = invisible_cursor);
+      break;
+
+    case GDK_MOTION_NOTIFY:
+      if (cursor == invisible_cursor)
+	gdk_window_set_cursor(q->win, cursor = visible_cursor);
       break;
 
     /* Use release instead of press (Fixes bug with junk being sent
@@ -53,6 +61,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
     case GDK_KEY_PRESS:
 
       exit_slideshow = TRUE;	/* Abort slideshow on any key by default */
+      if (cursor != invisible_cursor)
+	gdk_window_set_cursor(q->win, cursor = invisible_cursor);
    #ifdef DEBUG
       g_print("*** key:\n");	/* display key-codes */
       g_print("\tstring: %s\n",ev->key.string);
@@ -123,6 +133,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'f':
 	    exit_slideshow = FALSE;
 	    gdk_window_withdraw(q->win);
+	    if (cursor == invisible_cursor)
+	      gdk_window_set_cursor(q->win, cursor = visible_cursor);
 	    fullscreen ^= 1;
 	    first=1;
 	    qiv_load_image(q);
@@ -184,7 +196,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	      snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
 	      fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
 	    }
-	    update_image(q);
+	    update_m_image(q);
 	    break;
 
 	  /* move image left */
@@ -201,7 +213,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	      snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
 	      fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
 	    }
-	    update_image(q);
+	    update_m_image(q);
 	    break;
 
 	  /* move image up */
@@ -218,7 +230,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
                 snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
                 fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
             }
-	    update_image(q);
+	    update_m_image(q);
 	    break;
 
 	  /* move image down */
@@ -235,7 +247,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
                 snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
                 fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
             }
-            update_image(q);
+            update_m_image(q);
             break;
 
 	  /* Scale_down */
@@ -257,7 +269,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case '=':
 	    snprintf(infotext, sizeof infotext, "(Zoomed in)");
 	    zoom_in(q);
-	    update_image(q);
+	    update_z_image(q);
 	    break;
 
 	  /* Resize - */
@@ -266,7 +278,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case '-':
 	    snprintf(infotext, sizeof infotext, "(Zoomed out)");
 	    zoom_out(q);
-	    update_image(q);
+	    update_z_image(q);
 	    break;
 
 	  /* Reset Image / Original (best fit) size */
@@ -289,8 +301,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    qiv_load_image(q);
 	    break;
 
+	  /* Previous picture - or loop back to the last */
 
-	    /* Previous picture - or loop back to the last */
 	  case GDK_BackSpace:
 	  case GDK_Page_Up:
 	  case GDK_KP_Page_Up:
@@ -352,8 +364,21 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case GDK_Delete:
 	  case 'D':
 	  case 'd':
-	    move2trash(image_names[image_idx]);
-	    snprintf(infotext, sizeof infotext, "(Deleted last image)");
+	    if (move2trash() == 0)
+		snprintf(infotext, sizeof infotext, "(Deleted last image)");
+	    else
+		snprintf(infotext, sizeof infotext, "(Delete FAILED)");
+	    qiv_load_image(q);
+	    break;
+
+	  /* Undelete image */
+
+	  case 'U':
+	  case 'u':
+	    if (undelete_image() == 0)
+		snprintf(infotext, sizeof infotext, "(Undeleted)");
+	    else
+		snprintf(infotext, sizeof infotext, "(Undelete FAILED)");
 	    qiv_load_image(q);
 	    break;
 
@@ -483,6 +508,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             break;
 
 	  default:
+	    exit_slideshow = FALSE;
 	    break;
 	 }
       }

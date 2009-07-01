@@ -56,7 +56,7 @@ SS_RANDOMIZE = -r
 CC        = gcc
 CFLAGS    = -O2 -Wall -fomit-frame-pointer -finline-functions \
 	    -fcaller-saves -ffast-math -fno-strength-reduce \
-	    -fthread-jumps #-march=pentium
+	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 
 INCLUDES  = `imlib-config --cflags-gdk`
 LIBS      = `imlib-config --libs-gdk` -R/usr/local/lib -lsupport
@@ -91,6 +91,8 @@ $(PROGRAM): $(OBJS)
 
 $(OBJS): %.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
+
+main.o: main.h
 
 ######################################################################
 

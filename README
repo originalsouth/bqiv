@@ -1,6 +1,6 @@
-Quick Image Viewer (qiv) version 1.6  by Adam Kopacz / kLoGraFX Network
+Quick Image Viewer (qiv) version 1.7  by Adam Kopacz / kLoGraFX Network
 http://www.klografx.net/qiv/ - adam.k@klografx.de
-Released on: 18.01.2001
+Released on: 05.07.2001
 =======================================================================
 
 
@@ -62,6 +62,7 @@ Authors:
   Henning Kulander       <hennikul@ifi.uio.no>    
   Ask Bjoern Hansen      <ask@valueclick.com>
   Adrian Lopez           <adrian2@caribe.net>
+  Y Furuhashi            <y_furuhashi@ot.olympus.co.jp>
 
 Homepage:   
 ---------
@@ -86,7 +87,7 @@ Misc:
 Centering:
 ----------
 
-  As of version 1.6, qiv centers images by applying the correct window
+  As of version 1.7, qiv centers images by applying the correct window
   position and setting the window gravity to Static, so that window
   managers don't move the window when adding borders. If you come
   across a window manager that does mess up our centering, or has
@@ -109,7 +110,7 @@ Image caching:
   which says 'gdk_imlib_kill_image(q->im);', and change 'kill' to
   'destroy'. Don't forget to set your cache sizes with imlib_config!
   This stuff doesn't work right here (imlib 1.8 cvs) and on a imlib
-  1.6 system so i have disabled it.
+  1.7 system so i have disabled it.
 
 
 Speeding Up qiv:

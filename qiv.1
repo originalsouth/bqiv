@@ -10,10 +10,10 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "26 Jul 2000" "qiv version 1.6" "X Tools"
+.TH qiv 1 "05 Jul 2001" "qiv version 1.7" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
-Version: 1.6, released on 18.01.2001
+Version: 1.7, released on 05.07.2001
 by Adam Kopacz / kLoGraFX
 http://www.klografx.net/qiv/ - adam.k@klografx.de
 .SH SYNOPSIS
@@ -35,6 +35,9 @@ Open qiv window on display \fIdisp\fR.
 .TP
 .B \-e, \-\-center
 Disable window centering.
+.TP
+.B \-w x, \-\-width x
+Dissable window with fixed width x.
 .TP
 .B \-x, \-\-root \fIfile\fB
 Set \fIfile\fR as the current desktop background (centered) and exit.
@@ -96,6 +99,20 @@ Recursively find all files in a given directory
 .TP
 .B \-f, \-\-fullscreen
 Use fullscreen window on start-up.
+.TP
+.B \-I, \-\-ignore_path_sort
+Sort all the image files by just their filename, ignoring the path.
+.TP
+.B \-M, \-\-merged_case_sort
+Sort all the image files in merged-case order (AaBbCc...).
+.TP
+.B \-N, \-\-numeric_sort
+A "smart" numeric sort that attempts to sort filenames with numbers in
+a logical manner.  For instance: 2.jpg sorts before 10.jpg; 1foo.jpg
+through 10foo.jpg sorts after 1bar.jpg through 15bar.jpg (because "foo"
+comes after "bar"); and baz0001.jpg through baz0010.jpg sorts after
+baz01.jpg through baz99.jpg (because the longer group of zero-padded
+digits indicates that they shouldn't be intermingled).
 .SH EXAMPLES
 qiv \-atsd2 *.jpg
 .br
@@ -117,6 +134,7 @@ q/ESC/middle mouse                      exit
 0-9                Run 'qiv-command <key> <current-img>'
 ?                  show keys (only in fullscreen-mode)
 d/D/del            move picture to .qiv-trash
+u                  undelete the previously trashed image
 +/=                zoom in (10%)
 -                  zoom out (10%)
 f                  fullscreen mode on/off
@@ -155,7 +173,10 @@ Wheel Dn   previous picture
 .SH DELETING
 qiv doesn't actually delete files. It creates a directory named ".qiv-trash"
 and moves the images to that directory. qiv maintains the directory
-structure of your "deleted" images.
+structure of your "deleted" images.  You can also undelete the most
+recently trashed images in reverse order, which moves each file back
+into its original directory.  There is a limit to how many deletions
+can be undone, but it should be pretty large (currently 1024 items).
 .SH IMWHEEL SUPPORT
 With XFree86 3.3.2+ server, using the wheel is seen as button 4 and
 5 pressed. You only have to use "IMPS/2" or "Intellimouse" for
@@ -193,10 +214,14 @@ Scott Sams             <sbsams@eos.ncsu.edu>
 Serge Winitzki         <winitzki@geocities.com>
 Danny                  <dannys@mail.com>
 Tomas Ogren            <stric@ing.umu.se>
+Erik Jacobsen          <erik@openix.com>
 Alfred Weyers          <alfred@otto.gia.RWTH-Aachen.DE>
 Daniel                 <danad157@student.liu.se>
 Henning Kulander       <hennikul@ifi.uio.no>
 Ask Bjoern Hansen      <ask@valueclick.com>
+Adrian Lopez           <adrian2@caribe.net>
+Y Furuhashi            <y_furuhashi@ot.olympus.co.jp>
+Wayne Davison          <wayned@users.sourceforge.net>
 .EE
 .SH MISC
 .P

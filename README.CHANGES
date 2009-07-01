@@ -21,7 +21,36 @@ Other contributors:
   hk: Henning Kulander        (hennikul@ifi.uio.no)
   ab: Ask Bjoern Hansen       (ask@valueclick.com)
   al: Adrian Lopez            (adrian2@caribe.net)
+  yf: Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
+  wd: Wayne Davison           (wayned@users.sourceforge.net)
 
+
+1.7
+===
+ 05.07.01 [----] [ak] added a qiv-command.example & released 1.7 :-)
+ 10.06.01 [pre9] [ak] added qiv_command_patch from post@volker-wysk.de
+ 03.06.01 [pre8] [ak] image_moving now uses func update_m_image. no screen clean first anymore -> faster moving :)
+                      zoom now uses update_z_image -> a little bit faster zoom (+0.1s?)
+		      added README.TODO
+ 11.05.01 [pre7] [wd] Fixed window-resizing in non-fullscreen mode.
+                      Fixed combining -x with -m or -t.
+ 02.05.01 [pre6] [wd] Fixed mouse-hiding on button-push when fullscreen.
+                      Added some missing names to the doc file.
+ 30.04.01 [pre5] [wd] Hide the mouse on keypress and button push when it is
+                      in the qiv window (the mouse is re-shown on mouse
+                      movement).  Improved the sort algorithms (particularly
+                      the numeric sort).
+ 02.04.01 [pre4] [wd] rreaddir() patch.
+ 28.03.01 [pre3] [wd] Added undelete image command (bound to u & U).  Allow the
+                      user to specify multiple -u options and also to specify
+                      files on the commandline in addition to -uDIRs.  Added
+                      new commandline sorting options (-I, -M, & -N).
+                      Optimized rreaddir(), next_image(), and get_random().
+                      Improved the implementation of shuffle.  Other misc.
+                      (and minor) bug fixes and tweaks.
+ 20.02.01 [pre2] [yf] removed slideshow_exit from default event. 
+ 17.02.01 [pre1] [yf] added the option  -w x or --width x for displaying with a fixed 
+                      window-width.
 
 1.6
 ===
