@@ -27,10 +27,11 @@ Authors:
   jd: Geoffrey T. Dairik      (dairiki@dairiki.org)
   lc: Leopoldo Cerbaro        (redbliss@aliceposta.it)
   hl: Heikki Lehvaslaiho      (heikki@sanbi.ac.za)
-
+  ld: Larry Doolittle         (ldoolitt@boa.org)
 
 2.1
 ===
+ 21.05.2007 [pre13] [ld] patch to prevent segfault on amd64
  02.05.2007 [pre12] [as] avoid wrapper, include "XLIB_SKIP_ARGB_VISUALS=1" in main.c
  25.04.2007         [as] include README and README.TODO in debian package
                          README.TODO: fvwm style setting has to be for "therealqiv"

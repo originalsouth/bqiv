@@ -126,10 +126,8 @@ static void setup_win(qiv_image *q)
     attr.width  = q->win_w;
     attr.height = q->win_h;
     attr.wmclass_name = "qiv";
+    attr.wmclass_class = "Qiv";   // prevents segfault on amd64 [ld]
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y|GDK_WA_WMCLASS);
-//  q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
-// [lc] GDK_WA_WMCLASS segfaults with -O0
-// [as] could not confirm -> leave GDK_WA_WMCLASS in
 
     if (center) {
       gdk_window_set_hints(q->win,
