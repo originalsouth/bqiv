@@ -77,7 +77,10 @@ void qiv_load_image(qiv_image *q)
       qiv_exit(1);
     }
     set_desktop_image(q);
-    qiv_exit(0);
+    if(slide)
+      return;
+    else
+      qiv_exit(0);
   }
 
   if (first) {
@@ -115,7 +118,8 @@ static void setup_win(qiv_image *q)
     attr.y = center ? q->win_y : 0;
     attr.width  = q->win_w;
     attr.height = q->win_h;
-    q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
+    attr.wmclass_name = "qiv";
+    q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y|GDK_WA_WMCLASS);
 
     if (center) {
       gdk_window_set_hints(q->win,
@@ -236,9 +240,14 @@ void set_desktop_image(qiv_image *q)
 	       screen_y, gvis->depth, &image_bg, &image_bg);
     gdk_draw_pixmap(temp, rootGC, q->p, 0, 0, root_x, root_y, root_w, root_h);
     gdk_window_set_back_pixmap(root_win, temp, FALSE);
+    gdk_imlib_free_pixmap(temp);
     gdk_gc_destroy(rootGC);
   }
 
+  if(q->p) {
+    gdk_imlib_free_pixmap(q->p);
+    q->p = NULL;
+  }
   gdk_window_clear(root_win);
   gdk_flush();
 }
@@ -260,8 +269,7 @@ void zoom_in(qiv_image *q)
   q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
 
   /* adapt image position */
-  q->win_x = (screen_x - q->win_w) / 2;
-  q->win_y = (screen_y - q->win_h) / 2;
+  center_image(q);
 }
 
 void zoom_out(qiv_image *q)
@@ -282,8 +290,7 @@ void zoom_out(qiv_image *q)
     q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
 
     /* adapt image position */
-    q->win_x = (screen_x - q->win_w) / 2;
-    q->win_y = (screen_y - q->win_h) / 2;
+    center_image(q);
   } else {
     snprintf(infotext, sizeof infotext, "(Can not zoom_out anymore)");
     fprintf(stderr, "qiv: can not zoom_out anymore\n");
@@ -477,9 +484,9 @@ void update_image(qiv_image *q, int mode)
     }
   }
   else {
-    if (mode == FULL_REDRAW)
-      gdk_window_clear(q->win);
-    else {
+    if (mode == FULL_REDRAW) {
+      gdk_window_clear(q->win); 
+    } else {
       if (q->win_x > q->win_ox)
         gdk_draw_rectangle(q->win, q->bg_gc, 1,
           q->win_ox, q->win_oy, q->win_x - q->win_ox, q->win_oh);

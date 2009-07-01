@@ -24,7 +24,21 @@ Authors:
   js: Johannes Stezenbach     (js@convergence.de)
   ok: OEyvind Kolaas          (pippin@users.sourceforge.net)
   mc: Matthieu Castet         (castet.matthieu@free.fr)
+  jd: Geoffrey T. Dairik      (dairiki@dairiki.org)
 
+
+2.1
+===
+ 01.01.2005 [pre7] [ak] added small patch by Nick Clifton <nickc@redhat.com>:
+                        setting WM_CLASS name to "qiv" (attr.wmclass_name). 
+ 05.12.2004 [pre6] [ak] changed a-key/copy to real copy (no links anymore)
+ 11.09.2004 [pre5] [ak] patch-bugfix by Christian Lademann <lademann@zls.de>
+ 01.09.2004 [pre4] [ak] adden patch by Christian Lademann <lademann@zls.de>
+                        now slideshow (-s) can also be combine with -x/y/z 
+ 07.07.2004 [pre3] [ak] added -F Patch by Martin Fiedler <martin.fiedler@gmx.net> 
+                        now stdin can also be used..
+ 16.06.2004 [pre2] [jd] Xinerama bugfix
+ 26.05.2004 [pre1] [wd] small changes in delete-command
 
 2.0
 ===
@@ -48,8 +62,7 @@ Authors:
                       All arrow-keys+Shift = faster moving. 
                       NumPad-arrow-keys+NumLock = faster moving. 
  18.04.04 [pre5] [mc/ak] Added patch: Faster moving of pictures with pushed Shift+Arrow-Keys.
- 14.04.04 [pre3/4] [ak] Added Xinerama patch by Jeff Dairiki (dairiki@dairiki.org)
-                        (MultiHead XFree86 V. 4.0+)
+ 14.04.04 [pre3/4] [jd] Xinerama patch (MultiHead XFree86 V. 4.0+)
  23.02.04 [pre2] [ak] fixed manpage (ignore_path_sort was wrong)
  08.01.04 [pre1] [ak] Added patch by HaJo Schatz (hajo@hajo.net):
                       "--disable_grab, -G" Disable pointer/kbd grab in fullscreen mode 

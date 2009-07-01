@@ -241,17 +241,20 @@ get_preferred_xinerama_screen(void)
 {
   static XineramaScreenInfo preferred_screen[1];
   Display * dpy;
-  XineramaScreenInfo *screens;
+  XineramaScreenInfo *screens = 0;
   int nscreens = 0;
 
   dpy = XOpenDisplay(gdk_get_display());
   if (!dpy) {
     return 0;
   }
-  screens = XineramaQueryScreens(dpy, &nscreens);
+  if (XineramaIsActive(dpy))
+    screens = XineramaQueryScreens(dpy, &nscreens);
+
   if (screens) {
     XineramaScreenInfo * s = largest_xinerama_screen(screens,nscreens);
     *preferred_screen = *s;
+    XFree(screens);
   }
   else {
     /* If we don't have Xinerama, fake it: */
@@ -261,7 +264,6 @@ get_preferred_xinerama_screen(void)
     preferred_screen->width = DisplayWidth(dpy, DefaultScreen(dpy));
     preferred_screen->height = DisplayHeight(dpy, DefaultScreen(dpy));
   }
-  XFree(screens);
   XCloseDisplay(dpy);
   return preferred_screen;
 }

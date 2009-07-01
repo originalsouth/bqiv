@@ -33,8 +33,8 @@ Print out a brief help message.
 .B \-\-display \fIdisp\fB
 Open qiv window on display \fIdisp\fR.
 .TP
-.B \-F, \-\-file \fIfile\fB
-Read file names from \fIfile\fR, one name per line. This option can be 
+.B \-F, \-\-file \fIfile | stdin\fB
+Read file names from \fIfile\fR or \fIstdin\fR, one name per line. This option can be 
 specified multiple times to read from several files, and will not 
 affect other file names passed on the command-line.
 .TP
@@ -72,7 +72,9 @@ Set contrast to \fIx\fR (-32..32).
 Set gamma to \fIx\fR (-32..32).
 .TP
 .B \-n, \-\-no_filter
-Disable filtering of images by extension.
+Disable filtering of images by extension. Normally, qiv
+will only load images with an image extension such as .jpg, .png, .gif ...
+This option lets you load any file as an image.
 .TP
 .B \-i, \-\-no_statusbar
 Disable statusbar.
@@ -99,7 +101,8 @@ Set root background color to named color \fIx\fR or 24 bit hex RGB triple
 in the format \fI#RRGGBB\fR.
 .TP
 .B \-s, \-\-slide
-Start slideshow immediately.
+Start slideshow immediately. This can also be used for the desktop 
+background (x/y/z).
 .TP
 .B \-r, \-\-random
 Randomize slideshow.

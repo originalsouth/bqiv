@@ -78,11 +78,9 @@ int move2trash()
 
   unlink(trashfile); /* Just in case it already exists... */
   if(rename(filename,trashfile)) {
-    g_print("Error: Could not link file into '%s'\a\n",trashfile);
+    g_print("Error: Could not rename '%s' to '%s'\a\n",filename,trashfile);
     return 1;
-  }
-
-  if(rename(filename,trashfile)) {
+  } else {
     qiv_deletedfile *del;
 
     if (!deleted_files)
@@ -109,10 +107,6 @@ int move2trash()
     /* If deleting the only file left */    
     if(!images)
       gdk_exit(0);
-  }
-  else {
-    g_print("Error: Could not remove file '%s'\a\n", filename);
-    return 1;
   }
   return 0;
 }
@@ -160,14 +154,7 @@ int copy2select()
   ptr = dstfile;
 
   unlink(dstfile); /* Just in case it already exists... */
-  if(link(filename,dstfile)) {
-    if(errno != EXDEV) {
-      g_print("Error: Could not link file into '%s'\a\n",dstfile);
-      return 1;
-    }
-#ifdef DEBUG
-    g_print("*** Cross-filesystem link.\a\n");
-#endif
+
     fdi = open(filename, O_RDONLY);
     fdo = open(dstfile, O_CREAT | O_WRONLY, 0666);
     if(fdi == -1 || fdo == -1) {
@@ -176,7 +163,7 @@ int copy2select()
     while((n = read(fdi, buf, BUFSIZ)) > 0) write(fdo, buf, n);
     close(fdi);
     close(fdo);
-  }
+
   return 0;
 }
 
@@ -438,7 +425,7 @@ void show_help(char *name, int exit_status)
 
     g_print(
           "General options:\n"
-	  "    --file, -F x           Read file names from text file x\n"
+	  "    --file, -F x           Read file names from text file x or stdin\n"
           "    --bg_color, -o x       Set root background color to x\n"
           "    --brightness, -b x     Set brightness to x (-32..32)\n"
           "    --center, -e           Disable window centering\n"
@@ -468,6 +455,7 @@ void show_help(char *name, int exit_status)
           "    --watch, -T            Reload the image if it has changed on disk\n"
           "\n"
           "Slideshow options:\n"
+	  "This can also be used for the desktop background (x/y/z)\n"
           "    --slide, -s            Start slideshow immediately\n"
           "    --random, -r           Random order\n"
           "    --shuffle, -S          Shuffled order\n"
@@ -479,7 +467,7 @@ void show_help(char *name, int exit_status)
     for (i=0; helpkeys[i]; i++)
         g_print("    %s\n", helpkeys[i]);
 
-    g_print("\nValid image extensions:");
+    g_print("\nValid image extensions:\nUse --no_filter/-n to disable");
 
     for (i=0; image_extensions[i]; i++)
 	g_print("%s%s", (i%8) ? " " : "\n    ", image_extensions[i]);
@@ -574,10 +562,15 @@ int rreadfile(const char *filename)
 {
 	FILE *fp;
 	struct stat sb;
-    int before_count = images;
+	int before_count = images;
 
-	fp = fopen(filename, "r");
-	if(!fp) return -1;
+         if (strcmp(filename,"-")) {
+                 fp = fopen(filename, "r");
+                 if(!fp) return -1;
+         } else
+                 fp = stdin;
+	
+	
 
 	if (!images) {
 		max_image_cnt = 8192;
