@@ -3,7 +3,7 @@
   Purpose      : Read and evaluate commandline options
   More         : see qiv README
   Homepage     : http://www.klografx.net/qiv/
-*/	
+*/
 
 #include "qiv.h"
 #include <string.h>
@@ -16,13 +16,15 @@
 #else
 #include "lib/getopt.h"
 #endif
+#include "xmalloc.h"
 
 extern char *optarg;
 extern int optind, opterr, optopt;
 extern int rreaddir(const char *);
+extern int rrreaddir(const char *);
 extern int rreadfile(const char *);
 
-static char *short_options = "hexyzmtb:c:g:niIpaGA:vo:srRSd:u:fw:W:PMNF:T";
+static char *short_options = "hexyzmtb:c:g:niIpaGA:vo:srRSd:u:fw:W:DPMNF:TX:";
 static struct option long_options[] =
 {
     {"help",             0, NULL, 'h'},
@@ -49,14 +51,17 @@ static struct option long_options[] =
     {"readonly",         0, NULL, 'R'},
     {"shuffle",          0, NULL, 'S'},
     {"delay",            1, NULL, 'd'},
+    {"recursivedir",     1, NULL, 'u'},
     {"fullscreen",       0, NULL, 'f'},
     {"fixed_width",      1, NULL, 'w'},
     {"fixed_zoom",       1, NULL, 'W'},
+    {"no_sort",          0, NULL, 'D'},
     {"ignore_path_sort", 0, NULL, 'P'},
     {"merged_case_sort", 0, NULL, 'M'},
     {"numeric_sort",     0, NULL, 'N'},
     {"file",             1, NULL, 'F'},
     {"watch",            0, NULL, 'T'},
+    {"xineramascreen",   1, NULL, 'X'},
     {0,                  0, NULL, 0}
 };
 
@@ -106,16 +111,16 @@ static int my_strcmp(const void *v1, const void *v2)
     unsigned char *sufptr1, *sufptr2;
     int tmp;
 
-    sufptr1 = cp1 + strlen(cp1);
+    sufptr1 = cp1 + strlen((char *)cp1);
     while (--sufptr1 > cp1 && *sufptr1 != '.') {}
-    sufptr2 = cp2 + strlen(cp2);
+    sufptr2 = cp2 + strlen((char *)cp2);
     while (--sufptr2 > cp2 && *sufptr2 != '.') {}
 
     if (ignore_path_sort) {
 	unsigned char *slash;
-	if ((slash = strrchr(cp1, '/')) != NULL)
+	if ((slash = (unsigned char *)strrchr((char *)cp1, '/')) != NULL)
 	    cp1 = slash + 1;
-	if ((slash = strrchr(cp2, '/')) != NULL)
+	if ((slash = (unsigned char *)strrchr((char *)cp2, '/')) != NULL)
 	    cp2 = slash + 1;
     }
     if (numeric_sort) {
@@ -134,7 +139,7 @@ static int my_strcmp(const void *v1, const void *v2)
 		if (cp2 == ep2)
 		    return -1;
 		if ((diff = (ep1 - cp1) - (ep2 - cp2)) == 0) {
-		    long val = atol(cp1) - atol(cp2);
+		    long val = atol((char *)cp1) - atol((char *)cp2);
 		    diff = val < 0? -1 : val > 0? 1 : 0;
 		}
 		if (diff
@@ -187,7 +192,7 @@ static int my_strcmp(const void *v1, const void *v2)
 
 void options_read(int argc, char **argv, qiv_image *q)
 {
-    int long_index, shuffle = 0, need_sort = 0;
+    int long_index, shuffle = 0, need_sort = 1;
     int c, cnt;
     int force_statusbar=-1;             /* default is don't force */
     struct stat sb;
@@ -256,11 +261,10 @@ void options_read(int argc, char **argv, qiv_image *q)
 			  /* make sure we get the "quit key" */
 		          do_grab = 1;
                       break;
-	    case 'u': if(rreaddir(optarg) < 0) {
+	    case 'u': if(rrreaddir(optarg) < 0) {
                           g_print("Error: %s is not a directory.\n",optarg);
                           gdk_exit(1);
                       }
-                      need_sort=1;
 		      break;
 	    case 'f': fullscreen=1;
 		      break;
@@ -268,25 +272,34 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'W': fixed_zoom_factor = (checked_atoi(optarg) - 100) / 10;
 		      break;
-	    case 'P': need_sort = ignore_path_sort = 1;
+	    case 'D': need_sort = 0;
 		      break;
-	    case 'M': need_sort = merged_case_sort = 1;
+	    case 'P': ignore_path_sort = 1;
 		      break;
-	    case 'N': need_sort = numeric_sort = 1;
+	    case 'M': merged_case_sort = 1;
+		      break;
+	    case 'N': numeric_sort = 1;
 		      break;
 	    case 'F': if(rreadfile(optarg) < 0) {
                           g_print("Error: %s could not be opened: %s.\n",optarg, strerror(errno));
                           gdk_exit(1);
                       }
-                      need_sort=1;
 		      break;
         case 'T': watch_file=1;
 		      break;
+#ifdef GTD_XINERAMA
+	    case 'X': user_screen = checked_atoi(optarg);
+//             g_print("set xinerama screen: %i\n", user_screen);
+		      break;
+#endif
 	    case 0:
 	    case '?': usage(argv[0], 1);
 		      gdk_exit(0);
 	}
     }
+
+    /* In case user specified -D and -P, -M, or -N */
+    need_sort = need_sort || ignore_path_sort || merged_case_sort || numeric_sort;
 
     /* default: show statusbar only in fullscreen mode */
     /* user wants to override? */
@@ -297,17 +310,16 @@ void options_read(int argc, char **argv, qiv_image *q)
     if((cnt = argc - optind) > 0) {
         if (!images) {
             max_image_cnt = 8192;
-            image_names = (char**)malloc(max_image_cnt * sizeof(char*));
+            image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
         }
         while (cnt-- > 0) {
             if (stat(argv[optind], &sb) >= 0 && S_ISDIR(sb.st_mode)) {
                 rreaddir(argv[optind++]);
-                need_sort=1;
             }
             else {
                 if (images >= max_image_cnt) {
                     max_image_cnt += 8192;
-                    image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
+                    image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
                 }
                 image_names[images++] = argv[optind++];
             }

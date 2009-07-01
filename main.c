@@ -4,7 +4,7 @@
   More         : see qiv README
   Homepage     : http://www.klografx.net/qiv/
   Policy       : GNU GPL
-*/	
+*/
 
 #include <gdk/gdkx.h>
 #include <gtk/gtkwidget.h>
@@ -18,6 +18,7 @@
 #include "main.h"
 
 qiv_image main_img;
+qiv_mgl   magnify_img; /* [lc] */
 
 static void filter_images(int *, char **);
 static int check_extension(const char *);
@@ -26,18 +27,35 @@ static void qiv_signal_usr2();
 static gboolean qiv_handle_timer(gpointer);
 static void qiv_timer_restart(gpointer);
 
-#ifdef GTD_XINERAMA
-static void get_preferred_xinerama_screens(void);
-#endif
-
 int main(int argc, char **argv)
 {
   struct timeval tv;
 
+/*
+  // [as] thinks that this is not portable enough
+  // [lc]
+  // I use a virtual screen of 1600x1200, and the resolution is 1024x768,
+  // so I changed how screen_[x,y] is obtained; it seems that gtk 1.2
+  // cannot give the geometry of viewport, so I borrowed from the source of
+  // xvidtune the code for calling XF86VidModeGetModeLine, this requires
+  // the linking option -lXxf86vm.
+  XF86VidModeModeLine modeline;
+  int dot_clock;
+*/
+
   //er, we don't set a value for params.dither here?
-  //i would probably just let the user's .imrc set it
+  //I would probably just let the user's .imrc set it
   //GdkImlibInitParams params;
   //params.flags = PARAMS_DITHER;
+
+  /* Randomize seed for 'true' random */
+  gettimeofday(&tv,NULL);
+  srand(tv.tv_usec*1000000+tv.tv_sec);
+
+  /* Set up our options, image list, etc */
+  strncpy(select_dir, SELECT_DIR, sizeof select_dir);
+  reset_mod(&main_img);
+  options_read(argc, argv, &main_img);
 
   /* Initialize GDK and Imlib */
 
@@ -55,23 +73,31 @@ int main(int argc, char **argv)
   screen_x = gdk_screen_width();
   screen_y = gdk_screen_height();
 
+/*
+  // [as] thinks that this is not portable enough
+  // [lc]
+  // I use a virtual screen of 1600x1200, and the resolution is 1024x768,
+  // so I changed how screen_[x,y] is obtained; it seems that gtk 1.2
+  // cannot give the geometry of viewport, so I borrowed from the source of
+  // xvidtune the code for calling XF86VidModeGetModeLine, this requires
+  // the linking option -lXxf86vm.
+  XF86VidModeGetModeLine(GDK_DISPLAY(), DefaultScreen(GDK_DISPLAY()),
+                         &dot_clock, &modeline);
+  //printf("> hdisplay %d vdisplay %d\n", modeline.hdisplay, modeline.vdisplay); 
+  screen_x=MIN(screen_x, modeline.hdisplay);
+  screen_y=MIN(screen_y, modeline.vdisplay);
+*/
+
 #ifdef GTD_XINERAMA
   get_preferred_xinerama_screens();
+//  screen_x=MIN(screen_x, preferred_screen->width);
+//  screen_y=MIN(screen_y, preferred_screen->height);
 #endif
 
   gtk_widget_push_visual(gdk_imlib_get_visual());
   gtk_widget_push_colormap(gdk_imlib_get_colormap());
 
-  /* Randomize seed for 'true' random */
 
-  gettimeofday(&tv,NULL);
-  srand(tv.tv_usec*1000000+tv.tv_sec);
-
-  /* Set up our options, image list, etc */
-
-  strncpy(select_dir, SELECT_DIR, sizeof select_dir);
-  reset_mod(&main_img);
-  options_read(argc, argv, &main_img);
   max_rand_num = images;
 
   if (filter) /* Filter graphic images */
@@ -117,7 +143,7 @@ int main(int argc, char **argv)
   qiv_load_image(&main_img);
   
   if(watch_file){
-  	gtk_idle_add (qiv_watch_file, &main_img);
+    gtk_idle_add (qiv_watch_file, &main_img);
   }
 
   g_main_run(qiv_main_loop); /* will never return */
@@ -132,7 +158,7 @@ void qiv_exit(int code)
   destroy_image(&main_img);
 
   g_main_destroy(qiv_main_loop);
-  finish(SIGTERM);		/* deprecated, subject to change */
+  finish(SIGTERM);        /* deprecated, subject to change */
 }
 
 
@@ -173,14 +199,14 @@ static gboolean qiv_handle_timer(gpointer data)
 
 
 /*
- *	Slideshow timer (re)start function
+ *    Slideshow timer (re)start function
  */
  
 static void qiv_timer_restart(gpointer dummy)
 {
   g_timeout_add_full(G_PRIORITY_LOW, delay,
-		     qiv_handle_timer, &slide,
-		     qiv_timer_restart);
+                     qiv_handle_timer, &slide,
+                     qiv_timer_restart);
 }
 
 /* Filter images by extension */
@@ -195,8 +221,8 @@ static void filter_images(int *images, char **image_names)
     } else {
       int j = i;
       while(j < *images-1) {
-	image_names[j] = image_names[j+1];
-	++j;
+        image_names[j] = image_names[j+1];
+        ++j;
       }
       --(*images);
     }
@@ -215,85 +241,3 @@ static int check_extension(const char *name)
 
   return 0;
 }
-
-#ifdef GTD_XINERAMA
-/**
- * Find screen which maximizes f(screen)
- */
-static XineramaScreenInfo *
-xinerama_maximal_screen (XineramaScreenInfo * screens, int nscreens,
-			 long (*f)(XineramaScreenInfo *))
-{
-  XineramaScreenInfo * screen;
-  long value;
-  long maxvalue = 0;
-  XineramaScreenInfo * maximal_screen = screens;
-  
-  for (screen = screens; nscreens--; screen++) {
-    value = f(screen);
-    if (value > maxvalue) {
-      maxvalue = value;
-      maximal_screen = screen;
-    }
-  }
-  return maximal_screen;
-}
-
-static long
-xinerama_screen_npixels (XineramaScreenInfo * screen)
-{
-  return screen->width * screen->height;
-}
-
-/**
- * We will want to find the lower-rightmost screen (on which we
- * would like to display the statusbar in full-screen mode).
- *
- * In the general case (screens of differing sizes and arbitrarily placed)
- * the "lower-rightmost" screen is not particularly well defined.  We
- * take the definition as follows:
- *
- * Let (l_i, r_i) be the absolute pixel coordinates of the lower right corner
- * corner of screen i.  The lower-rightmost screen is the one for which
- * l_i + r_i is a maximum.
- */
-static long
-xinerama_screen_lower_rightness (XineramaScreenInfo * screen)
-{
-  return screen->x_org + screen->y_org + screen->width + screen->height;
-}
-
-static void
-get_preferred_xinerama_screens(void)
-{
-  Display * dpy;
-  XineramaScreenInfo *screens = 0;
-  int nscreens = 0;
-
-  dpy = XOpenDisplay(gdk_get_display());
-  if (dpy && XineramaIsActive(dpy))
-    screens = XineramaQueryScreens(dpy, &nscreens);
-
-  if (screens) {
-    *preferred_screen 
-      = *xinerama_maximal_screen(screens, nscreens,
-				 xinerama_screen_npixels);
-    *statusbar_screen
-      = *xinerama_maximal_screen(screens, nscreens,
-				 xinerama_screen_lower_rightness);
-    XFree(screens);
-  }
-  else {
-    /* If we don't have Xinerama, fake it: */
-    preferred_screen->screen_number = 0;
-    preferred_screen->x_org = 0;
-    preferred_screen->y_org = 0;
-    preferred_screen->width = gdk_screen_width();
-    preferred_screen->height = gdk_screen_height();
-
-    *statusbar_screen = *preferred_screen;
-  }
-  if (dpy)
-    XCloseDisplay(dpy);
-}
-#endif

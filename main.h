@@ -1,8 +1,7 @@
-
 #ifndef MAIN_H
 #define MAIN_H
 
-int		first = 1; /* TRUE iff this is first image */
+int		first = 1; /* TRUE if this is first image or after fullscreen or iconifying */
 char		infotext[BUF_LEN];
 GMainLoop	*qiv_main_loop;
 gint		screen_x, screen_y; /* Size of the screen in pixels */
@@ -49,6 +48,15 @@ int	fixed_window_size = 0; /* window width fixed size/off */
 int	fixed_zoom_factor = 0; /* window fixed zoom factor (percentage)/off */
 int zoom_factor = 0; /* zoom factor/off */
 int watch_file = 0; /* watch current files Timestamp, reload if changed */
+int magnify = 0; /* [lc] */
+int user_screen = -1; /* preferred (by user) Xinerama screen */
+
+#ifdef GTD_XINERAMA
+int number_xinerama_screens = 0;
+XineramaScreenInfo preferred_screen[1];
+XineramaScreenInfo statusbar_screen[1];
+#endif
+
 
 /* Used for the ? key */
 
@@ -63,6 +71,7 @@ const char *helpstrs[] =
     "q/ESC/middle mouse               exit",
     "",
     "0-9                  Run 'qiv-command <key> <current-img>'",
+    "^<string><return>    Run 'qiv-command ^<string> <current-img>'",
     "?/F1                 show keys (in fullscreen mode)",
     "F11/F12              in/decrease slideshow delay (1 second)",
     "a/A                  copy current image to .qiv-select",
@@ -74,6 +83,7 @@ const char *helpstrs[] =
     "f                    fullscreen mode on/off",
     "m                    scale to screen size on/off",
     "t                    scale down on/off",
+    "X                    cycle through xinerama screens",
     "s                    slide show on/off",
     "p                    transparency on/off",
     "r                    random order on/off",
@@ -83,9 +93,7 @@ const char *helpstrs[] =
     "C                    + contrast",
     "g                    - gamma",
     "G                    + gamma",
-    "arrow keys                 move image (in fullscreen mode)",
-    "arrow keys+Shift           move image faster (in fullscreen mode)",
-    "NumPad-arrow keys+NumLock  move image faster (in fullscreen mode)",
+    "o                    reset brightness, contrast, gamma",
     "h                    flip horizontal",
     "v                    flip vertical",
     "k                    rotate right",
@@ -100,6 +108,10 @@ const char *helpstrs[] =
     "x                    center image on background",
     "y                    tile image on background",
     "z                    stretch image on background",
+    "<                    turn on/off magnifying window",
+    "arrow keys                 move image (in fullscreen mode)",
+    "arrow keys+Shift           move image faster (in fullscreen mode)",
+    "NumPad-arrow keys+NumLock  move image faster (in fullscreen mode)",
     NULL
 };
 
@@ -152,8 +164,4 @@ const char *image_extensions[] = {
     NULL
 };
 
-#ifdef GTD_XINERAMA
-XineramaScreenInfo preferred_screen[1];
-XineramaScreenInfo statusbar_screen[1];
-#endif
 #endif /* MAIN_H */

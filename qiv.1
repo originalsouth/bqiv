@@ -10,10 +10,10 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "14 Jan 2003" "qiv version 2.0" "X Tools"
+.TH qiv 1 "23 Apr 2007" "qiv version 2.1-pre11" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
-Version: 2.0, released on 22.05.2004
+Version: 2.1-pre11, released on 25.04.2007
 by Adam Kopacz / KLOGRAFX.DE Network
 http://www.klografx.net/qiv/ - adam.k@klografx.de
 .SH SYNOPSIS
@@ -37,6 +37,11 @@ Open qiv window on display \fIdisp\fR.
 Read file names from \fIfile\fR or \fIstdin\fR, one name per line. This option can be 
 specified multiple times to read from several files, and will not 
 affect other file names passed on the command-line.
+.TP
+.B \-u, \-\-recursivedir \fIdir\fB
+Recursively include all files from \fIdir\fR. This option can be 
+specified multiple times to include from several directories, and 
+will not affect other file names passed on the command-line.
 .TP
 .B \-e, \-\-center
 Disable window centering.
@@ -133,8 +138,17 @@ comes after "bar"); and baz0001.jpg through baz0010.jpg sorts after
 baz01.jpg through baz99.jpg (because the longer group of zero-padded
 digits indicates that they shouldn't be intermingled).
 .TP
+.B \-D, \-\-no_sort
+Do not apply any sorting to the list of files.
+.TP
 .B \-T, \-\-watch
 Reload the image if it has changed on disk.
+.TP
+.B \-A, \-\-select_dir \fIdir\fB
+Store the selected files in \fIdir\fR (default is .qiv-select).
+.TP
+.B \-X, \-\-xineramascreen \fIx\fB
+Use screen \fIx\fR as preferred Xinerama screen
 .SH EXAMPLES
 qiv \-atsd2 *.jpg
 .br
@@ -156,6 +170,7 @@ PgUp                               5 pictures backward
 q/ESC/middle mouse                 exit
 
 0-9                run 'qiv-command <key> <current-img>'
+^\fI...\fR<return>       run 'qiv-command ^\fI...\fR <current-img>' where \fI...\fR can be any string
 ?/F1               show keys
 F11/F12            in/decrease slideshow delay (1 second)
 a/A                copy picture to .qiv-select
@@ -167,6 +182,7 @@ e                  center mode on/off
 f                  fullscreen mode on/off
 m                  scale to screen size on/off
 t                  scale down on/off
+X                  cycle through xinerama screens
 s                  slide show on/off
 p                  transparency on/off
 r                  random order on/off
@@ -176,9 +192,7 @@ c                  - contrast
 C                  + contrast
 g                  - gamma
 G                  + gamma
-arrow keys                 move image (in fullscreen mode)
-arrow keys+Shift           move image faster (in fullscreen mode)
-NumPad-arrow keys+NumLock  move image faster (in fullscreen mode)
+o                  reset brightness, contrast, gamma
 h                  flip horizontal
 v                  flip vertical
 k                  rotate right
@@ -193,6 +207,10 @@ w                  watch file on/off
 x                  center image on background
 y                  tile image on background
 z                  stretch image on background
+<                  turn on/off magnifying window
+arrow keys                 move image (in fullscreen mode)
+arrow keys+Shift           move image faster (in fullscreen mode)
+NumPad-arrow keys+NumLock  move image faster (in fullscreen mode)
 .EE
 .SH MOUSE CONTROLS
 .EX

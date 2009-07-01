@@ -32,7 +32,7 @@ COMPRESS_PROG = gzip -9f
 
 # Comment this line out if your system doesn't have libXinerama
 # installed (for centering on dual-screen)
-#GTD_XINERAMA = -DGTD_XINERAMA
+GTD_XINERAMA = -DGTD_XINERAMA
 
 ######################################################################
 
@@ -67,9 +67,16 @@ CFLAGS    = -O2 -Wall \
 
 INCLUDES  = `imlib-config --cflags-gdk`
 LIBS      = `imlib-config --libs-gdk`
+# [as] thinks that this is not portable enough
+# [lc] I use a virtual screen of 1600x1200, and the resolution is 1024x768,
+# so I changed (in main.c) how screen_[x,y] is obtained; it seems that gtk
+# 1.2 cannot give the geometry of viewport, so I borrowed from the source
+# of xvidtune the code for calling XF86VidModeGetModeLine, this requires
+# the linking option -lXxf86vm.
+#LIBS      = `imlib-config --libs-gdk` -lXxf86vm
 
 PROGRAM   = qiv
-OBJS      = main.o image.o event.o options.o utils.o
+OBJS      = main.o image.o event.o options.o utils.o xmalloc.o
 HEADERS   = qiv.h
 DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             $(GETOPT_LONG) \

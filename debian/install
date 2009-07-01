@@ -1,0 +1,3 @@
+therealqiv usr/bin
+debian/bin/qiv usr/bin
+debian/lintian/qiv usr/share/lintian/overrides

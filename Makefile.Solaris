@@ -66,7 +66,7 @@ INCLUDES  = `imlib-config --cflags-gdk`
 LIBS      = `imlib-config --libs-gdk` -R`imlib-config --prefix`/lib
 
 PROGRAM   = qiv
-OBJS      = main.o image.o event.o options.o utils.o
+OBJS      = main.o image.o event.o options.o utils.o xmalloc.o
 HEADERS   = qiv.h
 DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             $(GETOPT_LONG) \

@@ -1,5 +1,42 @@
-- statusbar doesn't appear everytime when the window size changes
-   (a bug in gdk?)
+- a bug in imlib1 leads to a nasty crash:
+   Gdk-ERROR: BadMatch
+  if it's started under XOrg with the Composite extension.
+  Ubuntu does that by default, since version 6.10! *sigh*
+  The bug has been identified in the imlib1 library:
+   https://bugs.launchpad.net/ubuntu/+source/imlib/+bug/70367
+  Here is the link to the bug report about qiv:
+   https://bugs.launchpad.net/ubuntu/+source/qiv/+bug/41056
+  Debian has written a workaround: (Debian Bug #326849)
+   a wrapper for qiv which sets the environment variable XLIB_SKIP_ARGB_VISUALS=1
+
+
+- rewrite for imlib2 and/or GTK 2.x
+
+
+- wishlist for the XINERAMA support:
+  + fullscreen mode: unused screens shouldn't go black
+  + ungrab mouse and keyboard in unused screens
+
 
 - better zoom function. 
-  "feh" with imlib2 is doing this much better.. 
+  "feh" with imlib2 is doing this much better..  (is this still true?)
+
+
+- magnifying glass: [lc]
+  + if the image is smaller than the magnifying window
+     then it is stretched - would (black) borders be better?
+
+  + doesn't work in fullscreen mode
+
+  + the key sequence '<ff' (i.e. go to fullscreen and back) sometimes
+    leaves it in a bad state
+
+  + problem with manual window placement: (e.g. fvwm: "ManualPlacement")
+    whenever the mouse leaves and reenters the qiv window the magnifying
+    window has to be placed again.  And what's even worse: this sometimes
+    leads to the mouse leaving the window so that you're stuck in an
+    annoying loop which is hard to get out of.
+   Possibly a solution: geometry hints should override windowmanager placement
+   Or: leave the magnifying window in a specific place (even when the mouse
+       leaves the image window) instead of moving it around
+   quick workaround in fvwm:  Style "qiv" MinOverlapPlacement

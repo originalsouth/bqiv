@@ -1,16 +1,17 @@
-#! /bin/sh
+#!/bin/sh
 
 ###
 ### QUICK IMAGE VIEWER "qiv-command" file
 ### http://www.klografx.net/qiv/
 ###
-### NEW!!!
-### Now you can use all free keys for qiv-command !!!
+### This file will be launched by QIV if you push 0-9 (or any other free key)
+### NEW:  Now you can use all free keys for qiv-command.
+### NEW:  If you press "X" followed by any string,
+###       qiv-command is called with X and this string
+### 
+### Just put it in a directory that is in your path
 ###
-### this file will be launched by QIV if you push 0-9 (or other free keys)
-### just put it in a directory that is in your path
-###
-### syntax: qiv-command [pushed_number] [image_filename_with_full_path]
+### Syntax: qiv-command [pushed_number] [image_filename_with_full_path]
 ###
 ### Note:
 ###  If the first line of the output is like "NEWNAME=xxxxxxx" then qiv
@@ -32,7 +33,7 @@
 pressed_key=$1
 filename=$2
 
-#echo "You pressed the $pressed_key key while watching $filename"
+echo "You pressed the $pressed_key key while watching $filename"
 
 case "$pressed_key" in
 
@@ -49,7 +50,6 @@ case "$pressed_key" in
     # example: show EXIF Header using "exiftool" or "jhead"
     # exiftool "$filename"
     # jhead "$filename"
-    ;;
 
     echo -ne "0 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
@@ -73,15 +73,15 @@ case "$pressed_key" in
     jhead -ft $filename >/dev/null
     ;;
 
-#  # with "0"-prefix: forced (i.e. possibly NOT lossless) rotation
-#  08) # rotate JPG, but possibly losing quality
+#  # with "^"-prefix: forced (i.e. possibly NOT lossless) rotation
+#  ^8) # rotate JPG, but possibly losing quality
 #    echo 2>&1 "Forcing rotation to the left."
 #    jhead -cmd "jpegtran -rotate 270 -progressive -outfile &o &i" $filename >/dev/null
 #    # set timestamp of file to Date/Time when the photo was taken
 #    jhead -ft $filename >/dev/null
 #    ;;
 
-#  09) # rotate JPG, but possibly losing quality
+#  ^9) # rotate JPG, but possibly losing quality
 #    echo 2>&1 "Forcing rotation to the right."
 #    jhead -cmd "jpegtran -rotate 90 -progressive -outfile &o &i" $filename >/dev/null
 #    # set timestamp of file to Date/Time when the photo was taken

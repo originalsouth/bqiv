@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "qiv.h"
+#include "xmalloc.h"
 
 #ifdef STAT_MACROS_BROKEN
 #undef S_ISDIR
@@ -84,7 +85,7 @@ int move2trash()
     qiv_deletedfile *del;
 
     if (!deleted_files)
-      deleted_files = (qiv_deletedfile*)calloc(MAX_DELETE,sizeof *deleted_files);
+      deleted_files = (qiv_deletedfile*)xcalloc(MAX_DELETE,sizeof *deleted_files);
 
     del = &deleted_files[delete_idx++];
     if (delete_idx == MAX_DELETE)
@@ -236,7 +237,7 @@ int undelete_image()
 #define MAXLINES 100
 
 /* run a command ... */
-void run_command(qiv_image *q, char n, char *filename, int *numlines, const char ***output)
+void run_command(qiv_image *q, char *n, char *filename, int *numlines, const char ***output)
 {
   static char nr[10];
   static char *buffer = 0;
@@ -250,14 +251,14 @@ void run_command(qiv_image *q, char n, char *filename, int *numlines, const char
   stat(filename, &before);
 
   if (!buffer) 
-    buffer = malloc(MAXOUTPUTBUFFER + 1);
+    buffer = xmalloc(MAXOUTPUTBUFFER + 1);
 
   *numlines = 0;
   *output = lines;
   
-  snprintf(infotext, sizeof infotext, "Running: 'qiv-command %c %s'", n, filename);
+  snprintf(infotext, sizeof infotext, "Running: 'qiv-command %s %s'", n, filename);
     
-  snprintf(nr, sizeof nr, "%c", n);
+  snprintf(nr, sizeof nr, "%s", n);
   
   /* Use some pipes for stdout and stderr */
 
@@ -274,7 +275,7 @@ void run_command(qiv_image *q, char n, char *filename, int *numlines, const char
     dup2(pipe_stdout[1], 2);
     close(pipe_stdout[1]);
 
-    execlp("qiv-command", "qiv-command", nr, filename, 0);
+    execlp("qiv-command", "qiv-command", nr, filename, NULL);
     perror("Error calling qiv-command");
     abort();
   }
@@ -447,9 +448,9 @@ int checked_atoi (const char *s)
 void usage(char *name, int exit_status)
 {
     g_print("qiv (Quick Image Viewer) v%s\n"
-	"Usage: %s [options] files ...\n"
-	"See 'man qiv' or type '%s --help' for options.\n",
-        VERSION, name, name);
+	"Usage: qiv [options] files ...\n"
+	"See 'man qiv' or type 'qiv --help' for options.\n",
+        VERSION);
 
     gdk_exit(exit_status);
 }
@@ -459,12 +460,12 @@ void show_help(char *name, int exit_status)
     int i;
 
     g_print("qiv (Quick Image Viewer) v%s\n"
-	"Usage: %s [options] files ...\n\n",
-        VERSION, name);
+	"Usage: qiv [options] files ...\n\n",
+        VERSION);
 
     g_print(
           "General options:\n"
-	  "    --file, -F x           Read file names from text file x or stdin\n"
+          "    --file, -F x           Read file names from text file x or stdin\n"
           "    --bg_color, -o x       Set root background color to x\n"
           "    --brightness, -b x     Set brightness to x (-32..32)\n"
           "    --center, -e           Disable window centering\n"
@@ -484,14 +485,18 @@ void show_help(char *name, int exit_status)
           "    --no_filter, -n        Do not filter images by extension\n"
           "    --no_statusbar, -i     Disable statusbar\n"
           "    --statusbar, -I        Enable statusbar\n"
+          "    --no_sort, -D          Do not apply any sorting to the list of files\n"
           "    --numeric_sort, -N     Sort filenames with numbers intuitively\n"
           "    --root, -x             Set centered desktop background and exit\n"
           "    --root_t, -y           Set tiled desktop background and exit\n"
           "    --root_s, -z           Set stretched desktop background and exit\n"
           "    --scale_down, -t       Shrink image(s) larger than the screen to fit\n"
           "    --transparency, -p     Enable transparency for transparent images\n"
-          "    --version, -v          Print version information and exit\n"
           "    --watch, -T            Reload the image if it has changed on disk\n"
+          "    --recursivedir, -u x   Recursively include all files from dir x\n"
+          "    --select_dir, -A x     Store the selected files in dir x (default is .qiv-select)\n"
+          "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"
+          "    --version, -v          Print version information and exit\n"
           "\n"
           "Slideshow options:\n"
 	  "This can also be used for the desktop background (x/y/z)\n"
@@ -530,7 +535,7 @@ int get_random(int replace, int num, int direction)
   int n,m,p,q;
 
   if (!rindices)
-    rindices = (int *) malloc((unsigned) max_rand_num*sizeof(int));
+    rindices = (int *) xmalloc((unsigned) max_rand_num*sizeof(int));
   if (rsize != num) {
     rsize = num;
     index = -1;
@@ -557,7 +562,7 @@ int get_random(int replace, int num, int direction)
   return rindices[index--];
 }
 
-/* Recursively gets all files from a directory */
+/* Gets all files from a directory */
 
 int rreaddir(const char *dirname)
 {
@@ -579,15 +584,54 @@ int rreaddir(const char *dirname)
 	    continue;
 	snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
 	if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
-	    rreaddir(name);
+	    continue;
 	}
 	else {
 	    if (images >= max_image_cnt) {
 		max_image_cnt += 8192;
 		if (!image_names)
-		    image_names = (char**)malloc(max_image_cnt * sizeof(char*));
+		    image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
 		else
-		    image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
+		    image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
+	    }
+	    image_names[images++] = strdup(name);
+	}
+    }
+    closedir(d);
+    return images - before_count;
+}
+
+/* Recursively gets all files from a directory */
+
+int rrreaddir(const char *dirname)
+{
+    DIR *d;
+    struct dirent *entry;
+    char cdirname[FILENAME_LEN], name[FILENAME_LEN];
+    struct stat sb;
+    int before_count = images;
+
+    strncpy(cdirname, dirname, sizeof cdirname);
+    cdirname[FILENAME_LEN-1] = '\0';
+
+    if(!(d = opendir(cdirname)))
+	return -1;
+    while((entry = readdir(d)) != NULL) {
+	if (strcmp(entry->d_name,".") == 0
+	 || strcmp(entry->d_name,"..") == 0
+	 || strcmp(entry->d_name,TRASH_DIR) == 0)
+	    continue;
+	snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
+	if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
+	    rrreaddir(name);
+	}
+	else {
+	    if (images >= max_image_cnt) {
+		max_image_cnt += 8192;
+		if (!image_names)
+		    image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
+		else
+		    image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
 	    }
 	    image_names[images++] = strdup(name);
 	}
@@ -609,11 +653,9 @@ int rreadfile(const char *filename)
          } else
                  fp = stdin;
 	
-	
-
 	if (!images) {
 		max_image_cnt = 8192;
-		image_names = (char**)malloc(max_image_cnt * sizeof(char*));
+		image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
 	}
 
 	while (1) {
@@ -635,7 +677,7 @@ int rreadfile(const char *filename)
 		else {
 			if (images >= max_image_cnt) {
 				max_image_cnt += 8192;
-				image_names = (char**)realloc(image_names,max_image_cnt*sizeof(char*));
+				image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
 			}
 			image_names[images++] = strdup(line);
 		}
@@ -697,3 +739,98 @@ gboolean qiv_watch_file (gpointer data)
 
   return TRUE;
 }
+
+#ifdef GTD_XINERAMA
+/**
+ * Find screen which maximizes f(screen)
+ */
+static XineramaScreenInfo *
+xinerama_maximize_screen_function (XineramaScreenInfo * screens, int nscreens,
+                         long (*f)(XineramaScreenInfo *))
+{
+  XineramaScreenInfo * screen;
+  long value;
+  long maxvalue = 0;
+  XineramaScreenInfo * maximal_screen = screens;
+  
+  for (screen = screens; nscreens--; screen++) {
+    //g_print("screen: %i\n", screen->screen_number);
+    value = f(screen);
+    if (value > maxvalue) {
+      maxvalue = value;
+      maximal_screen = screen;
+    }
+  }
+  return maximal_screen;
+}
+
+static long
+xinerama_screen_number_pixels (XineramaScreenInfo * screen)
+{
+//  g_print("npixels: screen->width = %d, screen->height = %d\n", screen->width, screen->height);
+  return screen->width * screen->height;
+}
+
+/**
+ * We will want to find the lower-rightmost screen (on which we
+ * would like to display the statusbar in full-screen mode).
+ *
+ * In the general case (screens of differing sizes and arbitrarily placed)
+ * the "lower-rightmost" screen is not particularly well defined.  We
+ * take the definition as follows:
+ *
+ * Let (l_i, r_i) be the absolute pixel coordinates of the lower right corner
+ * corner of screen i.  The lower-rightmost screen is the one for which
+ * l_i + r_i is a maximum.
+ */
+static long
+xinerama_screen_lower_rightness (XineramaScreenInfo * screen)
+{
+  return screen->x_org + screen->y_org + screen->width + screen->height;
+}
+
+void
+get_preferred_xinerama_screens(void)
+{
+  Display * dpy;
+  XineramaScreenInfo *screens = 0;
+
+  dpy = XOpenDisplay(gdk_get_display());
+  if (dpy && XineramaIsActive(dpy))
+    screens = XineramaQueryScreens(dpy, &number_xinerama_screens);
+
+//  g_print("number_xinerama_screens: %i\n", number_xinerama_screens);
+  if (screens) {
+//    g_print("xinerama screen: %i\n", user_screen);
+    if (user_screen > -1 && user_screen < number_xinerama_screens) {
+      // set user selected screen
+      *preferred_screen = screens[user_screen];
+//      g_print("preferred screen (user): %i\n", preferred_screen->screen_number);
+    } else {
+      // auto select largest screen
+      *preferred_screen 
+        = *xinerama_maximize_screen_function(screens, number_xinerama_screens,
+                                             xinerama_screen_number_pixels);
+//      g_print("preferred screen (auto): %i\n", preferred_screen->screen_number);
+    }
+
+    // find lower rightmost screens for the statusbar
+    *statusbar_screen
+      = *xinerama_maximize_screen_function(screens, number_xinerama_screens,
+                                 xinerama_screen_lower_rightness);
+    XFree(screens);
+  }
+  else {
+    /* If we don't have Xinerama, fake it: */
+    preferred_screen->screen_number = 0;
+    preferred_screen->x_org = 0;
+    preferred_screen->y_org = 0;
+    preferred_screen->width = gdk_screen_width();
+    preferred_screen->height = gdk_screen_height();
+
+    *statusbar_screen = *preferred_screen;
+  }
+  if (dpy)
+    XCloseDisplay(dpy);
+}
+#endif

@@ -25,10 +25,36 @@ Authors:
   ok: OEyvind Kolaas          (pippin@users.sourceforge.net)
   mc: Matthieu Castet         (castet.matthieu@free.fr)
   jd: Geoffrey T. Dairik      (dairiki@dairiki.org)
+  lc: Leopoldo Cerbaro        (redbliss@aliceposta.it)
+  hl: Heikki Lehvaslaiho      (heikki@sanbi.ac.za)
 
 
 2.1
 ===
+ 25.04.2007 [pre11] [as] include Debian changes and package files:
+                         renamed README.CHANGES to Changelog
+                         added patch hide_therealqiv (for Debian Bug #326849)
+                         added patch xmalloc (Debian Bug #383113)
+                         added patch qiv-manpage-options (Debian Bug #383108)
+                         don't recurse directories given on command line (better: use -u)
+                         NOT added: no_background_opts (can't reproduce Debian Bug #351816)
+                         added patch qiv-nosort
+                    [hl] patch to reset bright/contrast/gamma hitting "o" (2006-06-29)
+ 24.04.2007         [as] more comments and examples in qiv-command
+                         option -X to set preferred xinerama screen
+                         key "X" cycles through available xinerama screens
+                         after 'X' window moves to the new screen right away
+                         prefix "^" instead "0" for extended call of qiv-command
+                         workaround-patch by Bart Martens <bartm@knars.be>
+                          for problem with X composite extension
+                         try keep image on the screen after zooming/rotating
+                         fixed centering=off behaviour in fullscreen mode
+                         fixed "magnifying glass" windowsize bug
+                         fixed compiler warnings "differ in signedness"
+                         fixed compiler warning "missing sentinel in function call"
+ 07.10.2005         [lc] bugfix: statusbar is redrawn after size changes and moves
+ 30.09.2005         [lc] "magnifying glass" patch (not perfect yet)
+                         call of qiv-command with "0"-prefixed option
  10.05.2005 [pre10] [AK] Added Patch by Christoph Wegscheider <cw@wegi.net> (new QIV Debian maintainer).
                          Now all free Keys can be used by qiv-command
  27.03.2005 [pre9] [jd] Another Xinerama bugfix (statusbar: now displayed on the smaller screen if two are used)
