@@ -3,7 +3,8 @@
   Purpose      : Routines dealing with image display
   More         : see qiv README
   Policy       : GNU GPL
-  Homepage     : http://www.klografx.net/qiv/
+  Homepage     : http://qiv.spiegl.de/
+  Original     : http://www.klografx.net/qiv/
 */
 
 #include <stdio.h>
@@ -24,6 +25,79 @@ static struct timeval load_before, load_after;
 static double load_elapsed;
 static GdkCursor *cursor, *visible_cursor, *invisible_cursor;
 
+#ifdef HAVE_EXIF
+//////////// these taken from gwenview/src/imageutils/ //////////////////
+//
+/* Explanation extracted from http://sylvana.net/jpegcrop/exif_orientation.html
+
+   For convenience, here is what the letter F would look like if it were tagged
+correctly and displayed by a program that ignores the orientation tag (thus
+showing the stored image):
+
+  1        2       3      4         5            6           7          8
+
+888888  888888      88  88      8888888888  88                  88  8888888888
+88          88      88  88      88  88      88  88          88  88      88  88
+8888      8888    8888  8888    88          8888888888  8888888888          88
+88          88      88  88
+88          88  888888  888888
+
+NORMAL  HFLIP   ROT_180 VFLIP   TRANSPOSE   ROT_90      TRANSVERSE  ROT_270
+*/
+
+enum Orientation {
+    NOT_AVAILABLE=0,
+    NORMAL  =1,
+    HFLIP   =2,
+    ROT_180 =3,
+    VFLIP   =4,
+    TRANSPOSE   =5,
+    ROT_90  =6,
+    TRANSVERSE  =7,
+    ROT_270 =8
+};
+
+// Exif
+#include "libexif/exif-data.h"
+
+#define flipH(q)    gdk_imlib_flip_image_horizontal( q->im)
+#define flipV(q)    gdk_imlib_flip_image_vertical( q->im)
+#define transpose(q) gdk_imlib_rotate_image( q->im, 1);
+#define rot90(q)    transpose( q); flipH(q)
+#define rot180(q)   flipV(q); flipH(q)
+#define rot270(q)   transpose(q); flipV(q)
+void transform( qiv_image *q, enum Orientation orientation) {
+    switch (orientation) {
+     default: return;
+     case HFLIP:     flipH(q); snprintf(infotext, sizeof infotext, "(Flipped horizontally)"); break;
+     case VFLIP:     flipV(q); snprintf(infotext, sizeof infotext, "(Flipped vertically)"); break;
+     case ROT_180:   rot180(q); snprintf(infotext, sizeof infotext, "(Turned upside down)"); break;
+     case TRANSPOSE: transpose(q); snprintf(infotext, sizeof infotext, "(Transposed)"); break;
+     case ROT_90:    rot90(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
+     case TRANSVERSE: transpose(q); rot180(q); snprintf(infotext, sizeof infotext, "(Transversed)"); break;
+     case ROT_270:   rot270(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
+    }
+}
+
+//#include "libexif/exif-tag.h"   //EXIF_TAG_ORIENTATION
+enum Orientation orient( const char * path) {
+    enum Orientation orientation = NOT_AVAILABLE;
+
+    ExifData * mExifData = exif_data_new_from_file( path);
+    if (mExifData) {
+        ExifEntry * mOrientationEntry = exif_content_get_entry( mExifData->ifd[ EXIF_IFD_0], EXIF_TAG_ORIENTATION);
+        if (mOrientationEntry) {
+            ExifByteOrder mByteOrder = exif_data_get_byte_order( mExifData);
+            short value=exif_get_short( mOrientationEntry->data, mByteOrder);
+            if (value>=NORMAL && value<=ROT_270)
+                orientation = value;    //Orientation( value);
+        }
+        exif_data_unref( mExifData );
+    }
+    return orientation;
+}
+#endif  //HAVE_EXIF
+
 /*
  *    Load & display image
  */
@@ -32,6 +106,7 @@ void qiv_load_image(qiv_image *q)
 {
   GdkImlibColor color;
   struct stat statbuf;
+  const char * image_name = image_names[ image_idx];
 
   gettimeofday(&load_before, 0);
 
@@ -41,9 +116,14 @@ void qiv_load_image(qiv_image *q)
     q->im = NULL;
   }
 
-  stat(image_names[image_idx], &statbuf);
+  stat(image_name, &statbuf);
   current_mtime = statbuf.st_mtime;
-  q->im = gdk_imlib_load_image(image_names[image_idx]);
+  q->im = gdk_imlib_load_image( (char*)image_name );
+#ifdef HAVE_EXIF
+  if (autorotate) {
+    transform( q, orient( image_name));
+  }
+#endif
 
   /* this function doesn't seem to work :-(  */
   gdk_imlib_get_image_shape(q->im,&color);
@@ -95,8 +175,8 @@ void qiv_load_image(qiv_image *q)
   if (do_grab || (fullscreen && !disable_grab) ) {
     gdk_keyboard_grab(q->win, FALSE, CurrentTime);
     gdk_pointer_grab(q->win, FALSE,
-      GDK_BUTTON_PRESS_MASK| GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK,
-      NULL, NULL, CurrentTime);
+      GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK |
+      GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK, NULL, NULL, CurrentTime);
   }
   gettimeofday(&load_after, 0);
   load_elapsed = ((load_after.tv_sec +  load_after.tv_usec / 1.0e6) -
@@ -104,10 +184,9 @@ void qiv_load_image(qiv_image *q)
 
   update_image(q, FULL_REDRAW);
 //    if (magnify && !fullscreen) {  // [lc]
-//     setup_magnify(q, &magnify_img);     
+//     setup_magnify(q, &magnify_img);
 //     update_magnify(q, &magnify_img, FULL_REDRAW, 0, 0);
 //    }
-
 }
 
 static gchar blank_cursor[1];
@@ -125,9 +204,7 @@ static void setup_win(qiv_image *q)
     attr.y = center ? q->win_y : 0;
     attr.width  = q->win_w;
     attr.height = q->win_h;
-    attr.wmclass_name = "qiv";
-    attr.wmclass_class = "Qiv";   // prevents segfault on amd64 [ld]
-    q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y|GDK_WA_WMCLASS);
+    q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
 
     if (center) {
       gdk_window_set_hints(q->win,
@@ -237,14 +314,14 @@ void set_desktop_image(qiv_image *q)
         "     qiv cannot set the background currently.\n");
     return;
   }
-  
+
   if (to_root_t) {
     gdk_window_set_back_pixmap(root_win, q->p, FALSE);
   } else {
     GdkGC *rootGC;
     buffer = xcalloc(1, screen_x * screen_y);
     rootGC = gdk_gc_new(root_win);
-    temp = gdk_pixmap_create_from_data(root_win, buffer, screen_x, 
+    temp = gdk_pixmap_create_from_data(root_win, buffer, screen_x,
                                        screen_y, gvis->depth, &image_bg, &image_bg);
     gdk_draw_pixmap(temp, rootGC, q->p, 0, 0, root_x, root_y, root_w, root_h);
     gdk_window_set_back_pixmap(root_win, temp, FALSE);
@@ -341,6 +418,7 @@ void zoom_maxpect(qiv_image *q)
   double zx = (double)screen_x / (double)q->orig_w;
   double zy = (double)screen_y / (double)q->orig_h;
 #endif
+  /* titlebar and frames ignored on purpose to use full height/width of screen */
   q->win_w = (gint)(q->orig_w * MIN(zx, zy));
   q->win_h = (gint)(q->orig_h * MIN(zx, zy));
   center_image(q);
@@ -379,7 +457,7 @@ void reload_image(qiv_image *q)
     q->orig_w = q->im->rgb_width;
     q->orig_h = q->im->rgb_height;
   }
-  
+
   q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
   q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
   reset_mod(q);
@@ -434,8 +512,8 @@ void update_image(qiv_image *q, int mode)
     /* If deleting the last file out of x */
     if(images == image_idx)
       image_idx = 0;
-    
-    /* If deleting the only file left */    
+
+    /* If deleting the only file left */
     if(!images) {
 #ifdef DEBUG
       g_print("*** deleted last file in list. Exiting.\n");
@@ -566,7 +644,7 @@ void update_image(qiv_image *q, int mode)
 # define statusbar_y screen_y
 #endif
     if (mode == FULL_REDRAW) {
-      gdk_window_clear(q->win); 
+      gdk_window_clear(q->win);
     } else {
       if (q->win_x > q->win_ox)
         gdk_draw_rectangle(q->win, q->bg_gc, 1,
@@ -697,15 +775,15 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
     mgl_hints.min_height=m->win_h;
     mgl_hints.max_height=m->win_h;
 
-//    gdk_window_set_hints(m->win, mgl_attr.x, mgl_attr.y,mglw, 
+//    gdk_window_set_hints(m->win, mgl_attr.x, mgl_attr.y,mglw,
 //                         mglw,mglh, mglh, GDK_HINT_POS | GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
-    gdk_window_set_hints(m->win, xcur+50, ycur-50-m->win_h,m->win_w, 
+    gdk_window_set_hints(m->win, xcur+50, ycur-50-m->win_h,m->win_w,
                          m->win_w,m->win_h, m->win_h, GDK_HINT_POS | GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
 //    gdk_window_move_resize(m->win,mgl_attr.x, mgl_attr.y, mglw, mglh);
 
 //    gdk_window_set_geometry_hints(magnify_img.win, &mgl_hints, GDK_HINT_POS );
   }
-************/ 
+************/
   if (mode == REDRAW ) {
     xx=xcur * q->orig_w / q->win_w;    /* xx, yy are the coords of cursor   */
     if (xx <= m->win_w/2)               /* xcur, ycur scaled to the original */
@@ -720,7 +798,7 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
     if (yy <= m->win_h/2)
       yy=0;
     else
-      if (yy >= q->orig_h - m->win_h/2) 
+      if (yy >= q->orig_h - m->win_h/2)
         yy=q->orig_h - m->win_h;
       else
         yy=yy - m->win_h/2;
@@ -737,7 +815,7 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
     gdk_window_show(m->win);
 
     // xcur= m->frame_x + xcur +
-    // (xcur < m->win_w/2? 50 : - 50 - m->win_w); 
+    // (xcur < m->win_w/2? 50 : - 50 - m->win_w);
     // gdk_window_get_root_origin(q->win,              // todo  [lc]
     //        &magnify_img.frame_x, &magnify_img.frame_y);  // call not necessary
     xx= m->frame_x + xcur - 50 - m->win_w;
@@ -830,7 +908,7 @@ void correct_image_position(qiv_image *q)
     if (q->win_x + q->win_w < screen_x)
       q->win_x = screen_x - q->win_w;
   }
-    
+
   /* don't leave ugly borders */
   if (q->win_h < screen_y) {
     if (q->win_y < 0)

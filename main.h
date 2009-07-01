@@ -13,7 +13,7 @@ GdkColor	text_bg; /* statusbar and help backgrounf */
 GdkColor	error_bg; /* for the error window/screen */
 int		images;	/* Number of images in current collection */
 char		**image_names = NULL; /* Filenames of the images */
-int		image_idx; /* Index of current image displayed. 0 = 1st image */
+int		image_idx = 0; /* Index of current image displayed. 0 = 1st image */
 int		max_image_cnt = 0; /* # images currently allocated into arrays */
 time_t          current_mtime; /* modification time of file currently loaded */
 qiv_deletedfile *deleted_files;
@@ -50,6 +50,8 @@ int zoom_factor = 0; /* zoom factor/off */
 int watch_file = 0; /* watch current files Timestamp, reload if changed */
 int magnify = 0; /* [lc] */
 int user_screen = -1; /* preferred (by user) Xinerama screen */
+int browse = 0; /* scan directory of file for browsing */
+int autorotate = 0; /* autorotate JPEGs according to EXIF tag */
 
 #ifdef GTD_XINERAMA
 int number_xinerama_screens = 0;
@@ -101,7 +103,7 @@ const char *helpstrs[] =
     "jtx<return>          jump to image number x",
     "jfx<return>          jump forward x images",
     "jbx<return>          jump backward x images",
-    "enter/return         reset zoom and color settings",
+    "enter/return         reset zoom, rotation and color settings",
     "i                    statusbar on/off",
     "I                    iconify window",
     "w                    watch file on/off",
@@ -134,9 +136,6 @@ const char *image_extensions[] = {
 #ifdef EXTN_XPM
     ".xpm",
 #endif
-#ifdef EXTN_XBM
-    ".xbm",
-#endif
 #ifdef EXTN_PNG
     ".png",".pjpeg",
 #endif
@@ -163,5 +162,37 @@ const char *image_extensions[] = {
 #endif
     NULL
 };
+
+#ifdef HAVE_MAGIC
+const char *image_magic[] = {
+#ifdef EXTN_JPEG
+  "JPEG image data",
+#endif
+#ifdef EXTN_GIF
+  "GIF image data",
+#endif
+#ifdef EXTN_TIFF
+  "TIFF image data",
+#endif
+#ifdef EXTN_XPM
+  "X pixmap image",
+#endif
+#ifdef EXTN_PNG
+  "PNG image data",
+#endif
+#ifdef EXTN_PGM
+  "Netpbm PBM",
+  "Netpbm PPM",
+#endif
+#ifdef EXTN_BMP
+  "PC bitmap data",
+#endif
+#ifdef EXTN_TGA
+  "Targa image data",
+#endif
+ NULL
+};
+#endif
+
 
 #endif /* MAIN_H */

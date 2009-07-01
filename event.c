@@ -3,7 +3,8 @@
   Purpose      : Handle GDK events
   More         : see qiv README
   Policy       : GNU GPL
-  Homepage     : http://www.klografx.net/qiv/
+  Homepage     : http://qiv.spiegl.de/
+  Original     : http://www.klografx.net/qiv/
 */
 
 #include <stdio.h>
@@ -13,7 +14,7 @@
 #include <gtk/gtkmain.h>
 #include "qiv.h"
 
-#define STEP 3 //When using KP arrow, number of step for seeing all the image. 
+#define STEP 3 //When using KP arrow, number of step for seeing all the image.
 
 static int    jumping;
 static int    extcommand; // [lc]
@@ -106,7 +107,7 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   }
 
   /* Calculate maximum number of lines to display */
-  if (text_font->ascent + text_font->descent > 0) 
+  if (text_font->ascent + text_font->descent > 0)
     maxlines = height / (text_font->ascent + text_font->descent) - 3;
   else
     maxlines = 60;
@@ -284,7 +285,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
     case GDK_BUTTON_RELEASE:
       exit_slideshow = TRUE;
       switch (ev->button.button) {
-        case 1:        /* 1st or 5th button pressed */
+        case 1:        /* left button pressed */
           if (q->drag) {
             int move_x, move_y;
             move_x = (int)(ev->button.x - q->drag_start_x);
@@ -302,12 +303,15 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           }
         case 5:        /* scroll wheel down emulated by button 5 */
           goto next_image;
-        case 2:        /* 2nd button pressed */
+        default:
+          g_print("unmapped button event %d, exiting\n",ev->button.button);
+        case 2:        /* middle button pressed */
           qiv_exit(0);
           break;
-        case 3:        /* 3rd or 4th button pressed */
+        case 3:        /* right button pressed */
         case 4:        /* scroll wheel up emulated by button 4 */
           goto previous_image;
+          break;
       }
       break;
 
@@ -361,7 +365,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             displaying_textwindow = FALSE;
             update_image(q, FULL_REDRAW);
             run_command(q, jcmd, image_names[image_idx], &numlines, &lines);
-            if (lines && numlines) 
+            if (lines && numlines)
               qiv_display_text_window(q, "(Command output)", lines, "Push any key...");
           }
         }
@@ -384,7 +388,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             break;
 
             /* Exit */
-      
+
           case GDK_Escape:
           case 'q':
             qiv_exit(0);
@@ -406,7 +410,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case 'e':
             exit_slideshow = FALSE;
             center ^= 1;
-            snprintf(infotext, sizeof infotext, center ? 
+            snprintf(infotext, sizeof infotext, center ?
                      "(Centering: on)" : "(Centering: off)");
             if (center) center_image(q);
             update_image(q, MOVED);
@@ -417,7 +421,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case 'p':
             exit_slideshow = FALSE;
             transparency ^= 1;
-            snprintf(infotext, sizeof infotext, transparency ? 
+            snprintf(infotext, sizeof infotext, transparency ?
                      "(Transparency: on)" : "(Transparency: off)");
             update_image(q, FULL_REDRAW);
             break;
@@ -427,7 +431,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case 'm':
             scale_down = 0;
             maxpect ^= 1;
-            snprintf(infotext, sizeof infotext, maxpect ? 
+            snprintf(infotext, sizeof infotext, maxpect ?
                      "(Maxpect: on)" : "(Maxpect: off)");
             zoom_factor = maxpect ? 0 : fixed_zoom_factor; /* reset zoom */
             check_size(q, TRUE);
@@ -578,7 +582,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             }
             update_image(q, MOVED);
             break;
-        
+
             /* move image up */
 
           case GDK_Down:
@@ -725,7 +729,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             if(magnify && !fullscreen) {
               gdk_window_hide(magnify_img.win); // [lc]
 //              gdk_flush();
-//              gdk_window_get_root_origin(q->win, 
+//              gdk_window_get_root_origin(q->win,
 //                                         &magnify_img.frame_x, &magnify_img.frame_y);
 //              printf(">>> frame %d %d\n", magnify_img.frame_x, magnify_img.frame_y);
 //              setup_magnify(q, &magnify_img);
@@ -817,7 +821,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             reset_mod(q);
             update_image(q, REDRAW);
             break;
- 
+
             /* Delete image */
 
           case GDK_Delete:
@@ -865,7 +869,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
           case 'h':
             gdk_imlib_flip_image_horizontal(q->im);
-            snprintf(infotext, sizeof infotext, "(Flipped horizontal)");
+            snprintf(infotext, sizeof infotext, "(Flipped horizontally)");
             update_image(q, REDRAW);
             break;
 
@@ -873,7 +877,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
           case 'v':
             gdk_imlib_flip_image_vertical(q->im);
-            snprintf(infotext, sizeof infotext, "(Flipped vertical)");
+            snprintf(infotext, sizeof infotext, "(Flipped vertically)");
             update_image(q, REDRAW);
             break;
 
@@ -881,7 +885,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
           case 'w':
             watch_file ^= 1;
-            snprintf(infotext, sizeof infotext, watch_file ? 
+            snprintf(infotext, sizeof infotext, watch_file ?
                      "(File watching: on)" : "(File watching: off)");
             update_image(q, REDRAW);
             if(watch_file){
@@ -980,7 +984,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             snprintf(infotext, sizeof infotext, "(Slideshow-Delay: %d seconds (+1)", delay/1000);
             update_image(q,MOVED);
             break;
-       
+
 #ifdef GTD_XINERAMA
             /* go to next xinerama screen */
           case 'X':
@@ -1001,7 +1005,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             int numlines = 0;
             const char **lines;
             run_command(q, ev->key.string, image_names[image_idx], &numlines, &lines);
-            if (lines && numlines) 
+            if (lines && numlines)
               qiv_display_text_window(q, "(Command output)", lines, "Push any key...");
           }
           break;
@@ -1055,7 +1059,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             int numlines = 0;
             const char **lines;
             run_command(q, ev->key.string, image_names[image_idx], &numlines, &lines);
-            if (lines && numlines) 
+            if (lines && numlines)
               qiv_display_text_window(q, "(Command output)", lines, "Push any key...");
           }
           break;

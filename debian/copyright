@@ -1,20 +1,52 @@
 This package was debianized by Mitch Blevins <mblevin@debian.org> on
 Sun,  8 Nov 1998 23:37:24 -0500
 
-It has been subsequently taken over by Luis Bustamante
-<luferbu@fluidsignal.com> followed by Martin Pitt
-<mpitt@debian.org>. The current maintainer is Christoph Wegscheider
-<christoph.wegscheider@wegi.net>
-
-It was downloaded from http://www.klografx.net/qiv/download/
+It was downloaded from http://qiv.spiegl.de/download/
+The homepage of the original author Adam Kopacz is http://www.klografx.net/qiv/
 
 Upstream Authors: (see below)
 
-Copyright: Adam Kopacz <adam.k@klografx.de>
-	   Andy Spiegl <qiv.andy@spiegl.de>
-	   Darren Smith <darren.smith@juno.com>
-	   Pavel Andreev <paxvel@vumsoft.cz>
-	   Decklin Foster <decklin@red-bean.com>
+   Adam Kopacz             <adam.k@klografx.de>
+   Andy Spiegl             <qiv.andy@spiegl.de>
+   Darren Smith            <darren.smith@juno.com>
+   Pavel Andreev           <paxvel@vumsoft.cz>
+   Decklin Foster          <decklin@red-bean.com>
+   Holger Mueller          <hmueller@hrzpub.tu-darmstadt.de>
+   Scott Sams              <sbsams@eos.ncsu.edu>
+   Serge Winitzki          <winitzki@geocities.com>
+   Frederic Crozat         <fcrozat@mail.dotcom.fr>
+   Rutger Nijlunsing       <rutger@wingding.demon.nl>
+   John Knottenbelt        <jak97@doc.ic.ac.uk>
+   Danny                   <dannys@mail.com>
+   Tomas Ogren             <stric@ing.umu.se>
+   Erik Jacobsen           <erik@openix.com>
+   Alfred Weyers           <alfred@otto.gia.RWTH-Aachen.DE>
+   Daniel                  <danad157@student.liu.se>
+   Henning Kulander        <hennikul@ifi.uio.no>
+   Ask Bjoern Hansen       <ask@valueclick.com>
+   Adrian Lopez            <adrian2@caribe.net>
+   Y Furuhashi             <y_furuhashi@ot.olympus.co.jp>
+   Wayne Davison           <wayned@users.sourceforge.net>
+   Johannes Stezenbach     <js@convergence.de>
+   OEyvind Kolaas          <pippin@users.sourceforge.net>
+   Matthieu Castet         <castet.matthieu@free.fr>
+   Geoffrey T. Dairik      <dairiki@dairiki.org>
+   Leopoldo Cerbaro        <redbliss@aliceposta.it>
+   Heikki Lehvaslaiho      <heikki@sanbi.ac.za>
+   Larry Doolittle         <ldoolitt@boa.org>
+   S. Dobrev               <sdobrev@sistechnology.com>
+   Thomas Wiegner          <wiegner@gmx.de>
+
+
+Copyright:
+
+   Copyright (C) 1989-2009 the above-mentioned authors
+   See "Changelog" for details who did what when.
+
+   Copyright (C) 1987-1997 Free Software Foundation, Inc.
+   For lib/getopt*.
+
+License:
 
    This package is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

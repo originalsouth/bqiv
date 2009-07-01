@@ -12,14 +12,14 @@
 
 
 - rewrite for imlib2 and/or GTK 2.x
-
+  in the works by Barry deFreese <bdefreese@debian.org>
 
 - wishlist for the XINERAMA support:
   + fullscreen mode: unused screens shouldn't go black
   + ungrab mouse and keyboard in unused screens
 
 
-- better zoom function. 
+- better zoom function.
   "feh" with imlib2 is doing this much better..  (is this still true?)
 
 

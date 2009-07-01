@@ -27,7 +27,7 @@ void *xmalloc(size_t size)
 #else
 				"(attempt to malloc %u bytes)\n",
 #endif
-				 size);
+				 (unsigned int) size);
 		exit(EXIT_FAILURE);
 	}
 
@@ -45,7 +45,7 @@ void *xcalloc(size_t num, size_t size)
 #else
 				"(attempt to calloc %u bytes)\n",
 #endif
-				 size);
+				 (unsigned int) size);
 		exit(EXIT_FAILURE);
 	}
 
@@ -70,7 +70,7 @@ void *xrealloc(void *ptr, size_t size)
 #else
 				"(attempt to realloc %u bytes)\n",
 #endif
-				 size);
+				 (unsigned int) size);
 		exit(EXIT_FAILURE);
 	}
 

@@ -1,3 +1,11 @@
+qiv (2.1) unstable; urgency=low
+
+  * Adam Kopacz delegated to Andy Spiegl as new upstream maintainer
+  * new homepage: http://qiv.spiegl.de/
+  * new upstream version; see Changelog for details
+
+ -- Andy Spiegl <debian.andy@spiegl.de>  Thu, 05 Mar 2009 23:19:00 +0100
+
 qiv (2.1-pre13) unstable; urgency=low
 
   * small patch to prevent segfault on amd64
@@ -113,7 +121,7 @@ qiv (2.0-2) unstable; urgency=low
 qiv (2.0-1) unstable; urgency=low
 
   * new upstream version; key "PageUp" now does not crash any more when there
-    are less than five pictures. closes: #246732 
+    are less than five pictures. closes: #246732
   * updated description
 
  -- Martin Pitt <mpitt@debian.org>  Sun, 23 May 2004 23:53:16 +0200

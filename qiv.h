@@ -19,8 +19,8 @@
 #include <X11/extensions/xf86vmode.h> // for XF86VidModeGetModeLine
 */
 
-#define VERSION "2.1-pre13"
-#define VERSION_FULL "QIV - Quick Image Viewer v2.1-pre13 - http://www.klografx.net/qiv/"
+#define VERSION "2.1"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.1 - http://qiv.spiegl.de/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
@@ -126,8 +126,10 @@ extern int     fixed_window_size;
 extern int     fixed_zoom_factor;
 extern int     zoom_factor;
 extern int     watch_file;
+extern int     browse;
 extern int     magnify;     // [lc]
 extern qiv_mgl magnify_img; // [lc]
+extern int     autorotate;
 
 extern const char   *helpstrs[], **helpkeys, *image_extensions[];
 
@@ -197,3 +199,6 @@ extern void swap(int *, int *);
 #define myround qiv_round
 extern int myround(double);
 extern gboolean qiv_watch_file (gpointer);
+extern int rreaddir(const char *, int);
+extern int rreadfile(const char *);
+extern int find_image(int images, char **image_names, char *name);

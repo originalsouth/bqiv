@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_PATCHDIRS := debian/patches debian/patches_$(DEB_HOST_ARCH)
+
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk

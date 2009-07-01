@@ -1,5 +1,5 @@
 #######################################################################
-# Makefile for qiv - Quick Image Viewer - http://www.klografx.net/qiv/
+# Makefile for qiv - Quick Image Viewer - http://qiv.spiegl.de/
 # User Options
 #######################################################################
 
@@ -21,7 +21,9 @@ FILTER = 1
 
 # This sets the file extentions to filter on (other file types will be
 # skipped.) It should reflect whatever is compiled into imlib.
-EXTNS = GIF TIFF XPM XBM PNG PPM PNM PGM PCX BMP EIM JPEG TGA
+# The latest version of imlib has removed imagemagick fallback support,
+# so some extensions (XBM TGA) have been removed.
+EXTNS = GIF TIFF XPM PNG PPM PNM PGM PCX BMP EIM JPEG
 
 # Comment this line out if your system doesn't have getopt_long().
 GETOPT_LONG = -DHAVE_GETOPT_LONG
@@ -34,23 +36,13 @@ COMPRESS_PROG = gzip -9f
 # installed (for centering on dual-screen)
 GTD_XINERAMA = -DGTD_XINERAMA
 
-######################################################################
+# Comment this line out if you do not want to use libexif to
+# autorotate images
+EXIF = -DHAVE_EXIF
 
-# The following only apply to 'make install-xscreensaver':
-# Delay in minutes to start xscreensaver
-SS_TIMEOUT = 5
-
-# Delay in minutes to cycle between xscreensaver programs
-SS_CYCLE = 5
-
-# Delay in seconds to wait between images
-SS_DELAY = 5
-
-# Image files to display
-SS_IMAGES = ~/pictures/*.jpg
-
-# Comment out this line to have pictures be dislayed sequentially
-SS_RANDOMIZE = -r
+# Comment this line out if you do not want to use libmagic to
+# identify if a file is an image
+MAGIC = -DHAVE_MAGIC
 
 ######################################################################
 # Variables and Rules
@@ -66,6 +58,7 @@ CFLAGS    = -O2 -Wall \
 #	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 
 INCLUDES  = `imlib-config --cflags-gdk`
+INCLUDES += `gtk-config --cflags`
 LIBS      = `imlib-config --libs-gdk`
 # [as] thinks that this is not portable enough
 # [lc] I use a virtual screen of 1600x1200, and the resolution is 1024x768,
@@ -84,7 +77,9 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DCENTER=$(CENTER) \
             -DFILTER=$(FILTER) \
             -DCURSOR=$(CURSOR) \
-	    $(GTD_XINERAMA)
+            $(EXIF) \
+            $(MAGIC) \
+            $(GTD_XINERAMA)
 
 ifndef GETOPT_LONG
 OBJS     += lib/getopt.o lib/getopt1.o
@@ -92,14 +87,20 @@ OBJS_G   += lib/getopt.g lib/getopt1.g
 endif
 
 ifdef GTD_XINERAMA
-LIBS	 += -L/usr/X11R6/lib -lXinerama
+LIBS     += -L/usr/X11R6/lib -lXinerama
+endif
+
+ifdef MAGIC
+LIBS    += -lmagic
+endif
+
+ifdef EXIF
+LIBS     += -lexif
 endif
 
 PROGRAM_G = qiv-g
 OBJS_G    = $(OBJS:.o=.g)
 DEFINES_G = $(DEFINES) -DDEBUG
-
-SS_PROG   = $(PREFIX)/ss-qiv
 
 ######################################################################
 
@@ -125,7 +126,7 @@ $(OBJS_G): %.g: %.c $(HEADERS)
 
 ######################################################################
 
-clean :  
+clean :
 	@echo "Cleaning up..."
 	rm -f $(OBJS) $(OBJS_G)
 
@@ -141,16 +142,6 @@ install: $(PROGRAM)
 	then echo "-- Test Passed --" ; \
 	else echo "-- Test Failed --" ; \
 	fi
-	@echo -ne "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n" 
-
-install-xscreensaver: install
-	@echo "#!/bin/sh" > $(SS_PROG)
-	@echo "xhost +`hostname` 1> /dev/null" >> $(SS_PROG)
-	@echo "xrdb < ~/.qivrc" >> $(SS_PROG)
-	@echo "xscreensaver 1> /dev/null &" >>  $(SS_PROG)
-	@echo "xscreensaver.timeout: $(SS_TIMEOUT)" > ~/.qivrc
-	@echo "xscreensaver.cycle: $(SS_CYCLE)" >> ~/.qivrc
-	@echo "xscreensaver.programs: qiv -iftsd $(SS_DELAY) $(SS_RANDOMIZE) $(SS_IMAGES)" >> ~/.qivrc
-	echo "Start screensaver with ss-qiv"
+	@echo -ne "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n"
 
 # the end... ;-)

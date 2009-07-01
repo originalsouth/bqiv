@@ -3,8 +3,9 @@
   Purpose      : Various utilities for qiv
   More         : see qiv README
   Policy       : GNU GPL
-  Homepage     : http://www.klografx.net/qiv/
-*/	
+  Homepage     : http://qiv.spiegl.de/
+  Original     : http://www.klografx.net/qiv/
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -36,7 +37,7 @@ int move2trash()
 
   if (readonly)
     return 0;
-  
+
   if(!(ptr = strrchr(filename, '/'))) {   /* search rightmost slash */
     /* no slash in filename */
     strncpy(path_result, filename, PATH_MAX);
@@ -53,8 +54,8 @@ int move2trash()
     /* move file to fullpath/TRASH_DIR/filename */
     snprintf(trashfile, sizeof trashfile, "%s/%s/%s", path_result, TRASH_DIR, ptr+1);
 
-    strncat(path_result, "/", PATH_MAX);
-    strncat(path_result, ptr + 1, PATH_MAX);
+    strncat(path_result, "/", PATH_MAX - strlen(path_result) );
+    strncat(path_result, ptr + 1, PATH_MAX - strlen(path_result) );
     *ptr = '/';
   }
 
@@ -104,8 +105,8 @@ int move2trash()
     /* If deleting the last file out of x */
     if(images == image_idx)
       image_idx = 0;
-    
-    /* If deleting the only file left */    
+
+    /* If deleting the only file left */
     if(!images)
       gdk_exit(0);
   }
@@ -239,7 +240,7 @@ int undelete_image()
 /* run a command ... */
 void run_command(qiv_image *q, char *n, char *filename, int *numlines, const char ***output)
 {
-  static char nr[10];
+  static char nr[100];
   static char *buffer = 0;
   static const char *lines[MAXLINES + 1];
   int pipe_stdout[2];
@@ -250,23 +251,23 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
 
   stat(filename, &before);
 
-  if (!buffer) 
+  if (!buffer)
     buffer = xmalloc(MAXOUTPUTBUFFER + 1);
 
   *numlines = 0;
   *output = lines;
-  
+
   snprintf(infotext, sizeof infotext, "Running: 'qiv-command %s %s'", n, filename);
-    
+
   snprintf(nr, sizeof nr, "%s", n);
-  
+
   /* Use some pipes for stdout and stderr */
 
   if (pipe(pipe_stdout) < 0) {
     perror("pipe");
     return;
   }
-  
+
   pid = fork();
 
   if (pid == 0) {
@@ -283,7 +284,7 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
     /* parent */
     int len = 0;
     char *p = buffer;
-      
+
     gboolean finished = FALSE;
     close(pipe_stdout[1]);
 
@@ -291,7 +292,7 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
       char *s = p, *q;
       finished = waitpid(pid, 0, WNOHANG) > 0;
       len = read(pipe_stdout[0], s, MAXOUTPUTBUFFER - (s - buffer));
-      
+
       if (len < 0 || (finished && len == 0))
 	break;
 
@@ -307,9 +308,9 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
       }
     } while (len > 0);
     lines[(*numlines)] = 0;
-    if (!finished) 
+    if (!finished)
       waitpid(pid, 0, 0);
-    
+
     close(pipe_stdout[0]);
   }
   else {
@@ -338,7 +339,7 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
     update_image(q, FULL_REDRAW);
     return;
   }
-  
+
   stat(filename, &after);
 
   /* If image modified reload, otherwise redraw */
@@ -350,8 +351,8 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
     qiv_load_image(q);
 }
 
-  
-/* 
+
+/*
    This routine jumps x images forward or backward or
    directly to image x
    Enter jf10\n ... jumps 10 images forward
@@ -407,7 +408,7 @@ void finish(int sig)
   gdk_pointer_ungrab(CurrentTime);
   gdk_keyboard_ungrab(CurrentTime);
   gdk_exit(0);
-} 
+}
 
 /*
   Update selected image index image_idx
@@ -428,8 +429,8 @@ void next_image(int direction)
     image_idx = (image_idx + direction) % images;
     if (image_idx < 0)
       image_idx += images;
-  }    
-    
+  }
+
 }
 
 int checked_atoi (const char *s)
@@ -468,6 +469,7 @@ void show_help(char *name, int exit_status)
           "    --file, -F x           Read file names from text file x or stdin\n"
           "    --bg_color, -o x       Set root background color to x\n"
           "    --brightness, -b x     Set brightness to x (-32..32)\n"
+          "    --browse, -B           Scan directory of file for browsing\n"
           "    --center, -e           Disable window centering\n"
           "    --contrast, -c x       Set contrast to x (-32..32)\n"
           "    --display x            Open qiv window on display x\n"
@@ -495,6 +497,7 @@ void show_help(char *name, int exit_status)
           "    --watch, -T            Reload the image if it has changed on disk\n"
           "    --recursivedir, -u x   Recursively include all files from dir x\n"
           "    --select_dir, -A x     Store the selected files in dir x (default is .qiv-select)\n"
+          "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
           "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"
           "    --version, -v          Print version information and exit\n"
           "\n"
@@ -516,16 +519,15 @@ void show_help(char *name, int exit_status)
     for (i=0; image_extensions[i]; i++)
 	g_print("%s%s", (i%8) ? " " : "\n    ", image_extensions[i]);
     g_print("\n\n");
-    
-    g_print("Homepage: http://www.klografx.net/qiv/\n"
-	    "Please mail bug reports and comments to Adam Kopacz <Adam.K@klografx.de>\n");
+
+    g_print("Homepage: http://qiv.spiegl.de/\n"
+	    "Please mail bug reports and comments to Andy Spiegl <qiv.andy@spiegl.de>\n");
 
     gdk_exit(exit_status);
 }
 
 /* returns a random number from the integers 0..num-1, either with
    replacement (replace=1) or without replacement (replace=0) */
-
 int get_random(int replace, int num, int direction)
 {
   static int index = -1;
@@ -562,82 +564,45 @@ int get_random(int replace, int num, int direction)
   return rindices[index--];
 }
 
-/* Gets all files from a directory */
-
-int rreaddir(const char *dirname)
+/* Recursively gets all files from a directory if <recursive> is true,
+ * else just reads directory */
+int rreaddir(const char *dirname, int recursive)
 {
-    DIR *d;
-    struct dirent *entry;
-    char cdirname[FILENAME_LEN], name[FILENAME_LEN];
-    struct stat sb;
-    int before_count = images;
+  DIR *d;
+  struct dirent *entry;
+  char cdirname[FILENAME_LEN], name[FILENAME_LEN];
+  struct stat sb;
+  int before_count = images;
 
-    strncpy(cdirname, dirname, sizeof cdirname);
-    cdirname[FILENAME_LEN-1] = '\0';
+  strncpy(cdirname, dirname, sizeof cdirname);
+  cdirname[FILENAME_LEN-1] = '\0';
 
-    if(!(d = opendir(cdirname)))
-	return -1;
-    while((entry = readdir(d)) != NULL) {
-	if (strcmp(entry->d_name,".") == 0
-	 || strcmp(entry->d_name,"..") == 0
-	 || strcmp(entry->d_name,TRASH_DIR) == 0)
-	    continue;
-	snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
-	if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
-	    continue;
-	}
-	else {
-	    if (images >= max_image_cnt) {
-		max_image_cnt += 8192;
-		if (!image_names)
-		    image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
-		else
-		    image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
-	    }
-	    image_names[images++] = strdup(name);
-	}
+  if (!(d = opendir(cdirname)))
+    return -1;
+  while ((entry = readdir(d)) != NULL) {
+    if (strcmp(entry->d_name,".") == 0 ||
+        strcmp(entry->d_name,"..") == 0 ||
+        strcmp(entry->d_name,TRASH_DIR) == 0)
+      continue;
+    snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
+    if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
+      if (!recursive)
+        continue;
+      rreaddir(name,1);
     }
-    closedir(d);
-    return images - before_count;
-}
-
-/* Recursively gets all files from a directory */
-
-int rrreaddir(const char *dirname)
-{
-    DIR *d;
-    struct dirent *entry;
-    char cdirname[FILENAME_LEN], name[FILENAME_LEN];
-    struct stat sb;
-    int before_count = images;
-
-    strncpy(cdirname, dirname, sizeof cdirname);
-    cdirname[FILENAME_LEN-1] = '\0';
-
-    if(!(d = opendir(cdirname)))
-	return -1;
-    while((entry = readdir(d)) != NULL) {
-	if (strcmp(entry->d_name,".") == 0
-	 || strcmp(entry->d_name,"..") == 0
-	 || strcmp(entry->d_name,TRASH_DIR) == 0)
-	    continue;
-	snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
-	if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
-	    rrreaddir(name);
-	}
-	else {
-	    if (images >= max_image_cnt) {
-		max_image_cnt += 8192;
-		if (!image_names)
-		    image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
-		else
-		    image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
-	    }
-	    image_names[images++] = strdup(name);
-	}
+    else {
+      if (images >= max_image_cnt) {
+        max_image_cnt += 8192;
+        if (!image_names)
+          image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
+        else
+          image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
+      }
+      image_names[images++] = strdup(name);
     }
-    closedir(d);
-    return images - before_count;
+  }
+  closedir(d);
+  return images - before_count;
 }
 
 /* Read image filenames from a file */
@@ -652,7 +617,7 @@ int rreadfile(const char *filename)
                  if(!fp) return -1;
          } else
                  fp = stdin;
-	
+
 	if (!images) {
 		max_image_cnt = 8192;
 		image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
@@ -673,7 +638,7 @@ int rreadfile(const char *filename)
 		if (line[linelen] == '\r') line[linelen--]  = '\0';
 
 		if (stat(line, &sb) >= 0 && S_ISDIR(sb.st_mode))
-			rreaddir(line);
+			rreaddir(line,1);
 		else {
 			if (images >= max_image_cnt) {
 				max_image_cnt += 8192;
@@ -731,13 +696,23 @@ gboolean qiv_watch_file (gpointer data)
 
   stat(image_names[image_idx], &statbuf);
 
-  if(current_mtime!=statbuf.st_mtime && statbuf.st_size){ 
+  if(current_mtime!=statbuf.st_mtime && statbuf.st_size){
 	  reload_image(q);
           update_image(q, REDRAW);
   }
   usleep(200);  /* avoid eating 100% cpu */
 
   return TRUE;
+}
+
+int find_image(int images, char **image_names, char *name)
+{
+  int i;
+  for (i=0; i<images; i++) {
+    if (strcmp(name,image_names[i]) == 0)
+      return i;
+  }
+  return 0;
 }
 
 #ifdef GTD_XINERAMA
@@ -752,7 +727,7 @@ xinerama_maximize_screen_function (XineramaScreenInfo * screens, int nscreens,
   long value;
   long maxvalue = 0;
   XineramaScreenInfo * maximal_screen = screens;
-  
+
   for (screen = screens; nscreens--; screen++) {
     //g_print("screen: %i\n", screen->screen_number);
     value = f(screen);
@@ -808,7 +783,7 @@ get_preferred_xinerama_screens(void)
 //      g_print("preferred screen (user): %i\n", preferred_screen->screen_number);
     } else {
       // auto select largest screen
-      *preferred_screen 
+      *preferred_screen
         = *xinerama_maximize_screen_function(screens, number_xinerama_screens,
                                              xinerama_screen_number_pixels);
 //      g_print("preferred screen (auto): %i\n", preferred_screen->screen_number);

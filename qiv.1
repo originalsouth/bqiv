@@ -10,11 +10,18 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "02 May 2007" "qiv version 2.1-pre13" "X Tools"
+.TH qiv 1 "05 Mar 2009" "qiv version 2.1" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
-Version: 2.1-pre13, released on 24.05.2007
-by Adam Kopacz / KLOGRAFX.DE Network
+.br
+
+.br
+Version: 2.1, released on 2009-03-05
+.br
+by Andy Spiegl - http://qiv.spiegl.de/ - qiv.andy@spiegl.de
+.br
+originally by Adam Kopacz / KLOGRAFX.DE Network
+.br
 http://www.klografx.net/qiv/ - adam.k@klografx.de
 .SH SYNOPSIS
 .B qiv
@@ -34,13 +41,13 @@ Print out a brief help message.
 Open qiv window on display \fIdisp\fR.
 .TP
 .B \-F, \-\-file \fIfile | stdin\fB
-Read file names from \fIfile\fR or \fIstdin\fR, one name per line. This option can be 
-specified multiple times to read from several files, and will not 
+Read file names from \fIfile\fR or \fIstdin\fR, one name per line. This option can be
+specified multiple times to read from several files, and will not
 affect other file names passed on the command-line.
 .TP
 .B \-u, \-\-recursivedir \fIdir\fB
-Recursively include all files from \fIdir\fR. This option can be 
-specified multiple times to include from several directories, and 
+Recursively include all files from \fIdir\fR. This option can be
+specified multiple times to include from several directories, and
 will not affect other file names passed on the command-line.
 .TP
 .B \-e, \-\-center
@@ -106,7 +113,7 @@ Set root background color to named color \fIx\fR or 24 bit hex RGB triple
 in the format \fI#RRGGBB\fR.
 .TP
 .B \-s, \-\-slide
-Start slideshow immediately. This can also be used for the desktop 
+Start slideshow immediately. This can also be used for the desktop
 background (x/y/z).
 .TP
 .B \-r, \-\-random
@@ -147,8 +154,16 @@ Reload the image if it has changed on disk.
 .B \-A, \-\-select_dir \fIdir\fB
 Store the selected files in \fIdir\fR (default is .qiv-select).
 .TP
+.B \-l, \-\-autorotate
+Autorotate JPEGs according to EXIF rotation tag.
+.TP
 .B \-X, \-\-xineramascreen \fIx\fB
 Use screen \fIx\fR as preferred Xinerama screen
+.TP
+.B \-B, \-\-browse
+This option is useful when configuring qiv to be used with a file manager.
+qiv will scan the directory of the clicked image and allow you to scroll
+through those images.
 .SH EXAMPLES
 qiv \-atsd2 *.jpg
 .br
@@ -193,14 +208,14 @@ C                  + contrast
 g                  - gamma
 G                  + gamma
 o                  reset brightness, contrast, gamma
-h                  flip horizontal
-v                  flip vertical
+h                  flip horizontally
+v                  flip vertically
 k                  rotate right
 l                  rotate left
 jt\fIx\fR<return>        jump to image number \fIx\fR
 jf\fIx\fR<return>        jump forward \fIx\fR images
 jb\fIx\fR<return>        jump backward \fIx\fR images
-enter/return       reset zoom and color settings
+enter/return       reset zoom, rotation and color settings
 i                  statusbar on/off
 I                  iconify window
 w                  watch file on/off
@@ -242,7 +257,7 @@ lines must be add to imwheel config file :
 .br
 @Exclude
 .SH USER-DEFINED KEYBOARD ACTIONS
-Keys 0-9 will invoke 
+Keys 0-9 will invoke
 .B qiv-command
 with the key pressed as the first argument and the current image filename
 as the second argument.
@@ -266,50 +281,44 @@ changed to this new name and updates its internal filelist.
 This is very useful when using qiv-command to rename files.
 .P
 Please also see the example that came together with qiv.
-.SH XSCREENSAVER SUPPORT
-To use qiv with xscreensaver, either type "make install-xscreensaver"
-or add the following to your ~/.Xresources:
-.P
-.EX
-xscreensaver.programs: \\
-   /usr/bin/qiv -srfid 5 your_pix/\\* \\n\\
-   /usr/bin/qiv -srfid 5 your_other_pix/\\* \\n\\
 .EE
 .SH AUTHORS
 .EX
-Adam Kopacz             (adam.k@klografx.de)
-Andy Spiegl             (qiv.andy@spiegl.de)
-Darren Smith            (darren.smith@juno.com)
-Pavel Andreev           (paxvel@vumsoft.cz)
-Decklin Foster          (decklin@red-bean.com)
-Holger Mueller          (hmueller@hrzpub.tu-darmstadt.de)
-Scott Sams              (sbsams@eos.ncsu.edu)
-Serge Winitzki          (winitzki@geocities.com)
-Frederic Crozat         (fcrozat@mail.dotcom.fr)
-Rutger Nijlunsing       (rutger@wingding.demon.nl)
-John Knottenbelt        (jak97@doc.ic.ac.uk)
-Danny                   (dannys@mail.com)
-Tomas Ogren             (stric@ing.umu.se)
-Erik Jacobsen           (erik@openix.com)
-Alfred Weyers           (alfred@otto.gia.RWTH-Aachen.DE)
-Daniel                  (danad157@student.liu.se)
-Henning Kulander        (hennikul@ifi.uio.no)
-Ask Bjoern Hansen       (ask@valueclick.com)
-Adrian Lopez            (adrian2@caribe.net)
-Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
-Wayne Davison           (wayned@users.sourceforge.net)
-Johannes Stezenbach     (js@convergence.de)
-OEyvind Kolaas          (pippin@users.sourceforge.net)
-Matthieu Castet         (castet.matthieu@free.fr)
+Adam Kopacz             <adam.k@klografx.de>
+Andy Spiegl             <qiv.andy@spiegl.de>
+Darren Smith            <darren.smith@juno.com>
+Pavel Andreev           <paxvel@vumsoft.cz>
+Decklin Foster          <decklin@red-bean.com>
+Holger Mueller          <hmueller@hrzpub.tu-darmstadt.de>
+Scott Sams              <sbsams@eos.ncsu.edu>
+Serge Winitzki          <winitzki@geocities.com>
+Frederic Crozat         <fcrozat@mail.dotcom.fr>
+Rutger Nijlunsing       <rutger@wingding.demon.nl>
+John Knottenbelt        <jak97@doc.ic.ac.uk>
+Danny                   <dannys@mail.com>
+Tomas Ogren             <stric@ing.umu.se>
+Erik Jacobsen           <erik@openix.com>
+Alfred Weyers           <alfred@otto.gia.RWTH-Aachen.DE>
+Daniel                  <danad157@student.liu.se>
+Henning Kulander        <hennikul@ifi.uio.no>
+Ask Bjoern Hansen       <ask@valueclick.com>
+Adrian Lopez            <adrian2@caribe.net>
+Y Furuhashi             <y_furuhashi@ot.olympus.co.jp>
+Wayne Davison           <wayned@users.sourceforge.net>
+Johannes Stezenbach     <js@convergence.de>
+OEyvind Kolaas          <pippin@users.sourceforge.net>
+Matthieu Castet         <castet.matthieu@free.fr>
 .EE
 .SH MISC
 .P
-qiv homepage: http://www.klografx.net/qiv/
+qiv homepage: http://qiv.spiegl.de/
 .P
-Mail bug, reports and comments to Adam Kopacz
-<adam.k@klografx.de>
+homepage of original author Adam Kopacz <adam.k@klografx.de>
+ http://www.klografx.net/qiv/
 .P
-Sending a SIGUSR1 to qiv will cause the program to flip to next picture. 
+Mail bug, reports and comments to Andy Spiegl <qiv.andy@spiegl.de>
+.P
+Sending a SIGUSR1 to qiv will cause the program to flip to next picture.
 SIGUSR2 will move to previous.
 .P
 This program is covered by the GNU GPL; see the file COPYING for

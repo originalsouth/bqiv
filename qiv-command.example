@@ -2,13 +2,13 @@
 
 ###
 ### QUICK IMAGE VIEWER "qiv-command" file
-### http://www.klografx.net/qiv/
+### http://qiv.spiegl.de/
 ###
 ### This file will be launched by QIV if you push 0-9 (or any other free key)
 ### NEW:  Now you can use all free keys for qiv-command.
 ### NEW:  If you press "X" followed by any string,
 ###       qiv-command is called with X and this string
-### 
+###
 ### Just put it in a directory that is in your path
 ###
 ### Syntax: qiv-command [pushed_number] [image_filename_with_full_path]
@@ -38,7 +38,7 @@ echo "You pressed the $pressed_key key while watching $filename"
 case "$pressed_key" in
 
   0)
-    # do something with the image ($2) -> 
+    # do something with the image ($2) ->
     #
     # example: copy
     # cp "$2" "/home/myfiles/download/";

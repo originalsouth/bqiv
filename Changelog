@@ -1,36 +1,57 @@
 Authors:
 
-  ak: Adam Kopacz             (adam.k@klografx.de)
-  as: Andy Spiegl             (qiv.andy@spiegl.de)
-  de: Darren Smith            (darren.smith@juno.com)
-  pa: Pavel Andreev           (paxvel@vumsoft.cz)
-  df: Decklin Foster          (decklin@red-bean.com)
-  hm: Holger Mueller          (hmueller@hrzpub.tu-darmstadt.de)
-  ss: Scott Sams              (sbsams@eos.ncsu.edu)
-  sw: Serge Winitzki          (winitzki@geocities.com)
-  fc: Frederic Crozat         (fcrozat@mail.dotcom.fr)
-  rn: Rutger Nijlunsing       (rutger@wingding.demon.nl)
-  jk: John Knottenbelt        (jak97@doc.ic.ac.uk)
-  da: Danny                   (dannys@mail.com)
-  to: Tomas Ogren             (stric@ing.umu.se)
-  ej: Erik Jacobsen           (erik@openix.com)
-  aw: Alfred Weyers           (alfred@otto.gia.RWTH-Aachen.DE)
-  da: Daniel                  (danad157@student.liu.se)
-  hk: Henning Kulander        (hennikul@ifi.uio.no)
-  ab: Ask Bjoern Hansen       (ask@valueclick.com)
-  al: Adrian Lopez            (adrian2@caribe.net)
-  yf: Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
-  wd: Wayne Davison           (wayned@users.sourceforge.net)
-  js: Johannes Stezenbach     (js@convergence.de)
-  ok: OEyvind Kolaas          (pippin@users.sourceforge.net)
-  mc: Matthieu Castet         (castet.matthieu@free.fr)
-  jd: Geoffrey T. Dairik      (dairiki@dairiki.org)
-  lc: Leopoldo Cerbaro        (redbliss@aliceposta.it)
-  hl: Heikki Lehvaslaiho      (heikki@sanbi.ac.za)
-  ld: Larry Doolittle         (ldoolitt@boa.org)
+  ak: Adam Kopacz             <adam.k@klografx.de>
+  as: Andy Spiegl             <qiv.andy@spiegl.de>
+  de: Darren Smith            <darren.smith@juno.com>
+  pa: Pavel Andreev           <paxvel@vumsoft.cz>
+  df: Decklin Foster          <decklin@red-bean.com>
+  hm: Holger Mueller          <hmueller@hrzpub.tu-darmstadt.de>
+  ss: Scott Sams              <sbsams@eos.ncsu.edu>
+  sw: Serge Winitzki          <winitzki@geocities.com>
+  fc: Frederic Crozat         <fcrozat@mail.dotcom.fr>
+  rn: Rutger Nijlunsing       <rutger@wingding.demon.nl>
+  jk: John Knottenbelt        <jak97@doc.ic.ac.uk>
+  da: Danny                   <dannys@mail.com>
+  to: Tomas Ogren             <stric@ing.umu.se>
+  ej: Erik Jacobsen           <erik@openix.com>
+  aw: Alfred Weyers           <alfred@otto.gia.RWTH-Aachen.DE>
+  da: Daniel                  <danad157@student.liu.se>
+  hk: Henning Kulander        <hennikul@ifi.uio.no>
+  ab: Ask Bjoern Hansen       <ask@valueclick.com>
+  al: Adrian Lopez            <adrian2@caribe.net>
+  yf: Y Furuhashi             <y_furuhashi@ot.olympus.co.jp>
+  wd: Wayne Davison           <wayned@users.sourceforge.net>
+  js: Johannes Stezenbach     <js@convergence.de>
+  ok: OEyvind Kolaas          <pippin@users.sourceforge.net>
+  mc: Matthieu Castet         <castet.matthieu@free.fr>
+  jd: Geoffrey T. Dairik      <dairiki@dairiki.org>
+  lc: Leopoldo Cerbaro        <redbliss@aliceposta.it>
+  hl: Heikki Lehvaslaiho      <heikki@sanbi.ac.za>
+  ld: Larry Doolittle         <ldoolitt@boa.org>
+  sd: S. Dobrev               <sdobrev@sistechnology.com>
+  tw: Thomas Wiegner          <wiegner@gmx.de>
+
 
 2.1
 ===
+ 05.03.2009         [as] Adam Kopacz delegated to new maintainer: Andy Spiegl
+                    [as] new homepage: http://qiv.spiegl.de/
+                    [as] removed obsoleted GDK_WA_WMCLASS
+                          see http://library.gnome.org/devel/gdk/2.11/gdk-Windows.html#GdkWindowAttr
+                          and http://developer.gimp.org/api/2.0/gtk/GtkWindow.html#gtk-window-set-wmclass
+                          Thanks to Bernhard Kaindl <bk@suse.de>.
+                    [as] added patch from Debian gtk_includes.diff, closes: #456854
+                    [as] added patch from Debian cmdbuflen.diff, closes: #441401
+                          Thanks to Norman Ramsey <nr@eecs.harvard.edu>.
+                    [as] added patch from Debian man_xscreensaver.diff
+                    [as] remove xscreensaver left overs from Makefiles
+                    [sd] added autorotate patch (using libexif) by sdobrev@sistechnology.com
+                    [as] display initial autorotation in status bar, option "autorotate"
+                    [tw] patch to detect image types using libmagic
+                    [de] added GDK_ENTER_NOTIFY_MASK|GDK_LEAVE_NOTIFY_MASK in image.c
+                    [de] removed TGA and XBM because not supported by imlib anymore
+                    [de] exit on unmapped mouse events
+                    [de] browse option -B, useful when launching qiv from a file manager
  21.05.2007 [pre13] [ld] patch to prevent segfault on amd64
  02.05.2007 [pre12] [as] avoid wrapper, include "XLIB_SKIP_ARGB_VISUALS=1" in main.c
  25.04.2007         [as] include README and README.TODO in debian package
@@ -75,12 +96,12 @@ Authors:
                         avoid file overwrites in .qiv-select (NEEDS IMPROVING)
                         updated and added more examples to qiv-command
  01.01.2005 [pre7] [ak] added small patch by Nick Clifton <nickc@redhat.com>:
-                        setting WM_CLASS name to "qiv" (attr.wmclass_name). 
+                        setting WM_CLASS name to "qiv" (attr.wmclass_name).
  05.12.2004 [pre6] [ak] changed a-key/copy to real copy (no links anymore)
  11.09.2004 [pre5] [ak] patch-bugfix by Christian Lademann <lademann@zls.de>
  01.09.2004 [pre4] [ak] adden patch by Christian Lademann <lademann@zls.de>
-                        now slideshow (-s) can also be combine with -x/y/z 
- 07.07.2004 [pre3] [ak] added -F Patch by Martin Fiedler <martin.fiedler@gmx.net> 
+                        now slideshow (-s) can also be combine with -x/y/z
+ 07.07.2004 [pre3] [ak] added -F Patch by Martin Fiedler <martin.fiedler@gmx.net>
                         now stdin can also be used..
  16.06.2004 [pre2] [jd] Xinerama bugfix
  26.05.2004 [pre1] [wd] small changes in delete-command
@@ -94,26 +115,26 @@ Authors:
  24.04.04 [pre10] [jk] fixed qiv_display_text_window
  24.04.04 [pre9] [ak] added patch by Joachim Kuebart (kuebart@mathematik.uni-ulm.de)
                       if images is < 5 and PgUp is pressed, image_index might become negative..
-		 [mc] small patch that remove a warning with gcc 3.4 
+		 [mc] small patch that remove a warning with gcc 3.4
  19.04.04 [pre8] [jk] qiv_display_text_window update (Push any key..) - its really cool! :-)
                  [ak] cleaned up README, qiv-command.example, manpage..
- 19.04.04 [pre7] [jk] Fixed Help-Screen remove. Added qiv-command-stdout support, now 
-                      "metacam" (EXIF-Header) or other tools can be used within qiv and 
-		      the output is shown in a box in the pixture like the helpscreen. 
- 18.04.04 [pre6] [ak] All arrow-keys = normal moving. 
-                      All arrow-keys+Shift = faster moving. 
-                      NumPad-arrow-keys+NumLock = faster moving. 
- 18.04.04 [pre6] [ak] All arrow-keys = normal moving. 
-                      All arrow-keys+Shift = faster moving. 
-                      NumPad-arrow-keys+NumLock = faster moving. 
+ 19.04.04 [pre7] [jk] Fixed Help-Screen remove. Added qiv-command-stdout support, now
+                      "metacam" (EXIF-Header) or other tools can be used within qiv and
+		      the output is shown in a box in the pixture like the helpscreen.
+ 18.04.04 [pre6] [ak] All arrow-keys = normal moving.
+                      All arrow-keys+Shift = faster moving.
+                      NumPad-arrow-keys+NumLock = faster moving.
+ 18.04.04 [pre6] [ak] All arrow-keys = normal moving.
+                      All arrow-keys+Shift = faster moving.
+                      NumPad-arrow-keys+NumLock = faster moving.
  18.04.04 [pre5] [mc/ak] Added patch: Faster moving of pictures with pushed Shift+Arrow-Keys.
  14.04.04 [pre3/4] [jd] Xinerama patch (MultiHead XFree86 V. 4.0+)
  23.02.04 [pre2] [ak] fixed manpage (ignore_path_sort was wrong)
  08.01.04 [pre1] [ak] Added patch by HaJo Schatz (hajo@hajo.net):
-                      "--disable_grab, -G" Disable pointer/kbd grab in fullscreen mode 
+                      "--disable_grab, -G" Disable pointer/kbd grab in fullscreen mode
 		      for Remote-Display stuff.
 
-		      
+
 1.9
 ===
 
@@ -124,29 +145,29 @@ Authors:
                        and fixed bugs related to background repainting with --bg_color
  23.09.03 [pre17] [ak] added patch by Johannes Stezenbach <js@convergence.de>
                        which hides the mouse cursor after one second and redisplays it when the mouse
-		       is moved. I also cleaned up bugs with the delay adjustments (F11/F12), and made 
+		       is moved. I also cleaned up bugs with the delay adjustments (F11/F12), and made
 		       sure the 'q' key comes through even when starting with delay 0.
- 13.09.03 [pre16] [ak] added patch / undelete (link) replaced by rename. Now also works on FAT. 
- 09.09.03 [pre15] [ak] added patch / delete (link) replaced by rename. Now also works on FAT. 
+ 13.09.03 [pre16] [ak] added patch / undelete (link) replaced by rename. Now also works on FAT.
+ 09.09.03 [pre15] [ak] added patch / delete (link) replaced by rename. Now also works on FAT.
                        http://bugs.debian.org/209079
  16.06.03 [pre14] [ak] added patch by Robert R. Pavlis <rpavlis@pittstate.edu>
                        fixed event queues (KeyComands). Now a key can be hold down for a while ;)
  25.05.03 [pre13] [ak] added patch by Martin Pitt <martin@piware.de> / DEBIAN
                        Fixed handling of non existing images (no crash anymore)
  24.05.03 [pre12] [ak] added patch by Martin Pitt <martin@piware.de> / DEBIAN
-                       Now -d can contain 0.5 seconds or so.. 
+                       Now -d can contain 0.5 seconds or so..
  16.02.03 [pre11] [ak] added patch by Drew Cohan <drewcohan@drewcohan.com>
                        Key F11/F12 now in-/decrease the Slideshow-Delay (+/- 1 sec).
-		       Think its maybe time for QIV v2.0 ?! :-) 
+		       Think its maybe time for QIV v2.0 ?! :-)
  13.01.03 [pre10] [ak] added patch by J'raxis 270145 <software@jraxis.com>
-                       --file=<file> (-F) option to qiv to allow it to read 
+                       --file=<file> (-F) option to qiv to allow it to read
                        image/directory names from a text file
  24.12.02 [pre9] [ak] added PBM support (just the extension)
  20.10.02 [pre8] [ak] added patch by Wayne Davison <wayne@blorf.net>
                       scale-down rotation quirk.
  20.10.02 [pre7] [ak] added patch by Kim Rasmussen <kr@get2net.dk>
                       fixed WM "wmx v6" centering problem.
- 04.10.02 [pre6] [ak] added patch by Lin Zhemin <ljm@ljm.idv.tw> 
+ 04.10.02 [pre6] [ak] added patch by Lin Zhemin <ljm@ljm.idv.tw>
                       A-key to copy images to "./.qiv-select".
  26.09.02 [pre5] [ak] added patch by Wayne Davison <wayned@users.sourceforge.net>
                       (some small changes)
@@ -157,7 +178,7 @@ Authors:
 		      added "-R" (readonly option).
  10.08.02        [ak] added jpeg ".jpe" support (just the extension).
  05.08.02 [pre2] [ak] added patch by Qef Richards <qef@rosies-dumplings.co.uk>:
-                      changed the option handling slightly so that invalid arguments to 
+                      changed the option handling slightly so that invalid arguments to
 		      options which want numbers will be detected and a suitable error message printed.
 
  20.07.02 [pre1] [ak] now using qiv_load_image after qiv-command (no segfaults anymore)
@@ -184,10 +205,10 @@ Authors:
                       changed meaning of page down/up keys
  16.05.02 [pre4] [ak] Added reload-after-qiv-command-patch from "Andy Spiegl <qiv.andy@spiegl.de>"
  12.05.02 [pre3] [ak] Added Iconify-Patch (Key: I) from "Goetz Waschk <waschk@informatik.uni-rostock.de>"
- 29.12.01 [pre2] [ak] Added manpage-patch (qiv-command changes) from James M Corey 
+ 29.12.01 [pre2] [ak] Added manpage-patch (qiv-command changes) from James M Corey
                       <jmcorey@ptdcs2.ra.intel.com>
  31.07.01 [pre1] [ak] added patch from Matthias Kilian <kili@outback.escape.de>
-                      (adds random order when starting qiv in shuffle mode & 
+                      (adds random order when starting qiv in shuffle mode &
                        fixed deleting and undeleting a picture which is a symlink)
 
 
@@ -215,8 +236,8 @@ Authors:
                       Optimized rreaddir(), next_image(), and get_random().
                       Improved the implementation of shuffle.  Other misc.
                       (and minor) bug fixes and tweaks.
- 20.02.01 [pre2] [yf] removed slideshow_exit from default event. 
- 17.02.01 [pre1] [yf] added the option  -w x or --width x for displaying with a fixed 
+ 20.02.01 [pre2] [yf] removed slideshow_exit from default event.
+ 17.02.01 [pre1] [yf] added the option  -w x or --width x for displaying with a fixed
                       window-width.
 
 
@@ -299,7 +320,7 @@ Authors:
                        output.
   05.12.00 [pre2] [ak] another PPC fix.
   27.11.00 [pre1] [ak] changed "char c" to "int c" in options.c
-                       not worked with char on Linux/ppc 
+                       not worked with char on Linux/ppc
                        (mailed by Jiri Masik <masik@darbujan.fzu.cz>)
 
 1.5
@@ -307,7 +328,7 @@ Authors:
 
   23.09.00 [pre3] [ak] Released v1.5 - new homepage: www.klografx.net/qiv/
   05.08.00 [pre3] [ak] cleaned up readmes..
-  05.08.00 [pre2] [ak] changed up/down and left/right moving of the image. 
+  05.08.00 [pre2] [ak] changed up/down and left/right moving of the image.
                        now the stuff works like in ACDSee (Win).
   30.07.00 [pre1] [ak] added limits for moving.
 
@@ -329,11 +350,11 @@ Authors:
                        picture. SIGUSR2 will move to previous.
   15.06.00 [pre3] [ak] re-added b/c/g to titlebar/infoline.
                        painted new intro.jpg *g*
-  29.04.00 [pre2] [al] image shuffling option (--shuffle) provides random image 
+  29.04.00 [pre2] [al] image shuffling option (--shuffle) provides random image
                        order while preserving next and previous functionality.
   13.04.00 [pre1] [ak] cleaned up infoscreen/added more info and kicked "show_info".
   03.04.00 [pre1] [da] The delay time in slideshow mode used to include the time
-                           it took for a picture to load. 
+                           it took for a picture to load.
                            Pressing '?' in non-fullscreen mode results in the help
                            being printed to stdout.
 
@@ -348,7 +369,7 @@ Authors:
                        added recursive file retrieval (-u option)
   30.10.99 [pre2] [ak] removed b/c/g limits to enable nice effects like b0/c-100/g0 :-)
   05.10.99 [pre2] [ak] added SPEED_UP readme.
-  28.09.99 [pre2] [ak] added nice "infotext" stuff that shows a short info about the 
+  28.09.99 [pre2] [ak] added nice "infotext" stuff that shows a short info about the
                        called function in the statusbar (maxspect: on/off and so..)
   24.09.99 [pre1] [hk] started using a better random-slideshow generator.
 
@@ -385,7 +406,7 @@ Authors:
 		of -e, rewrote option-parsing code to use getopt, axed
 		really long usage message, header file reorg.
   17.04.99 [ak] removed prefix from install.sh. don't ask me why, but this
-                don't works here with my bash 2.01 :( 
+                don't works here with my bash 2.01 :(
   15.04.99 [de] Makefile changes/additions (test/debug targets)
 		Added prefix to install script
   13.04.99 [ak] man page update, many tests, new image <g>.
@@ -403,16 +424,16 @@ Authors:
 		event handler now.
   01.04.99 [pa] added utils.c patch for FreeBSD.
   22.02.99 [to/ak] added 8bpp patch for better to_root drawing.
-    
+
 
 1.0.1
 =====
 
   27.01.99 [ak] kicked the language stuff.
-                updated manpage. 
+                updated manpage.
 		tested with newest libraries (gtk/glib 1.1.13, Imlib 1.9.2).
   19.11.98 [ak] addec --center, -e for disabling window_centering
-  13.11.98 [de] speed_ups 
+  13.11.98 [de] speed_ups
   10.11.98 [ak] configure script, directiries for language files.
                 added language-information to qiv -v
   09.11.98 [de] incorporated Roland Trique's <rtrique@pratique.fr> french
@@ -427,7 +448,7 @@ Authors:
                 added --display and --wm to man-page
 		made qiv ready for releasing 1.0 :-)
 		added error_handler for set_background_image...
-		painted a new and also wonderfull <g> intro.png (with the GIMP).		
+		painted a new and also wonderful <g> intro.png (with the GIMP).
   03.11.98 [ak] added gdk_beep(); for bad images (error handler).
   03.11.98 [de] better WM_HANDLE= support.
                 better command_line support for Solaris.
@@ -439,7 +460,7 @@ Authors:
 		options)
   30.10.98 [ak] small changes in main.c: now --display :1 or so works.
   27.10.98 [ak] added tga support to main.h/Makefile
-                played with the "first window centered" problem.. 
+                played with the "first window centered" problem..
 		it's not fixed 100%, but better then bevore :)
   25.10.98 [de] changed bg_color option to use 24 bits (6 numbers - like HTML)
 		cleaned up move2trash function
@@ -461,7 +482,7 @@ Authors:
   13.10.98 [ak] added --no_grab, -a for disabling keyboard/mouse grabbing in windowed mode.
                 added -y/-x also for "no getopt.h"-users ;)
   11.10.98 [de] cleaned up code for 1.0 release
-		added x/y/z keys for setting bg (center/tile/stretched) while 
+		added x/y/z keys for setting bg (center/tile/stretched) while
 		qiv is running
 		removed x key from exit sequence
 		added keyboard/mouse grabs to qiv (now fullscreen works right)
@@ -475,7 +496,7 @@ Authors:
 0.9.1 (Solaris NOW!)
 ====================
 
-  08.10.98 [ak] small changes in manpage.. 
+  08.10.98 [ak] small changes in manpage..
   08.10.98 [de] made 0.9 ready for Soliaris/SunOS. (fixed getopt.h stuff).
 
 
@@ -483,7 +504,7 @@ Authors:
 ===
 
   04.10.98 [ak] added render_time (x.xs) to title- and statusbar.
-                changed statusbar_color from white to orange. 
+                changed statusbar_color from white to orange.
 		small code-cleanup.
   04.10.98 [de] added more stuff to manpage.
   03.10.98 [ak] removed doc/ and added qiv.1 to install.sh
@@ -496,26 +517,26 @@ Authors:
 		fixed statusbar => works! :-)
 		statusbar is now white - added black (1 pixel) border.
 		Changes is now installed to.
-  30.09.98 [ak] fixed error_xpm.. now w=500 and h=400 in windowed and 
+  30.09.98 [ak] fixed error_xpm.. now w=500 and h=400 in windowed and
                 w=screen_x, h=screen_y (fullscreen) in fullscreen mode.
 		collor is now BLUE :-) like "bluewin95" :))
 		statusbar added for fullscreen mode.. but its alpha, black
 		text without a background color or so at the moment..
   30.09.98 [ak] happy birthday to me.. happy.. <g> yes, i'm 20 now :)
   29.09.98 [de] extension filter can be disabled now: --no_filter (-n)
-  28.09.98 [jk] fullscreen_mode: instead of blanking the whole window, 
-                blanks only the areas which aren't going to be covered by 
+  28.09.98 [jk] fullscreen_mode: instead of blanking the whole window,
+                blanks only the areas which aren't going to be covered by
                 the picture. (?)
 
 
 0.8.1
 =====
 
-  25.09.98 [de] bugfix: move2trash: the problem was that the subdirectories 
+  25.09.98 [de] bugfix: move2trash: the problem was that the subdirectories
                 were NOT being created in the .qiv-trash directory.
   25.09.98 [ak] removed the error.h (error_xpm[])
                 not you will get a black screen (500*400)...
-		 
+
 
 0.8
 ===
@@ -540,22 +561,22 @@ Authors:
   14.09.98 [ak] maxpect on/off keys: m/M and scale_down (t/T)
                 -x (set X11 background)
   14.09.98 [rn] code_rewrite (clean up) and maxpect
-  
+
 
 0.7
 ===
 
-  12.09.98: [de] random slideshow (-r), 
+  12.09.98: [de] random slideshow (-r),
                  brightness, contrast and gamma.
   09.09.98: [fc] code cleanup
-  
+
 
 0.6
 ===
 
   09.09.98: [fc] full_screen mode and imwheel support.
   08.09.98: [fc] slideshow and mouse-bindings :-)
-  
+
 
 
 0.5.2
@@ -566,7 +587,7 @@ Authors:
   07.09.98: [ak] fixed 'first_window_was_not_centered'-bug..
   07.09.98: [sw] changes in auto_resize funktion.
                  now only to large images will be scalled down. (a/A removed)
- 
+
 
 0.5.1
 =====
@@ -588,7 +609,7 @@ Authors:
 ===
 
   31.08.98: [ak] using gdk_imlib_kill_image for disabilng Imlib-Caching.
-                 the caching is a verry good feature, but when you view 100 
+                 the caching is a verry good feature, but when you view 100
 		 pictures or so then you system begins to swap..
   30.08.98: [hm/ak] loading of more than one pictures (*.jpg or so)
 
@@ -596,8 +617,8 @@ Authors:
 0.3
 ===
 
-  30.08.98: [ak] center_placement.. but this looks ugly because 
-                 gdk (1.1.2(cvs)/FVWM2 with OpaqueMove) make a refresh beetwen 
+  30.08.98: [ak] center_placement.. but this looks ugly because
+                 gdk (1.1.2(cvs)/FVWM2 with OpaqueMove) make a refresh beetwen
                  resize and move :( any ideas ? on KWM this works fine...
   29.08.98: [ak] fixed 100% 'bug'
 
@@ -607,4 +628,3 @@ Authors:
 
   29.08.89: [ss] min_zoom_size=5%, max=200%, auto-resize (window)
 
-    

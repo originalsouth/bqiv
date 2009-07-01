@@ -2,7 +2,8 @@
   Module       : main.c
   Purpose      : GDK/Imlib Quick Image Viewer (qiv)
   More         : see qiv README
-  Homepage     : http://www.klografx.net/qiv/
+  Homepage     : http://qiv.spiegl.de/
+  Original     : http://www.klografx.net/qiv/
   Policy       : GNU GPL
 */
 
@@ -14,6 +15,11 @@
 #include <sys/time.h>
 #include <ctype.h>
 #include <string.h>
+
+#ifdef HAVE_MAGIC
+#include <magic.h>
+#endif
+
 #include "qiv.h"
 #include "main.h"
 
@@ -26,6 +32,10 @@ static void qiv_signal_usr1();
 static void qiv_signal_usr2();
 static gboolean qiv_handle_timer(gpointer);
 static void qiv_timer_restart(gpointer);
+
+#ifdef HAVE_MAGIC
+static int check_magic(const char *name);
+#endif
 
 int main(int argc, char **argv)
 {
@@ -86,7 +96,7 @@ int main(int argc, char **argv)
   // the linking option -lXxf86vm.
   XF86VidModeGetModeLine(GDK_DISPLAY(), DefaultScreen(GDK_DISPLAY()),
                          &dot_clock, &modeline);
-  //printf("> hdisplay %d vdisplay %d\n", modeline.hdisplay, modeline.vdisplay); 
+  //printf("> hdisplay %d vdisplay %d\n", modeline.hdisplay, modeline.vdisplay);
   screen_x=MIN(screen_x, modeline.hdisplay);
   screen_y=MIN(screen_y, modeline.vdisplay);
 */
@@ -105,7 +115,7 @@ int main(int argc, char **argv)
 
   if (filter) /* Filter graphic images */
     filter_images(&images,image_names);
-  
+
   if (!images) { /* No images to display */
     g_print("qiv: cannot load any images.\n");
     usage(argv[0],1);
@@ -119,7 +129,6 @@ int main(int argc, char **argv)
 
   /* Display first image first, except in random mode */
 
-  image_idx = 0;
   if (random_order)
     next_image(0);
 
@@ -144,7 +153,7 @@ int main(int argc, char **argv)
   /* Load & display the first image */
 
   qiv_load_image(&main_img);
-  
+
   if(watch_file){
     gtk_idle_add (qiv_watch_file, &main_img);
   }
@@ -190,7 +199,7 @@ static void qiv_signal_usr2()
  * then starts the timer again. Thus images which takes some
  * time to load will still be displayed for "delay" seconds.
  */
- 
+
 static gboolean qiv_handle_timer(gpointer data)
 {
   if (*(int *)data || slide) {
@@ -204,7 +213,7 @@ static gboolean qiv_handle_timer(gpointer data)
 /*
  *    Slideshow timer (re)start function
  */
- 
+
 static void qiv_timer_restart(gpointer dummy)
 {
   g_timeout_add_full(G_PRIORITY_LOW, delay,
@@ -219,10 +228,16 @@ static void filter_images(int *images, char **image_names)
   int i = 0;
 
   while(i < *images) {
-    if (check_extension(image_names[i])) {
+    if (check_extension(image_names[i])
+#ifdef HAVE_MAGIC
+            || check_magic(image_names[i])
+#endif
+       ) {
       i++;
     } else {
       int j = i;
+      if (j < *images-1)
+          image_idx--;
       while(j < *images-1) {
         image_names[j] = image_names[j+1];
         ++j;
@@ -230,6 +245,8 @@ static void filter_images(int *images, char **image_names)
       --(*images);
     }
   }
+  if (image_idx < 0)
+    image_idx = 0;
 }
 
 static int check_extension(const char *name)
@@ -244,3 +261,28 @@ static int check_extension(const char *name)
 
   return 0;
 }
+
+#ifdef HAVE_MAGIC
+static int check_magic(const char *name)
+{
+  magic_t cookie;
+  const char *description=NULL;
+  int i;
+  int ret=0;
+
+  cookie = magic_open(MAGIC_NONE);
+  magic_load(cookie,NULL);
+  description = magic_file(cookie, name);
+  if(description)
+  {
+    for(i=0; image_magic[i]; i++ )
+      if (strncasecmp(description, image_magic[i], strlen(image_magic[i])) == 0)
+      {
+        ret = 1;
+        break;
+      }
+  }
+  magic_close(cookie);
+  return ret;
+}
+#endif
