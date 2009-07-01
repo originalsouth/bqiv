@@ -78,6 +78,12 @@ int main(int argc, char **argv)
  /* statusbar with pango */
   layout = pango_layout_new(gdk_pango_context_get()); 
   fontdesc = pango_font_description_from_string (STATUSBAR_FONT);
+
+  /* set fontsize to 8 if no fontsize is given */
+  if(!pango_font_description_get_size(fontdesc))
+  {
+    pango_font_description_set_size(fontdesc,  PANGO_SCALE * STATUSBAR_FS);
+  }
   metrics = pango_context_get_metrics (gdk_pango_context_get(), fontdesc, NULL);
   pango_layout_set_font_description (layout, fontdesc); 
 

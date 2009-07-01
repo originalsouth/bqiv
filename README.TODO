@@ -1,5 +1,6 @@
 - wishlist for the XINERAMA support:  (like feh does it)
   + fullscreen mode: unused screens shouldn't go black
+     see patch by Tim Connors (mercurial branch "fullscreen-window")
   + ungrab mouse and keyboard in unused screens
 
 

@@ -35,6 +35,12 @@ Authors:
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
 
+2.2.2
+=====
+ 30.05.2009         [tw] fix -x (root window needs colormap)
+                    [tw] patch pango code to avoid garbled output of F1
+                    [as] fix wrong image size after autorotating
+
 2.2.1
 =====
  28.05.2009         [tw] recognize changed files, using --slideshow and --watch

@@ -62,19 +62,20 @@ enum Orientation {
 #define flipH(q)    imlib_image_flip_horizontal();
 #define flipV(q)    imlib_image_flip_vertical();
 #define transpose(q) imlib_image_flip_diagonal();
-#define rot90(q)    imlib_image_orientate(1)
-#define rot180(q)   imlib_image_orientate(2)
-#define rot270(q)   imlib_image_orientate(3)
+#define rot90(q)    imlib_image_orientate(1);
+#define rot180(q)   imlib_image_orientate(2);
+#define rot270(q)   imlib_image_orientate(3);
+#define swapWH(q)  swap(&q->orig_w, &q->orig_h); swap(&q->win_w, &q->win_h);
 void transform( qiv_image *q, enum Orientation orientation) {
     switch (orientation) {
      default: return;
      case HFLIP:     flipH(q); snprintf(infotext, sizeof infotext, "(Flipped horizontally)"); break;
      case VFLIP:     flipV(q); snprintf(infotext, sizeof infotext, "(Flipped vertically)"); break;
      case ROT_180:   rot180(q); snprintf(infotext, sizeof infotext, "(Turned upside down)"); break;
-     case TRANSPOSE: transpose(q); snprintf(infotext, sizeof infotext, "(Transposed)"); break;
-     case ROT_90:    rot90(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
-     case TRANSVERSE: transpose(q); rot180(q); snprintf(infotext, sizeof infotext, "(Transversed)"); break;
-     case ROT_270:   rot270(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
+      case TRANSPOSE: transpose(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Transposed)"); break;
+     case ROT_90:    rot90(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
+     case TRANSVERSE: transpose(q); rot180(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Transversed)"); break;
+     case ROT_270:   rot270(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
     }
 }
 
@@ -328,6 +329,8 @@ void set_desktop_image(qiv_image *q)
       rootGC = gdk_gc_new(root_win);
       temp = gdk_pixmap_create_from_data(root_win, buffer, screen_x,
                                          screen_y, gvis->depth, &image_bg, &image_bg);
+     gdk_drawable_set_colormap(GDK_DRAWABLE(temp),
+			      gdk_drawable_get_colormap(GDK_DRAWABLE(root_win)));
       gdk_draw_drawable(temp, rootGC, p, 0, 0, root_x, root_y, root_w, root_h);
       gdk_window_set_back_pixmap(root_win, temp, FALSE);
       g_object_unref(temp);

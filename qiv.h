@@ -25,13 +25,14 @@
 #include <X11/extensions/xf86vmode.h> // for XF86VidModeGetModeLine
 */
 
-#define VERSION "2.2.1"
-#define VERSION_FULL "QIV - Quick Image Viewer v2.2.1 - http://qiv.spiegl.de/"
+#define VERSION "2.2.2"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.2.2 - http://qiv.spiegl.de/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
 #define IMAGE_BG "black"
 #define STATUSBAR_BG "#FFB900"
+#define STATUSBAR_FS 8  /* default fontsize if none is given */
 #define ERROR_BG "#0000FF"
 #define DEFAULT_BRIGHTNESS 256
 #define DEFAULT_CONTRAST 256
