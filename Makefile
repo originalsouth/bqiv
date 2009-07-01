@@ -32,7 +32,7 @@ COMPRESS_PROG = gzip -9f
 
 # Comment this line out if your system doesn't have libXinerama
 # installed (for centering on dual-screen)
-# GTD_XINERAMA = -DGTD_XINERAMA
+#GTD_XINERAMA = -DGTD_XINERAMA
 
 ######################################################################
 

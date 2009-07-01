@@ -7,7 +7,7 @@
 # include <X11/extensions/Xinerama.h>
 #endif
 
-#define VERSION "2.1-pre8"
+#define VERSION "2.1-pre10"
 #define VERSION_FULL "QIV - Quick Image Viewer v2.0 - http://www.klografx.net/qiv/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
