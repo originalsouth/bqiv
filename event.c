@@ -163,7 +163,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
   qiv_image *q = data;
   Window xwindow;
   int move_step;
-  char digit_buf[2];
 
   switch(ev->type) {
     case GDK_DELETE:
@@ -299,14 +298,12 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* Exit */
 	  
 	  case GDK_Escape:
-	  case 'Q':
 	  case 'q':
             qiv_exit(0);
 	    break;
 
 	  /* Fullscreen mode (on/off) */
 
-	  case 'F':
 	  case 'f':
 	    exit_slideshow = FALSE;
 	    gdk_window_withdraw(q->win);
@@ -318,7 +315,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Center mode (on/off) */
 
-	  case 'E':
 	  case 'e':
 	    exit_slideshow = FALSE;
 	    center ^= 1;
@@ -329,7 +325,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Transparency on/off */
 
-	  case 'P':
 	  case 'p':
 	    exit_slideshow = FALSE;
 	    transparency ^= 1;
@@ -340,7 +335,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Maxpect on/off */
 
-	  case 'M':
 	  case 'm':
         scale_down = 0;
 	    maxpect ^= 1;
@@ -353,7 +347,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Random on/off */
 
-	  case 'R':
 	  case 'r':
 	    random_order ^= 1;
             snprintf(infotext, sizeof infotext, random_order ?
@@ -395,7 +388,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Slide show on/off */
 
-	  case 'S':
 	  case 's':
 	    exit_slideshow = FALSE;
 	    slide ^= 1;
@@ -594,7 +586,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Scale_down */
 
-	  case 'T':
 	  case 't':
         maxpect = 0;
 	    scale_down ^= 1;
@@ -722,7 +713,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* Delete image */
 
 	  case GDK_Delete:
-	  case 'D':
 	  case 'd':
             if (!readonly) {
               if (move2trash() == 0)
@@ -735,7 +725,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Undelete image */
 
-	  case 'U':
 	  case 'u':
             if (!readonly) {
               if (undelete_image() == 0)
@@ -748,7 +737,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
      /* Copy image to selected directory */
 
-     case 'A':
      case 'a':
         if (copy2select() == 0)
             snprintf(infotext, sizeof infotext, "(Last image copied)");
@@ -760,7 +748,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
     /* Jump to image */
 
-	  case 'J':
 	  case 'j':
             jumping=1;
 	    jidx=0;
@@ -768,7 +755,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Flip horizontal */
 
-	  case 'H':
 	  case 'h':
 	    gdk_imlib_flip_image_horizontal(q->im);
 	    snprintf(infotext, sizeof infotext, "(Flipped horizontal)");
@@ -777,7 +763,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Flip vertical */
 
-	  case 'V':
 	  case 'v':
 	    gdk_imlib_flip_image_vertical(q->im);
 	    snprintf(infotext, sizeof infotext, "(Flipped vertical)");
@@ -786,7 +771,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Watch File (on/off) */
 
-	  case 'W':
 	  case 'w':
 	    watch_file ^= 1;
         snprintf(infotext, sizeof infotext, watch_file ? 
@@ -802,7 +786,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* Rotate right */
 
 	  case 'k':
-	  case 'K':
 	    gdk_imlib_rotate_image(q->im, 1);
 	    gdk_imlib_flip_image_horizontal(q->im);
 	    snprintf(infotext, sizeof infotext, "(Rotated right)");
@@ -815,7 +798,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* Rotate left */
 
 	  case 'l':
-	  case 'L':
 	    gdk_imlib_rotate_image(q->im, -1);
 	    gdk_imlib_flip_image_vertical(q->im);
 	    snprintf(infotext, sizeof infotext, "(Rotated left)");
@@ -827,7 +809,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Center image on background */
 
-	  case 'X':
 	  case 'x':
 	    to_root=1;
             set_desktop_image(q);
@@ -838,7 +819,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  /* Tile image on background */
 
-	  case 'Y':
 	  case 'y':
 	    to_root_t=1;
             set_desktop_image(q);
@@ -847,7 +827,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    to_root_t=0;
 	    break;
 
-	  case 'Z':
 	  case 'z':
 	    to_root_s=1;
 	    set_desktop_image(q);
@@ -894,12 +873,34 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case '7':
           case '8':
           case '9':
-            digit_buf[0] = ev->key.keyval;
-            digit_buf[1] = '\0';
+          case 'A':
+          case 'D':
+          case 'E':
+          case 'F':
+          case 'H':
+          case 'J':
+          case 'K':
+          case 'L':
+          case 'M':
+          case 'n':
+          case 'N':
+          case 'o':
+          case 'O':
+          case 'P':
+          case 'Q':
+          case 'R':
+          case 'S':
+          case 'T':
+          case 'U':
+          case 'V':
+          case 'W':
+          case 'X':
+          case 'Y':
+          case 'Z':
 	    {
 	      int numlines = 0;
 	      const char **lines;
-	      run_command(q, atoi(digit_buf), image_names[image_idx], &numlines, &lines);
+	      run_command(q, ev->key.keyval, image_names[image_idx], &numlines, &lines);
 	      if (lines && numlines) 
 		qiv_display_text_window(q, "(Command output)", lines);
 	    }
@@ -917,3 +918,4 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       slide=0;
   }
 }
+

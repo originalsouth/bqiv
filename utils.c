@@ -236,7 +236,7 @@ int undelete_image()
 #define MAXLINES 100
 
 /* run a command ... */
-void run_command(qiv_image *q, int n, char *filename, int *numlines, const char ***output)
+void run_command(qiv_image *q, char n, char *filename, int *numlines, const char ***output)
 {
   static char nr[10];
   static char *buffer = 0;
@@ -255,9 +255,9 @@ void run_command(qiv_image *q, int n, char *filename, int *numlines, const char 
   *numlines = 0;
   *output = lines;
   
-  snprintf(infotext, sizeof infotext, "Running: 'qiv-command %i %s'", n, filename);
+  snprintf(infotext, sizeof infotext, "Running: 'qiv-command %c %s'", n, filename);
     
-  snprintf(nr, sizeof nr, "%i", n);
+  snprintf(nr, sizeof nr, "%c", n);
   
   /* Use some pipes for stdout and stderr */
 

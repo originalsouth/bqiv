@@ -103,7 +103,8 @@ extern int		watch_file;
 extern const char	*helpstrs[], **helpkeys, *image_extensions[];
 
 #ifdef GTD_XINERAMA
-extern XineramaScreenInfo *preferred_screen;
+extern XineramaScreenInfo preferred_screen[1];
+extern XineramaScreenInfo statusbar_screen[1];
 #endif
 
 /* main.c */
@@ -150,7 +151,7 @@ extern int  move2trash(void);
 extern int  copy2select(void);
 extern int  undelete_image(void);
 extern void jump2image(char *);
-extern void run_command(qiv_image *, int, char *, int *, const char ***);
+extern void run_command(qiv_image *, char, char *, int *, const char ***);
 extern void finish(int);
 extern void next_image(int);
 extern int checked_atoi(const char *);

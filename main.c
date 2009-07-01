@@ -27,7 +27,7 @@ static gboolean qiv_handle_timer(gpointer);
 static void qiv_timer_restart(gpointer);
 
 #ifdef GTD_XINERAMA
-static XineramaScreenInfo * get_preferred_xinerama_screen(void);
+static void get_preferred_xinerama_screens(void);
 #endif
 
 int main(int argc, char **argv)
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   screen_y = gdk_screen_height();
 
 #ifdef GTD_XINERAMA
-  preferred_screen = get_preferred_xinerama_screen();
+  get_preferred_xinerama_screens();
 #endif
 
   gtk_widget_push_visual(gdk_imlib_get_visual());
@@ -217,54 +217,83 @@ static int check_extension(const char *name)
 }
 
 #ifdef GTD_XINERAMA
-
+/**
+ * Find screen which maximizes f(screen)
+ */
 static XineramaScreenInfo *
-largest_xinerama_screen (XineramaScreenInfo * screens, int nscreens)
+xinerama_maximal_screen (XineramaScreenInfo * screens, int nscreens,
+			 long (*f)(XineramaScreenInfo *))
 {
   XineramaScreenInfo * screen;
-  long pixels;
-  long maxpixels = 0;
-  XineramaScreenInfo * largest_screen = screens;
+  long value;
+  long maxvalue = 0;
+  XineramaScreenInfo * maximal_screen = screens;
   
   for (screen = screens; nscreens--; screen++) {
-    pixels = screen->width * screen->height;
-    if (pixels > maxpixels) {
-      maxpixels = pixels;
-      largest_screen = screen;
+    value = f(screen);
+    if (value > maxvalue) {
+      maxvalue = value;
+      maximal_screen = screen;
     }
   }
-  return largest_screen;
+  return maximal_screen;
 }
 
-static XineramaScreenInfo *
-get_preferred_xinerama_screen(void)
+static long
+xinerama_screen_npixels (XineramaScreenInfo * screen)
 {
-  static XineramaScreenInfo preferred_screen[1];
+  return screen->width * screen->height;
+}
+
+/**
+ * We will want to find the lower-rightmost screen (on which we
+ * would like to display the statusbar in full-screen mode).
+ *
+ * In the general case (screens of differing sizes and arbitrarily placed)
+ * the "lower-rightmost" screen is not particularly well defined.  We
+ * take the definition as follows:
+ *
+ * Let (l_i, r_i) be the absolute pixel coordinates of the lower right corner
+ * corner of screen i.  The lower-rightmost screen is the one for which
+ * l_i + r_i is a maximum.
+ */
+static long
+xinerama_screen_lower_rightness (XineramaScreenInfo * screen)
+{
+  return screen->x_org + screen->y_org + screen->width + screen->height;
+}
+
+static void
+get_preferred_xinerama_screens(void)
+{
   Display * dpy;
   XineramaScreenInfo *screens = 0;
   int nscreens = 0;
 
   dpy = XOpenDisplay(gdk_get_display());
-  if (!dpy) {
-    return 0;
-  }
-  if (XineramaIsActive(dpy))
+  if (dpy && XineramaIsActive(dpy))
     screens = XineramaQueryScreens(dpy, &nscreens);
 
   if (screens) {
-    XineramaScreenInfo * s = largest_xinerama_screen(screens,nscreens);
-    *preferred_screen = *s;
+    *preferred_screen 
+      = *xinerama_maximal_screen(screens, nscreens,
+				 xinerama_screen_npixels);
+    *statusbar_screen
+      = *xinerama_maximal_screen(screens, nscreens,
+				 xinerama_screen_lower_rightness);
     XFree(screens);
   }
   else {
     /* If we don't have Xinerama, fake it: */
-    preferred_screen->screen_number = DefaultScreen(dpy);
+    preferred_screen->screen_number = 0;
     preferred_screen->x_org = 0;
     preferred_screen->y_org = 0;
-    preferred_screen->width = DisplayWidth(dpy, DefaultScreen(dpy));
-    preferred_screen->height = DisplayHeight(dpy, DefaultScreen(dpy));
+    preferred_screen->width = gdk_screen_width();
+    preferred_screen->height = gdk_screen_height();
+
+    *statusbar_screen = *preferred_screen;
   }
-  XCloseDisplay(dpy);
-  return preferred_screen;
+  if (dpy)
+    XCloseDisplay(dpy);
 }
 #endif

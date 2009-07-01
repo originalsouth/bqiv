@@ -525,6 +525,13 @@ void update_image(qiv_image *q, int mode)
     gdk_flush();
 
   } else {
+#ifdef GTD_XINERAMA
+# define statusbar_x (statusbar_screen->x_org + statusbar_screen->width)
+# define statusbar_y (statusbar_screen->y_org + statusbar_screen->height)
+#else
+# define statusbar_x screen_x
+# define statusbar_y screen_y
+#endif
     if (mode == FULL_REDRAW) {
       gdk_window_clear(q->win); 
     } else {
@@ -544,7 +551,7 @@ void update_image(qiv_image *q, int mode)
       if (q->statusbar_was_on && (!statusbar_fullscreen ||
                                   q->text_ow > text_w || q->text_oh > text_h))
         gdk_draw_rectangle(q->win, q->bg_gc, 1,
-            screen_x-q->text_ow-9, screen_y-q->text_oh-9,
+            statusbar_x-q->text_ow-9, statusbar_y-q->text_oh-9,
             q->text_ow+4, q->text_oh+4);
     }
 
@@ -569,11 +576,12 @@ void update_image(qiv_image *q, int mode)
 
     if (statusbar_fullscreen) {
       gdk_draw_rectangle(q->win, q->bg_gc, 0,
-          screen_x-text_w-10, screen_y-text_h-10, text_w+5, text_h+5);
+          statusbar_x-text_w-10, statusbar_y-text_h-10, text_w+5, text_h+5);
       gdk_draw_rectangle(q->win, q->status_gc, 1,
-          screen_x-text_w-9, screen_y-text_h-9, text_w+4, text_h+4);
+          statusbar_x-text_w-9, statusbar_y-text_h-9, text_w+4, text_h+4);
       gdk_draw_text(q->win, text_font, q->text_gc,
-          screen_x-text_w-7, screen_y-7-text_font->descent, win_title, text_len);
+          statusbar_x-text_w-7, statusbar_y-7-text_font->descent,
+          win_title, text_len);
     }
 
     q->win_ox = q->win_x;

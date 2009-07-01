@@ -29,6 +29,9 @@ Authors:
 
 2.1
 ===
+ 10.05.2005 [pre10] [AK] Added Patch by Christoph Wegscheider <cw@wegi.net> (new QIV Debian maintainer).
+                         Now all free Keys can be used by qiv-command
+ 27.03.2005 [pre9] [jd] Another Xinerama bugfix (statusbar: now displayed on the smaller screen if two are used)
  23.02.2005 [pre8] [as] new qiv-command feature:
                          if first output line is like "NEWNAME=xxxxxxx"
                          then qiv understands that the filename of the currently

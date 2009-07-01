@@ -1,28 +1,23 @@
 #! /bin/sh
 
-###
 ### QUICK IMAGE VIEWER "qiv-command" file
 ### http://www.klografx.net/qiv/
 ###
-### this file will be launched by QIV if you push 0-9
+### example "qiv-command" file for key 1-9
+###
+### NEW!!!
+### Now you can use all free keys for qiv-command !!!
+###
+### this file will be launched by QIV if you push 0-9 (or other free Keys)
 ### just put it in a directory that is in your path
 ###
 ### syntax: qiv-command [pushed_number] [image_filename_with_full_path]
 ###
-### Note:
-###  If the first line of the output is like "NEWNAME=xxxxxxx" then qiv
-###  thinks that the filename of the currently displayed image has
-###  changed to this new name and updates its internal filelist.
-###  This is very useful when using qiv-command to rename files.
 
-pressed_key=$1
-filename=$2
 
-#echo "You pressed the $pressed_key key while watching $filename"
+case "$1" in
 
-case "$pressed_key" in
-
-  0)
+    0)
 	# do something with the image ($2) -> 
 	#
 	# example: copy
@@ -30,37 +25,56 @@ case "$pressed_key" in
 	#
 	# example: move
 	# mv "$2" "/home/myfiles/download/";
-	# echo "NEWNAME=/home/myfiles/download/$2";
 	#
-	# example: show EXIF Header using "exiftool"
-	# exiftool "$2"
+	# ecample: show EXIF Header using "metacam"
+	# metacam "$2"
 	
 	echo -ne "0 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
 
 
-  1|2|3|4|5|6|7)
-	echo -ne "$pressed_key was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    1)
+	echo -ne "1 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
 
-  8) # rotate JPG without losing EXIF tags
-	echo 2>&1 "Rotating to the left."
-	jhead -cmd "jpegtran -rotate 270 -progressive -outfile &o &i" $filename >/dev/null
-	# set timestamp of file to Date/Time when the photo was taken
-	jhead -ft $filename >/dev/null
-	;;
+    2)
+	echo -ne "2 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
 
-  9) # rotate JPG without losing EXIF tags
-	echo 2>&1 "Rotating to the right."
-	jhead -cmd "jpegtran -rotate 90 -progressive -outfile &o &i" $filename >/dev/null
-	# set timestamp of file to Date/Time when the photo was taken
-	jhead -ft $filename >/dev/null
-	;;
 
-  *)
-    echo "Usage: $0 [0-9]"
-	echo "Within qiv you simply press a key from 0-9.  Quitting."
+    3)
+	echo -ne "3 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+
+    4)
+	echo -ne "4 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    5)
+	echo -ne "5 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    6)
+	echo -ne "6 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    7)
+	echo -ne "7 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    8)
+	echo -ne "8 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+
+    9)
+	echo -ne "9 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+
+
+    *)
+    echo "Usage: $0 [0-9] or any other free Key..."
     exit 1
 esac
+
 
 exit 0

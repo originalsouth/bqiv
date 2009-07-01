@@ -72,6 +72,8 @@ Authors:
  Wayne Davison           (wayned@users.sourceforge.net)
  Johannes Stezenbach     (js@convergence.de)
  OEyvind Kolaas          (pippin@users.sourceforge.net)
+ Matthieu Castet         (castet.matthieu@free.fr)
+ Geoffrey T. Dairik      (dairiki@dairiki.org)
 
 
 Homepage:   
@@ -89,7 +91,7 @@ Misc:
   type "man qiv" for more information.
   See the Makefile if you have problems compiling.
 
-  qiv is designed to work with any gtk/gdk, it also
+  qiv is designed to work with ANY gtk/gdk, it also
   should work with ANY version of Imlib of Linux (Intel/Mac),
   Solaris (SunOS) and FreeBSD.
 
@@ -156,6 +158,7 @@ Links:
 
   ImLib   : (ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/) 
   gtk/gdk : http://www.gtk.org/
+  qiv     : http://www.klografx.net/qiv/
 
 
 Contact:

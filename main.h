@@ -153,6 +153,7 @@ const char *image_extensions[] = {
 };
 
 #ifdef GTD_XINERAMA
-XineramaScreenInfo *preferred_screen = 0;
+XineramaScreenInfo preferred_screen[1];
+XineramaScreenInfo statusbar_screen[1];
 #endif
 #endif /* MAIN_H */
