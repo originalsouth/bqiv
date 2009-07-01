@@ -7,11 +7,8 @@ include /usr/share/cdbs/1/rules/simple-patchsys.mk
 update-config::
 	[ -f qiv-command ] || mv qiv-command.example qiv-command
 
-install/qiv::
-	mv qiv therealqiv
-
 reverse-config::
 	[ ! -f qiv-command ] || mv qiv-command qiv-command.example
 
 clean::
-	rm -f qiv therealqiv xmalloc.o
+	rm -f qiv xmalloc.o

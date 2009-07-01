@@ -31,6 +31,9 @@ Authors:
 
 2.1
 ===
+ 02.05.2007 [pre12] [as] avoid wrapper, include "XLIB_SKIP_ARGB_VISUALS=1" in main.c
+ 25.04.2007         [as] include README and README.TODO in debian package
+                         README.TODO: fvwm style setting has to be for "therealqiv"
  25.04.2007 [pre11] [as] include Debian changes and package files:
                          renamed README.CHANGES to Changelog
                          added patch hide_therealqiv (for Debian Bug #326849)

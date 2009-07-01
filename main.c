@@ -31,6 +31,9 @@ int main(int argc, char **argv)
 {
   struct timeval tv;
 
+  // [as] workaround for problem with X composite extension
+  putenv("XLIB_SKIP_ARGB_VISUALS=1");
+
 /*
   // [as] thinks that this is not portable enough
   // [lc]

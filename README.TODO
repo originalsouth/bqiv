@@ -8,6 +8,7 @@
    https://bugs.launchpad.net/ubuntu/+source/qiv/+bug/41056
   Debian has written a workaround: (Debian Bug #326849)
    a wrapper for qiv which sets the environment variable XLIB_SKIP_ARGB_VISUALS=1
+  [as] included it directly in main.c to avoid the wrapper
 
 
 - rewrite for imlib2 and/or GTK 2.x
@@ -39,4 +40,5 @@
    Possibly a solution: geometry hints should override windowmanager placement
    Or: leave the magnifying window in a specific place (even when the mouse
        leaves the image window) instead of moving it around
-   quick workaround in fvwm:  Style "qiv" MinOverlapPlacement
+   quick workaround in fvwm:
+          Style "qiv" MinOverlapPlacement
