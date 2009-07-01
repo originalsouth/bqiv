@@ -255,45 +255,60 @@ void set_desktop_image(qiv_image *q)
 void zoom_in(qiv_image *q)
 {
   int zoom_percentage;
-
-  maxpect = scale_down = 0;
+  int w_old, h_old;
 
   /* first compute current zoom_factor */
-  if (fixed_window_size) {
+  if (maxpect || scale_down || fixed_window_size) {
     zoom_percentage=myround((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
     zoom_factor=(zoom_percentage - 100) / 10;
   }
 
+  maxpect = scale_down = 0;
+
   zoom_factor++;
+  w_old = q->win_w;
+  h_old = q->win_h;
   q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
   q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
 
   /* adapt image position */
-  center_image(q);
+  q->win_x -= (q->win_w - w_old) / 2;
+  q->win_y -= (q->win_h - h_old) / 2;
+
+  if (fullscreen)
+    correct_image_position(q);
 }
 
 void zoom_out(qiv_image *q)
 {
   int zoom_percentage;
-
-  maxpect = scale_down = 0;
+  int w_old, h_old;
 
   /* first compute current zoom_factor */
-  if (fixed_window_size) {
+  if (maxpect || scale_down || fixed_window_size) {
     zoom_percentage=myround((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
     zoom_factor=(zoom_percentage - 100) / 10;
   }
 
-  if(q->win_w > MIN(64, q->orig_w) && q->win_h > MIN(64, q->orig_h)) {
+  maxpect = scale_down = 0;
+
+  w_old = q->win_w;
+  h_old = q->win_h;
+
+  if(zoom_factor > -9 && q->win_w > MIN(64, q->orig_w) && q->win_h > MIN(64, q->orig_h)) {
     zoom_factor--;
     q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
     q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
 
     /* adapt image position */
-    center_image(q);
+    q->win_x -= (q->win_w - w_old) / 2;
+    q->win_y -= (q->win_h - h_old) / 2;
+
+    if (fullscreen)
+      correct_image_position(q);
   } else {
-    snprintf(infotext, sizeof infotext, "(Can not zoom_out anymore)");
-    fprintf(stderr, "qiv: can not zoom_out anymore\n");
+    snprintf(infotext, sizeof infotext, "(Cannot zoom_out anymore)");
+    fprintf(stderr, "qiv: cannot zoom_out anymore\n");
   }
 }
 
@@ -380,11 +395,34 @@ void update_image(qiv_image *q, int mode)
   gchar win_title[BUF_LEN];
   double elapsed;
   struct timeval before, after;
+  int i;
 
   if (q->error) {
     g_snprintf(win_title, sizeof win_title,
         "qiv: ERROR! cannot load image: %s", image_names[image_idx]);
     gdk_beep();
+
+    /* take this image out of the file list */
+    --images;
+    for(i=image_idx;i<images;++i) {
+      image_names[i] = image_names[i+1];
+    }
+
+    /* If deleting the last file out of x */
+    if(images == image_idx)
+      image_idx = 0;
+    
+    /* If deleting the only file left */    
+    if(!images) {
+#ifdef DEBUG
+      g_print("*** deleted last file in list. Exiting.\n");
+#endif
+      gdk_exit(0);
+    }
+    /* else load the next image */
+    qiv_load_image(q);
+    return;
+
   } else {
     if (mode == REDRAW || mode == FULL_REDRAW) {
       gdk_imlib_set_image_modifier(q->im, &q->mod);
@@ -470,8 +508,10 @@ void update_image(qiv_image *q, int mode)
     }
     gdk_window_clear(q->win);
 
-    gdk_flush();
     if (statusbar_window) {
+#ifdef DEBUG
+      g_print("*** print statusbar at (%d, %d)\n", MAX(2,q->win_w-text_w-10), MAX(2,q->win_h-text_h-10));
+#endif
       gdk_draw_rectangle(q->win, q->bg_gc, 0,
                          MAX(2,q->win_w-text_w-10), MAX(2,q->win_h-text_h-10),
                          text_w+5, text_h+5);
@@ -482,8 +522,9 @@ void update_image(qiv_image *q, int mode)
                     MAX(5,q->win_w-text_w-7), MAX(5,q->win_h-7-text_font->descent),
                     win_title, text_len);
     }
-  }
-  else {
+    gdk_flush();
+
+  } else {
     if (mode == FULL_REDRAW) {
       gdk_window_clear(q->win); 
     } else {
@@ -599,10 +640,44 @@ void center_image(qiv_image *q)
     q->win_y = (screen_y - q->win_h) / 2;
   }
 }
+
+void correct_image_position(qiv_image *q)
+{
+  center_image(q);
+}
 #else
 void center_image(qiv_image *q)
 {
   q->win_x = (screen_x - q->win_w) / 2;
   q->win_y = (screen_y - q->win_h) / 2;
+}
+
+void correct_image_position(qiv_image *q)
+{
+  /* try to keep inside the screen */
+  if (q->win_w < screen_x) {
+    if (q->win_x < 0)
+      q->win_x = 0;
+    if (q->win_x + q->win_w > screen_x)
+      q->win_x = screen_x - q->win_w;
+  } else {
+    if (q->win_x > 0)
+      q->win_x = 0;
+    if (q->win_x + q->win_w < screen_x)
+      q->win_x = screen_x - q->win_w;
+  }
+    
+  /* don't leave ugly borders */
+  if (q->win_h < screen_y) {
+    if (q->win_y < 0)
+      q->win_y = 0;
+    if (q->win_y + q->win_h > screen_y)
+      q->win_y = screen_y - q->win_h;
+  } else {
+    if (q->win_y > 0)
+      q->win_y = 0;
+    if (q->win_y + q->win_h < screen_y)
+      q->win_y = screen_y - q->win_h;
+  }
 }
 #endif

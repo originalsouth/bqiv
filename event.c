@@ -92,49 +92,64 @@ static void qiv_drag_image(qiv_image *q, int move_to_x, int move_to_y)
 
 void qiv_display_text_window(qiv_image *q, const char *infotextdisplay, const char *strs[])
 {
+  int temp, text_w = 0, text_h, i, maxlines;
+  int width, height, text_left;
+
+  const char *continue_msg = "Push any key...";
+
   if (fullscreen) {
-    int temp, text_w = 0, text_h, i, maxlines;
-    const char *continue_msg = "Push any key...";
+    width = screen_x;
+    height = screen_y;
+  } else {
+    width = q->win_w;
+    height = q->win_h;
+  }
 
-    /* Calculate maximum number of lines to display */
-    if (text_font->ascent + text_font->descent > 0) 
-       maxlines = screen_y / (text_font->ascent + text_font->descent) - 2;
-    else
-       maxlines = 60;
+  /* Calculate maximum number of lines to display */
+  if (text_font->ascent + text_font->descent > 0) 
+    maxlines = height / (text_font->ascent + text_font->descent) - 3;
+  else
+    maxlines = 60;
 
-    for (i = 0; strs[i] && i < maxlines; i++) {
-      temp = gdk_text_width(text_font, strs[i], strlen(strs[i]));
-      if (text_w < temp) text_w = temp;
-    }
+  text_w = gdk_text_width(text_font, continue_msg, strlen(continue_msg));
+  for (i = 0; strs[i] && i < maxlines; i++) {
+    temp = gdk_text_width(text_font, strs[i], strlen(strs[i]));
+    if (text_w < temp) text_w = temp;
+  }
 
-    text_h = (i + 2) * (text_font->ascent + text_font->descent);
+  text_h = (i + 2) * (text_font->ascent + text_font->descent);
 
-    snprintf(infotext, sizeof infotext, infotextdisplay);
-    update_image(q, REDRAW);
-    
-    gdk_draw_rectangle(q->win, q->bg_gc, 0,
-		       screen_x/2 - text_w/2 - 4,
-		       screen_y/2 - text_h/2 - 4,
-		       text_w + 7, text_h + 7);
-    gdk_draw_rectangle(q->win, q->status_gc, 1,
-		       screen_x/2 - text_w/2 - 3,
-		       screen_y/2 - text_h/2 - 3,
-		       text_w + 6, text_h + 6);
-    for (i = 0; strs[i] && i < maxlines; i++) {
-      gdk_draw_text(q->win, text_font, q->text_gc, screen_x/2 - text_w/2,
-		    screen_y/2 - text_h/2 - text_font->descent +
-		    (i+1) * (text_font->ascent + text_font->descent),
-		    strs[i], strlen(strs[i]));
-    }
+  snprintf(infotext, sizeof infotext, infotextdisplay);
+  update_image(q, REDRAW);
 
-    /* Display Push Any Key... message */
-    gdk_draw_text(q->win, text_font, q->text_gc, screen_x/2 - gdk_text_width(text_font, continue_msg, strlen(continue_msg))/2,
-	          screen_y/2 - text_h/2 - text_font->descent +
+  text_left = width/2 - text_w/2 - 4;
+  if (text_left < 2)  text_left = 2;            /* if window/screen is smaller than text */
+
+  gdk_draw_rectangle(q->win, q->bg_gc, 0,
+		     text_left,
+		     height/2 - text_h/2 - 4,
+		     text_w + 7, text_h + 7);
+  gdk_draw_rectangle(q->win, q->status_gc, 1,
+		     text_left + 1,
+		     height/2 - text_h/2 - 3,
+		     text_w + 6, text_h + 6);
+  for (i = 0; strs[i] && i < maxlines; i++) {
+    gdk_draw_text(q->win, text_font, q->text_gc, text_left + 4,
+		  height/2 - text_h/2 - text_font->descent +
+		  (i+1) * (text_font->ascent + text_font->descent),
+		  strs[i], strlen(strs[i]));
+  }
+
+  /* Display Push Any Key... message */
+  gdk_draw_text(q->win, text_font, q->text_gc, width/2 - gdk_text_width(text_font, continue_msg, strlen(continue_msg))/2,
+	          height/2 - text_h/2 - text_font->descent +
 		  (i+2) * (text_font->ascent + text_font->descent),
 		  continue_msg, strlen(continue_msg));
 
-    displaying_textwindow = TRUE;
-  } else {
+  displaying_textwindow = TRUE;
+
+  /* print also on console */
+  if (0) {
     int i;
     for (i = 0; strs[i] != NULL; i++) {
       printf("%s\n", strs[i]);

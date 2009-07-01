@@ -115,8 +115,8 @@ int move2trash()
 int copy2select()
 {
   char *ptr, *filename = image_names[image_idx];
-  char dstfile[FILENAME_LEN], buf[BUFSIZ];
-  int fdi, fdo, n;
+  char dstfile[FILENAME_LEN], dstfilebak[FILENAME_LEN], tmp[FILENAME_LEN], buf[BUFSIZ];
+  int fdi, fdo, n, n2;
 
   /* try to create something; if select_dir doesn't exist, create one */
   snprintf(dstfile, sizeof dstfile, "%s/.qiv-select", select_dir);
@@ -153,16 +153,29 @@ int copy2select()
 #endif
   ptr = dstfile;
 
-  unlink(dstfile); /* Just in case it already exists... */
+  /* Just in case the file already exists... */
+  /* unlink(dstfile); */
+  snprintf(dstfilebak, sizeof dstfilebak, "%s", dstfile);
+  while ((n2 = open(dstfilebak, O_RDONLY)) != -1) {
+    close(n2);
+    snprintf(tmp, sizeof dstfilebak, "%s.bak", dstfilebak);
+    strncpy(dstfilebak, tmp, sizeof dstfilebak);
+  }
+  if ( strncmp(dstfile, dstfilebak, sizeof dstfile) != 0 ) {
+#ifdef DEBUG
+    g_print("*** renaming: '%s' to '%s'\n",dstfile,dstfilebak);
+#endif
+    rename(dstfile, dstfilebak);
+  }
 
-    fdi = open(filename, O_RDONLY);
-    fdo = open(dstfile, O_CREAT | O_WRONLY, 0666);
-    if(fdi == -1 || fdo == -1) {
-      g_print("*** Error: Could not copy file: '%s'\a\n", strerror(errno));
-    }
-    while((n = read(fdi, buf, BUFSIZ)) > 0) write(fdo, buf, n);
-    close(fdi);
-    close(fdo);
+  fdi = open(filename, O_RDONLY);
+  fdo = open(dstfile, O_CREAT | O_WRONLY, 0666);
+  if(fdi == -1 || fdo == -1) {
+    g_print("*** Error: Could not copy file: '%s'\a\n", strerror(errno));
+  }
+  while((n = read(fdi, buf, BUFSIZ)) > 0) write(fdo, buf, n);
+  close(fdi);
+  close(fdo);
 
   return 0;
 }
@@ -230,6 +243,8 @@ void run_command(qiv_image *q, int n, char *filename, int *numlines, const char 
   static const char *lines[MAXLINES + 1];
   int pipe_stdout[2];
   int pid;
+  char *newfilename;
+  int i;
   struct stat before, after;
 
   stat(filename, &before);
@@ -301,10 +316,34 @@ void run_command(qiv_image *q, int n, char *filename, int *numlines, const char 
     return;
   }
 
+  /* Check for special keyword "NEWNAME=" in first line
+   * indicating that the filename has changed */
+  if ( lines[0] && strncmp(lines[0], "NEWNAME=", 8) == 0 ) {
+    newfilename = strdup(lines[0]);
+    newfilename += 8;
+#ifdef DEBUG
+    g_print("*** filename has changed from: '%s' to '%s'\n", image_names[image_idx], newfilename);
+#endif
+
+    image_names[image_idx] = strdup(newfilename);
+    filename = strdup(newfilename);
+
+    /* delete this line from the output */
+    (*numlines)--;
+    lines[0] = 0;
+    for (i = 0; i < *numlines; i++) {
+      lines[i] = lines[i+1];
+    }
+    update_image(q, FULL_REDRAW);
+    return;
+  }
+  
   stat(filename, &after);
 
   /* If image modified reload, otherwise redraw */
-  if (before.st_mtime == after.st_mtime)
+  if (before.st_size == after.st_size &&
+      before.st_ctime == after.st_ctime &&
+      before.st_mtime == after.st_mtime)
     update_image(q, FULL_REDRAW);
   else
     qiv_load_image(q);

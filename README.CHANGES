@@ -29,6 +29,18 @@ Authors:
 
 2.1
 ===
+ 23.02.2005 [pre8] [as] new qiv-command feature:
+                         if first output line is like "NEWNAME=xxxxxxx"
+                         then qiv understands that the filename of the currently
+                         displayed image has changed to this new name
+                         (very useful when using qiv-command to rename files)
+                        fix image position when zooming to avoid wild jumps
+                        delete files from list if they cannot be loaded
+                        display text popup after qiv-command not only in fullscreen mode
+                        qiv_display_text_window: adjust minimum width of box
+                        after qiv-command also check file size and ctime
+                        avoid file overwrites in .qiv-select (NEEDS IMPROVING)
+                        updated and added more examples to qiv-command
  01.01.2005 [pre7] [ak] added small patch by Nick Clifton <nickc@redhat.com>:
                         setting WM_CLASS name to "qiv" (attr.wmclass_name). 
  05.12.2004 [pre6] [ak] changed a-key/copy to real copy (no links anymore)

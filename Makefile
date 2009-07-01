@@ -58,9 +58,12 @@ SS_RANDOMIZE = -r
 ######################################################################
 
 CC        = gcc
-CFLAGS    = -O2 -Wall -fomit-frame-pointer -finline-functions \
+CFLAGS    = -O2 -Wall \
 	    -fcaller-saves -ffast-math -fno-strength-reduce \
 	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
+#CFLAGS    = -O2 -Wall -fomit-frame-pointer -finline-functions \
+#	    -fcaller-saves -ffast-math -fno-strength-reduce \
+#	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 
 INCLUDES  = `imlib-config --cflags-gdk`
 LIBS      = `imlib-config --libs-gdk`

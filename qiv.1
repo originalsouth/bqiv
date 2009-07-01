@@ -90,7 +90,7 @@ Grab the pointer in windowed mode.
 .TP
 .B \-G, \-\-disable_grab
 Disable grabbing the pointer/kbd in fullscreen mode. Useful e.g. if
-qiv displays images on a display other than where it was envoked
+qiv displays images on a display other than where it was invoked
 from. Use with caution!
 .TP
 .B \-v, \-\-version
@@ -241,6 +241,13 @@ case $1 in
   *) echo "unrecognized command"; exit ;;
 esac
 .EE
+.P
+If the first line of the output is like "NEWNAME=xxxxxxx" then qiv
+thinks that the filename of the currently displayed image has
+changed to this new name and updates its internal filelist.
+This is very useful when using qiv-command to rename files.
+.P
+Please also see the example that came together with qiv.
 .SH XSCREENSAVER SUPPORT
 To use qiv with xscreensaver, either type "make install-xscreensaver"
 or add the following to your ~/.Xresources:

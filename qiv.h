@@ -7,7 +7,7 @@
 # include <X11/extensions/Xinerama.h>
 #endif
 
-#define VERSION "2.0"
+#define VERSION "2.1-pre8"
 #define VERSION_FULL "QIV - Quick Image Viewer v2.0 - http://www.klografx.net/qiv/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
@@ -132,6 +132,7 @@ extern void update_image(qiv_image *, int);
 extern void reset_mod(qiv_image *);
 extern void destroy_image(qiv_image *q);
 extern void center_image(qiv_image *q);
+extern void correct_image_position(qiv_image *q);
 extern void hide_cursor(qiv_image *q);
 extern void show_cursor(qiv_image *q);
 

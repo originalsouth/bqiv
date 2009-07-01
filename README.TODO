@@ -1,3 +1,5 @@
+- statusbar doesn't appear everytime when the window size changes
+   (a bug in gdk?)
 
 - better zoom function. 
   "feh" with imlib2 is doing this much better.. 

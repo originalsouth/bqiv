@@ -14,8 +14,8 @@ Installation (Linux/Solaris/FreeBSD):
  qiv-command
  -----------
  Rename "qiv-command.example" to "qiv-command" and copy it in your path if 
- you want to launch other programs within qiv. This is verry nice for stuff 
- like "metacam" to show the EXIF-Headers of digital photos.
+ you want to launch other programs within qiv. This is very nice for stuff 
+ like "metacam", "jhead", "exiftool" etc. to show the EXIF-infos of digital photos.
 
  If you want to use qiv as a screensaver so please type 
  "make install-xscreensaver"
