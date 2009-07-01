@@ -108,7 +108,7 @@ int move2trash()
 
     /* If deleting the only file left */
     if(!images)
-      gdk_exit(0);
+      exit(0);
   }
   return 0;
 }
@@ -407,7 +407,7 @@ void finish(int sig)
 {
   gdk_pointer_ungrab(CurrentTime);
   gdk_keyboard_ungrab(CurrentTime);
-  gdk_exit(0);
+  exit(0);
 }
 
 /*

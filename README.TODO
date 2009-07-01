@@ -11,16 +11,9 @@
   [as] included it directly in main.c to avoid the wrapper
 
 
-- rewrite for imlib2 and/or GTK 2.x
-  in the works by Barry deFreese <bdefreese@debian.org>
-
-- wishlist for the XINERAMA support:
+- wishlist for the XINERAMA support:  (like feh does it)
   + fullscreen mode: unused screens shouldn't go black
   + ungrab mouse and keyboard in unused screens
-
-
-- better zoom function.
-  "feh" with imlib2 is doing this much better..  (is this still true?)
 
 
 - magnifying glass: [lc]
@@ -42,3 +35,18 @@
        leaves the image window) instead of moving it around
    quick workaround in fvwm:
           Style "qiv" MinOverlapPlacement
+
+
+- preloading of images (suggestion by Tony Cebzanov)
+ Sometimes I view my photos over a slow sshfs link, and it would be
+ handy if, while an image is being displayed, the next image was being
+ loaded in the background, so that when I hit the spacebar to advance,
+ it renders immediately, instead of having to go out to the disk.
+ This would be doing something useful with the idle time while users
+ are viewing images, and is a feature I've seen in other viewers.
+
+ Obviously, this would only help out users who are viewing images in
+ order, and wouldn't work if they're using any of the PgDn, jt[n],
+ jf[n] shortcuts.  But for the most common case, I think it would be a
+ very nice performance optimization.
+

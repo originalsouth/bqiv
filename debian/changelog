@@ -1,3 +1,10 @@
+qiv (2.2) unstable; urgency=low
+
+  * migration from imlib1 to imlib2
+  * new upstream version; see Changelog for details
+
+ -- Andy Spiegl <debian.andy@spiegl.de>  Thu, 05 Mar 2009 23:19:00 +0100
+
 qiv (2.1) unstable; urgency=low
 
   * Adam Kopacz delegated to Andy Spiegl as new upstream maintainer

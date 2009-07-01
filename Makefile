@@ -50,6 +50,7 @@ MAGIC = -DHAVE_MAGIC
 ######################################################################
 
 CC        = gcc
+#CFLAGS    = -O -g -Wall
 CFLAGS    = -O2 -Wall \
 	    -fcaller-saves -ffast-math -fno-strength-reduce \
 	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
@@ -57,16 +58,16 @@ CFLAGS    = -O2 -Wall \
 #	    -fcaller-saves -ffast-math -fno-strength-reduce \
 #	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 
-INCLUDES  = `imlib-config --cflags-gdk`
-INCLUDES += `gtk-config --cflags`
-LIBS      = `imlib-config --libs-gdk`
-# [as] thinks that this is not portable enough
+INCLUDES  := $(shell pkg-config --cflags gdk-2.0 imlib2)
+LIBS      := $(shell pkg-config --libs gdk-2.0 imlib2)
+
+# [as] thinks that this is not portable enough:
 # [lc] I use a virtual screen of 1600x1200, and the resolution is 1024x768,
 # so I changed (in main.c) how screen_[x,y] is obtained; it seems that gtk
 # 1.2 cannot give the geometry of viewport, so I borrowed from the source
 # of xvidtune the code for calling XF86VidModeGetModeLine, this requires
 # the linking option -lXxf86vm.
-#LIBS      = `imlib-config --libs-gdk` -lXxf86vm
+#LIBS      += -lXxf86vm
 
 PROGRAM   = qiv
 OBJS      = main.o image.o event.o options.o utils.o xmalloc.o

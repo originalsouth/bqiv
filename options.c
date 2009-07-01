@@ -214,7 +214,7 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'd': delay=(int) (atof (optarg) * 1000);
                 if (delay < 0) {
                     g_print("Error: %s is an invalid slide show delay.\n",optarg);
-                    gdk_exit(1);
+                    exit(1);
                 }
                 else if (delay == 0)
                     /* make sure we get the "quit key" */

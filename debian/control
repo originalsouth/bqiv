@@ -2,7 +2,7 @@ Source: qiv
 Section: graphics
 Priority: extra
 Maintainer: Bart Martens <bartm@debian.org>
-Build-Depends: cdbs, debhelper (>= 5), gdk-imlib11-dev, libgtk1.2-dev, libx11-dev, libxinerama-dev, libexif-dev, libmagic-dev
+Build-Depends: cdbs, debhelper (>= 5), libimlib2-dev, libgtk1.2-dev, libx11-dev, libxinerama-dev, libexif-dev, libmagic-dev
 Standards-Version: 3.7.3
 Homepage: http://qiv.spiegl.de/
 

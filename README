@@ -1,5 +1,5 @@
-Quick Image Viewer (qiv) version 2.1  by Andy Spiegl
-http://qiv.spiegl.de/ - qiv.andy@spiegl.de - Released on: 2009-03-05
+Quick Image Viewer (qiv) version 2.2  by Andy Spiegl
+http://qiv.spiegl.de/ - qiv.andy@spiegl.de - Released on: 2009-04-30
 ---------------------------------------------------------------------------
 Original author: Adam Kopacz / KLOGRAFX.DE Network
 http://www.klografx.net/qiv/ - adam.k@klografx.de
@@ -119,17 +119,7 @@ Thumbnails:
 
   i don't plan on adding a thumbnail function.  sorry, but qiv is a
   QUICK image VIEWER and nothing more.  if you want more features
-  (with Imlib) then try Electric Eyes or gqview ...
-
-
-Image caching:
---------------
-
-  if you want image caching then find the line at the top of image.c
-  which says 'gdk_imlib_kill_image(q->im);', and change 'kill' to
-  'destroy'. Don't forget to set your cache sizes with imlib_config!
-  This stuff doesn't work right here (imlib 1.8 cvs) and on a imlib
-  1.7 system so i have disabled it.
+  (with Imlib) then try Electric Eyes or gqview or feh ...
 
 
 Speeding Up qiv:
@@ -163,7 +153,7 @@ Speeding Up qiv:
 Links:
 ------
 
-  ImLib    : (ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/)
+  ImLib2   : http://freshmeat.net/projects/imlib2/
   gtk/gdk  : http://www.gtk.org/
   qiv-orig : http://www.klografx.net/qiv/
   qiv      : http://qiv.spiegl.de/

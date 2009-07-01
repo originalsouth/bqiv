@@ -30,6 +30,13 @@ Authors:
   ld: Larry Doolittle         <ldoolitt@boa.org>
   sd: S. Dobrev               <sdobrev@sistechnology.com>
   tw: Thomas Wiegner          <wiegner@gmx.de>
+  bd: Barry deFreese          <bdefreese@debian.org>
+  pw: Peter deWachter         <pdewacht@gmail.com>
+
+
+2.2
+===
+ 30.04.2009         [pw] migration from imlib1 to imlib2
 
 
 2.1
@@ -608,9 +615,9 @@ Authors:
 0.4
 ===
 
-  31.08.98: [ak] using gdk_imlib_kill_image for disabilng Imlib-Caching.
+  31.08.98: [ak] using gdk_imlib_kill_image for disabling Imlib-Caching.
                  the caching is a verry good feature, but when you view 100
-		 pictures or so then you system begins to swap..
+		 pictures or so then your system begins to swap..
   30.08.98: [hm/ak] loading of more than one pictures (*.jpg or so)
 
 

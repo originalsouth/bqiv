@@ -11,7 +11,6 @@
 #include <string.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
-#include <gtk/gtkmain.h>
 #include "qiv.h"
 
 #define STEP 3 //When using KP arrow, number of step for seeing all the image.
@@ -868,7 +867,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             /* Flip horizontal */
 
           case 'h':
-            gdk_imlib_flip_image_horizontal(q->im);
+            imlib_image_flip_horizontal();
             snprintf(infotext, sizeof infotext, "(Flipped horizontally)");
             update_image(q, REDRAW);
             break;
@@ -876,7 +875,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             /* Flip vertical */
 
           case 'v':
-            gdk_imlib_flip_image_vertical(q->im);
+            imlib_image_flip_vertical();
             snprintf(infotext, sizeof infotext, "(Flipped vertically)");
             update_image(q, REDRAW);
             break;
@@ -889,15 +888,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
                      "(File watching: on)" : "(File watching: off)");
             update_image(q, REDRAW);
             if(watch_file){
-              gtk_idle_add (qiv_watch_file, q);
+              g_idle_add (qiv_watch_file, q);
             }
             break;
 
             /* Rotate right */
 
           case 'k':
-            gdk_imlib_rotate_image(q->im, 1);
-            gdk_imlib_flip_image_horizontal(q->im);
+            imlib_image_orientate(1);
             snprintf(infotext, sizeof infotext, "(Rotated right)");
             swap(&q->orig_w, &q->orig_h);
             swap(&q->win_w, &q->win_h);
@@ -909,8 +907,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             /* Rotate left */
 
           case 'l':
-            gdk_imlib_rotate_image(q->im, -1);
-            gdk_imlib_flip_image_vertical(q->im);
+            imlib_image_orientate(3);
             snprintf(infotext, sizeof infotext, "(Rotated left)");
             swap(&q->orig_w, &q->orig_h);
             swap(&q->win_w, &q->win_h);

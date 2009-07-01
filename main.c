@@ -8,8 +8,6 @@
 */
 
 #include <gdk/gdkx.h>
-#include <gtk/gtkwidget.h>
-#include <gtk/gtkmain.h>
 #include <stdio.h>
 #include <signal.h>
 #include <sys/time.h>
@@ -42,6 +40,7 @@ int main(int argc, char **argv)
   struct timeval tv;
 
   // [as] workaround for problem with X composite extension
+  // is this still needed with imlib2 ??
   putenv("XLIB_SKIP_ARGB_VISUALS=1");
 
 /*
@@ -56,11 +55,6 @@ int main(int argc, char **argv)
   int dot_clock;
 */
 
-  //er, we don't set a value for params.dither here?
-  //I would probably just let the user's .imrc set it
-  //GdkImlibInitParams params;
-  //params.flags = PARAMS_DITHER;
-
   /* Randomize seed for 'true' random */
   gettimeofday(&tv,NULL);
   srand(tv.tv_usec*1000000+tv.tv_sec);
@@ -70,13 +64,9 @@ int main(int argc, char **argv)
   reset_mod(&main_img);
   options_read(argc, argv, &main_img);
 
-  /* Initialize GDK and Imlib */
+  /* Initialize GDK */
 
   gdk_init(&argc,&argv);
-  gdk_imlib_init();
-
-  //probably should only use one of the init funcs...
-  //gdk_imlib_init_params(&params);
 
   /* Load things from GDK/Imlib */
 
@@ -106,9 +96,6 @@ int main(int argc, char **argv)
 //  screen_x=MIN(screen_x, preferred_screen->width);
 //  screen_y=MIN(screen_y, preferred_screen->height);
 #endif
-
-  gtk_widget_push_visual(gdk_imlib_get_visual());
-  gtk_widget_push_colormap(gdk_imlib_get_colormap());
 
 
   max_rand_num = images;
@@ -155,7 +142,7 @@ int main(int argc, char **argv)
   qiv_load_image(&main_img);
 
   if(watch_file){
-    gtk_idle_add (qiv_watch_file, &main_img);
+    g_idle_add (qiv_watch_file, &main_img);
   }
 
   g_main_run(qiv_main_loop); /* will never return */

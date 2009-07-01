@@ -1,5 +1,5 @@
 #include <gdk/gdk.h>
-#include <gdk_imlib.h>
+#include <Imlib2.h>
 #include <unistd.h>
 #include <stdlib.h>
 #ifdef GTD_XINERAMA
@@ -19,8 +19,8 @@
 #include <X11/extensions/xf86vmode.h> // for XF86VidModeGetModeLine
 */
 
-#define VERSION "2.1"
-#define VERSION_FULL "QIV - Quick Image Viewer v2.1 - http://qiv.spiegl.de/"
+#define VERSION "2.2"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.2 - http://qiv.spiegl.de/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
@@ -39,10 +39,14 @@
 #define FILENAME_LEN 1024
 #define MAX_DELETE 1024
 
+/* [pw] Warning: qiv uses the imlib 1.x units. Not what imlib 2 wants. */
+typedef struct _qiv_color_modifier {
+  int gamma, brightness, contrast;
+} qiv_color_modifier;
+
 typedef struct _qiv_image {
-  GdkImlibColorModifier mod; /* Image modifier (for brightness..) */
+  qiv_color_modifier mod; /* Image modifier (for brightness..) */
   GdkPixmap *p; /* Pixmap of the image to display */
-  GdkImlibImage *im; /* Image */
   GdkWindow *win; /* Main window for windowed and fullscreen mode */
   int error; /* 1 if Imlib couldn't load image */
   gint win_x, win_y, win_w, win_h; /* window co-ordinates */
@@ -65,9 +69,9 @@ typedef struct _qiv_image {
 } qiv_image;
 
 typedef struct _qiv_mgl {
-  GdkImlibColorModifier mod; /* Image modifier (for brightness..) */
+  /* [pw] needs a seperate context? */
+  qiv_color_modifier mod; /* Image modifier (for brightness..) */
   GdkPixmap *p; /* Pixmap of the image to display */
-  GdkImlibImage *im; /* Image */
   GdkWindow *win; /* window for magnify */
   gint win_x, win_y, win_w, win_h; /* window coordinates */
   gint frame_x, frame_y; /* UpLeft Corner of frame (titlebar included) of */

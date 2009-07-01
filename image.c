@@ -18,7 +18,6 @@
 #include "xmalloc.h"
 
 static void setup_win(qiv_image *);
-static void really_set_static_grav(GdkWindow *);
 //static void setup_magnify(qiv_image *, qiv_mgl *); // [lc]
 static int used_masks_before=0;
 static struct timeval load_before, load_after;
@@ -60,12 +59,12 @@ enum Orientation {
 // Exif
 #include "libexif/exif-data.h"
 
-#define flipH(q)    gdk_imlib_flip_image_horizontal( q->im)
-#define flipV(q)    gdk_imlib_flip_image_vertical( q->im)
-#define transpose(q) gdk_imlib_rotate_image( q->im, 1);
-#define rot90(q)    transpose( q); flipH(q)
-#define rot180(q)   flipV(q); flipH(q)
-#define rot270(q)   transpose(q); flipV(q)
+#define flipH(q)    imlib_image_flip_horizontal();
+#define flipV(q)    imlib_image_flip_vertical();
+#define transpose(q) imlib_image_flip_diagonal();
+#define rot90(q)    imlib_image_orientate(1)
+#define rot180(q)   imlib_image_orientate(2)
+#define rot270(q)   imlib_image_orientate(3)
 void transform( qiv_image *q, enum Orientation orientation) {
     switch (orientation) {
      default: return;
@@ -104,57 +103,39 @@ enum Orientation orient( const char * path) {
 
 void qiv_load_image(qiv_image *q)
 {
-  GdkImlibColor color;
   struct stat statbuf;
   const char * image_name = image_names[ image_idx];
 
   gettimeofday(&load_before, 0);
 
-  if (q->im) {
-    /* Discard previous image. To enable caching, s/kill/destroy/. */
-    gdk_imlib_kill_image(q->im);
-    q->im = NULL;
-  }
+  if (imlib_context_get_image())
+    imlib_free_image();
 
   stat(image_name, &statbuf);
   current_mtime = statbuf.st_mtime;
-  q->im = gdk_imlib_load_image( (char*)image_name );
+  Imlib_Image * im = imlib_load_image( (char*)image_name );
 #ifdef HAVE_EXIF
   if (autorotate) {
     transform( q, orient( image_name));
   }
 #endif
 
-  /* this function doesn't seem to work :-(  */
-  gdk_imlib_get_image_shape(q->im,&color);
-#ifdef DEBUG
-  g_print("transparent color (RGB): %d, %d, %d\n", color.r, color.g, color.b);
-#endif
-
-  /* turn transparency off */
-  /* this function doesn't seem to work, but isn't necessary either  */
-/*  if (!transparency) {
-    color.r = color.g = color.b = -1;
-    gdk_imlib_set_image_shape(q->im,&color);
-  }
-*/
-
-  if (!q->im) { /* error */
-    q->im = NULL;
+  if (!im) { /* error */
     q->error = 1;
     q->orig_w = 400;
     q->orig_h = 300;
   } else { /* Retrieve image properties */
     q->error = 0;
-    q->orig_w = q->im->rgb_width;
-    q->orig_h = q->im->rgb_height;
+    imlib_context_set_image(im);
+    q->orig_w = imlib_image_get_width();
+    q->orig_h = imlib_image_get_height();
   }
 
   check_size(q, TRUE);
 
   /* desktop-background -> exit */
   if (to_root || to_root_t || to_root_s) {
-    if (!q->im) {
+    if (!im) {
       fprintf(stderr, "qiv: cannot load background_image\n");
       qiv_exit(1);
     }
@@ -170,7 +151,7 @@ void qiv_load_image(qiv_image *q)
     first = 0;
   }
 
-  gdk_window_set_background(q->win, q->im ? &image_bg : &error_bg);
+  gdk_window_set_background(q->win, im ? &image_bg : &error_bg);
 
   if (do_grab || (fullscreen && !disable_grab) ) {
     gdk_keyboard_grab(q->win, FALSE, CurrentTime);
@@ -191,6 +172,39 @@ void qiv_load_image(qiv_image *q)
 
 static gchar blank_cursor[1];
 
+static void setup_imlib_for_drawable(GdkDrawable * d)
+{
+  imlib_context_set_dither(1); /* dither for depths < 24bpp */
+  imlib_context_set_display(
+    gdk_x11_drawable_get_xdisplay(d));
+  imlib_context_set_visual(
+    gdk_x11_visual_get_xvisual(gdk_drawable_get_visual(d)));
+  imlib_context_set_colormap(
+    gdk_x11_colormap_get_xcolormap(gdk_drawable_get_colormap(d)));
+  imlib_context_set_drawable(
+    gdk_x11_drawable_get_xid(d));
+}
+
+static void setup_imlib_color_modifier(qiv_color_modifier q)
+{
+  if (q.gamma == DEFAULT_GAMMA &&
+      q.brightness == DEFAULT_BRIGHTNESS &&
+      q.contrast == DEFAULT_CONTRAST) {
+    if (imlib_context_get_color_modifier())
+      imlib_free_color_modifier();
+    return;
+  }
+
+  if (imlib_context_get_color_modifier())
+    imlib_reset_color_modifier();
+  else
+    imlib_context_set_color_modifier(imlib_create_color_modifier());
+
+  imlib_modify_color_modifier_gamma(q.gamma / 256.0);
+  imlib_modify_color_modifier_brightness((q.brightness - 256) / 256.0);
+  imlib_modify_color_modifier_contrast(q.contrast / 256.0);
+}
+
 static void setup_win(qiv_image *q)
 {
   GdkWindowAttr attr;
@@ -207,16 +221,24 @@ static void setup_win(qiv_image *q)
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
 
     if (center) {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_POS);
-      /* this call is broken. hack it ourselves... */
-      /* gdk_window_set_static_gravities(q->win, TRUE); */
-      really_set_static_grav(q->win);
+      GdkGeometry geometry = {
+        .min_width = q->win_w,
+        .min_height = q->win_h,
+        .max_width = q->win_w,
+        .max_height = q->win_h,
+        .win_gravity = GDK_GRAVITY_STATIC
+      };
+      gdk_window_set_geometry_hints(q->win, &geometry,
+        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_WIN_GRAVITY);
       gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
     } else {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
+      GdkGeometry geometry = {
+        .min_width = q->win_w,
+        .min_height = q->win_h,
+        .max_width = q->win_w,
+        .max_height = q->win_h,
+      };
+      gdk_window_set_geometry_hints(q->win, &geometry,
         GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
       gdk_window_resize(q->win, q->win_w, q->win_h);
     }
@@ -247,6 +269,8 @@ static void setup_win(qiv_image *q)
                                                 &text_bg, &text_bg, 0, 0);
   cursor = visible_cursor = gdk_cursor_new(CURSOR);
   gdk_window_set_cursor(q->win, cursor);
+
+  setup_imlib_for_drawable(GDK_DRAWABLE(q->win));
 }
 
 void hide_cursor(qiv_image *q)
@@ -261,33 +285,19 @@ void show_cursor(qiv_image *q)
     gdk_window_set_cursor(q->win, cursor = visible_cursor);
 }
 
-/* XXX: fix GDK. it's setting bit gravity instead of wm gravity, so we
- * have to go behind its back and kludge this ourselves. */
-
-static void really_set_static_grav(GdkWindow *win)
-{
-  long dummy;
-
-  XSizeHints *hints = XAllocSizeHints();
-  XGetWMNormalHints(GDK_DISPLAY(), GDK_WINDOW_XWINDOW(win), hints, &dummy);
-  hints->win_gravity = StaticGravity;
-  hints->flags |= PWinGravity;
-  XSetWMNormalHints(GDK_DISPLAY(), GDK_WINDOW_XWINDOW(win), hints);
-  XFree(hints);
-}
-
 /* set image as background */
 
 void set_desktop_image(qiv_image *q)
 {
-  GdkWindow *root_win = GDK_ROOT_PARENT();
-  GdkVisual *gvis = gdk_window_get_visual(root_win);
+  GdkWindow *root_win = gdk_get_default_root_window();
+  GdkVisual *gvis = gdk_drawable_get_visual(root_win);
   GdkPixmap *temp;
-  GdkPixmap *m = NULL;
   gchar     *buffer;
 
   gint root_w = screen_x, root_h = screen_y;
   gint root_x = 0, root_y = 0;
+
+  Pixmap x_pixmap, x_mask;
 
   if (to_root || to_root_t) {
     root_w = q->win_w;
@@ -299,42 +309,38 @@ void set_desktop_image(qiv_image *q)
     root_y = (screen_y - root_h) / 2;
   }
 
-  gdk_imlib_set_image_modifier(q->im, &q->mod);
-  gdk_imlib_changed_image(q->im);
-  gdk_imlib_render(q->im, root_w, root_h);
-  q->p = gdk_imlib_move_image(q->im);
-  m = gdk_imlib_move_mask(q->im);
+  setup_imlib_for_drawable(GDK_DRAWABLE(root_win));
+
+  imlib_render_pixmaps_for_whole_image_at_size(&x_pixmap, &x_mask, root_w, root_h);
 #ifdef DEBUG
-  if (m)  g_print("*** image has transparency\n");
+  if (x_mask)  g_print("*** image has transparency\n");
 #endif
 
-  if (gvis != gdk_imlib_get_visual()) {
-    fprintf(stderr,
-        "qiv: Your root window's visual is not the visual Imlib chose;\n"
-        "     qiv cannot set the background currently.\n");
-    return;
-  }
-
-  if (to_root_t) {
-    gdk_window_set_back_pixmap(root_win, q->p, FALSE);
-  } else {
-    GdkGC *rootGC;
-    buffer = xcalloc(1, screen_x * screen_y);
-    rootGC = gdk_gc_new(root_win);
-    temp = gdk_pixmap_create_from_data(root_win, buffer, screen_x,
-                                       screen_y, gvis->depth, &image_bg, &image_bg);
-    gdk_draw_pixmap(temp, rootGC, q->p, 0, 0, root_x, root_y, root_w, root_h);
-    gdk_window_set_back_pixmap(root_win, temp, FALSE);
-    gdk_imlib_free_pixmap(temp);
-    gdk_gc_destroy(rootGC);
-  }
-
-  if(q->p) {
-    gdk_imlib_free_pixmap(q->p);
-    q->p = NULL;
+  if(x_pixmap) {
+    GdkPixmap * p = gdk_pixmap_foreign_new(x_pixmap);
+    gdk_drawable_set_colormap(GDK_DRAWABLE(p),
+			      gdk_drawable_get_colormap(GDK_DRAWABLE(root_win)));
+    if (to_root_t) {
+      gdk_window_set_back_pixmap(root_win, p, FALSE);
+    } else {
+      GdkGC *rootGC;
+      buffer = xcalloc(1, screen_x * screen_y * gvis->depth / 8);
+      rootGC = gdk_gc_new(root_win);
+      temp = gdk_pixmap_create_from_data(root_win, buffer, screen_x,
+                                         screen_y, gvis->depth, &image_bg, &image_bg);
+      gdk_draw_drawable(temp, rootGC, p, 0, 0, root_x, root_y, root_w, root_h);
+      gdk_window_set_back_pixmap(root_win, temp, FALSE);
+      g_object_unref(temp);
+      g_object_unref(rootGC);
+      free(buffer);
+    }
+    g_object_unref(p);
+    imlib_free_pixmap_and_mask(x_pixmap);
   }
   gdk_window_clear(root_win);
   gdk_flush();
+
+  setup_imlib_for_drawable(q->win);
 }
 
 void zoom_in(qiv_image *q)
@@ -431,31 +437,29 @@ void zoom_maxpect(qiv_image *q)
 
 void reload_image(qiv_image *q)
 {
-  if(watch_file) {
-    GdkImlibImage *new_im = gdk_imlib_load_image(image_names[image_idx]);
-    if(new_im){
-      struct stat statbuf;
-      stat(image_names[image_idx], &statbuf);
-      current_mtime = statbuf.st_mtime;
+  imlib_image_set_changes_on_disk();
 
-      gdk_imlib_destroy_image(q->im);
-      q->im = new_im;
-      q->orig_w = q->im->rgb_width;
-      q->orig_h = q->im->rgb_height;
-    }
-  } else {
-    gdk_imlib_destroy_image(q->im);
-    q->im = gdk_imlib_load_image(image_names[image_idx]);
-  }
-  if (!q->im) { /* error */
-    q->im = NULL;
+  Imlib_Image *im = imlib_load_image(image_names[image_idx]);
+  if (!im && watch_file)
+    return;
+
+  struct stat statbuf;
+  stat(image_names[image_idx], &statbuf);
+  current_mtime = statbuf.st_mtime;
+
+  if (imlib_context_get_image())
+    imlib_free_image();
+
+  if (!im)
+  {
     q->error = 1;
     q->orig_w = 400;
     q->orig_h = 300;
   } else { /* Retrieve image properties */
     q->error = 0;
-    q->orig_w = q->im->rgb_width;
-    q->orig_h = q->im->rgb_height;
+    imlib_context_set_image(im);
+    q->orig_w = imlib_image_get_width();
+    q->orig_h = imlib_image_get_height();
   }
 
   q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
@@ -493,7 +497,8 @@ void reset_coords(qiv_image *q)
 
 void update_image(qiv_image *q, int mode)
 {
-  GdkPixmap *m = NULL;
+  GdkPixmap * m = NULL;
+  Pixmap x_pixmap, x_mask;
   double elapsed;
   struct timeval before, after;
   int i;
@@ -518,26 +523,30 @@ void update_image(qiv_image *q, int mode)
 #ifdef DEBUG
       g_print("*** deleted last file in list. Exiting.\n");
 #endif
-      gdk_exit(0);
+      exit(0);
     }
     /* else load the next image */
     qiv_load_image(q);
     return;
 
   } else {
-    if (mode == REDRAW || mode == FULL_REDRAW) {
-      gdk_imlib_set_image_modifier(q->im, &q->mod);
-      gdk_imlib_changed_image(q->im);
-    }
+    if (mode == REDRAW || mode == FULL_REDRAW)
+      setup_imlib_color_modifier(q->mod);
 
     if (mode == MOVED) {
       if (transparency && used_masks_before) {
         /* there should be a faster way to update the mask, but how? */
-        gdk_imlib_render(q->im, q->win_w, q->win_h);
-        if (q->p) gdk_imlib_free_pixmap(q->p);
-        q->p = gdk_imlib_move_image(q->im);
-        m = gdk_imlib_move_mask(q->im);    /* creating transparency */
-      }
+	if (q->p)
+	{
+	  imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
+	  g_object_unref(q->p);
+	}
+	imlib_render_pixmaps_for_whole_image_at_size(&x_pixmap, &x_mask, q->win_w, q->win_h);
+	q->p = gdk_pixmap_foreign_new(x_pixmap);
+	gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
+				  gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));
+	m = gdk_pixmap_foreign_new(x_mask);
+     }
 
       g_snprintf(q->win_title, sizeof q->win_title,
                  "qiv: %s (%dx%d) %d%% [%d/%d] b%d/c%d/g%d %s",
@@ -549,17 +558,23 @@ void update_image(qiv_image *q, int mode)
     } // mode == MOVED
     else
     {
+      if (q->p) {
+	imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
+	g_object_unref(q->p);
+      }
 
       /* calculate elapsed time while we render image */
       gettimeofday(&before, 0);
-      gdk_imlib_render(q->im, q->win_w, q->win_h);
+      imlib_render_pixmaps_for_whole_image_at_size(&x_pixmap, &x_mask, q->win_w, q->win_h);
       gettimeofday(&after, 0);
       elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
                  (before.tv_sec + before.tv_usec / 1.0e6));
 
-      if (q->p) gdk_imlib_free_pixmap(q->p);
-      q->p = gdk_imlib_move_image(q->im);
-      m = gdk_imlib_move_mask(q->im);    /* creating transparency */
+      q->p = gdk_pixmap_foreign_new(x_pixmap);
+      gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
+				gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));
+      m = x_mask == None ? NULL : gdk_pixmap_foreign_new(x_mask);
+
 #ifdef DEBUG
       if (m)  g_print("*** image has transparency\n");
 #endif
@@ -580,21 +595,17 @@ void update_image(qiv_image *q, int mode)
   q->text_h = text_font->ascent + text_font->descent;
 
   if (!fullscreen) {
-// it's not necessary to differentiate between these cases anymore
-// because we know the window position in any case and thus can
-// always trust the computed new coordinates and move the window there
-//    if (center) {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_POS);
-      really_set_static_grav(q->win);
-      gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
-//    } else {
-//      gdk_window_set_hints(q->win,
-//        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-//        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
-//      gdk_window_resize(q->win, q->win_w, q->win_h);
-//    }
+    GdkGeometry geometry = {
+      .min_width = q->win_w,
+      .min_height = q->win_h,
+      .max_width = q->win_w,
+      .max_height = q->win_h,
+      .win_gravity = GDK_GRAVITY_STATIC
+    };
+    gdk_window_set_geometry_hints(q->win, &geometry,
+      GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_WIN_GRAVITY);
+    gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
+
     if (!q->error) {
       gdk_window_set_back_pixmap(q->win, q->p, FALSE);
       /* remove or set transparency mask */
@@ -682,8 +693,8 @@ void update_image(qiv_image *q, int mode)
     }
 
     if (!q->error)
-      gdk_draw_pixmap(q->win, q->bg_gc, q->p, 0, 0,
-                      q->win_x, q->win_y, q->win_w, q->win_h);
+      gdk_draw_drawable(q->win, q->bg_gc, q->p, 0, 0,
+                        q->win_x, q->win_y, q->win_w, q->win_h);
 
     if (statusbar_fullscreen) {
       gdk_draw_rectangle(q->win, q->bg_gc, 0,
@@ -716,10 +727,13 @@ void reset_mod(qiv_image *q)
 
 void destroy_image(qiv_image *q)
 {
-  if (q->p) gdk_imlib_free_pixmap(q->p);
-  if (q->bg_gc) gdk_gc_destroy(q->bg_gc);
-  if (q->text_gc) gdk_gc_destroy(q->text_gc);
-  if (q->status_gc) gdk_gc_destroy(q->status_gc);
+  if (q->p) {
+    imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
+    g_object_unref(q->p);
+  }
+  if (q->bg_gc) g_object_unref(q->bg_gc);
+  if (q->text_gc) g_object_unref(q->text_gc);
+  if (q->status_gc) g_object_unref(q->status_gc);
 }
 
 void setup_magnify(qiv_image *q, qiv_mgl *m)
@@ -745,14 +759,8 @@ void setup_magnify(qiv_image *q, qiv_mgl *m)
    mgl_hints.max_width=m->win_w;
    mgl_hints.min_height=m->win_h;
    mgl_hints.max_height=m->win_h;
-
-   //gdk_window_set_hints(GdkWindow*window, gint x, gint y,
-   //                     gint min_width, gint min_height,
-   //                     gint max_width, gint max_height,
-   //                     gint flags);
-   gdk_window_set_hints(m->win, mgl_attr.x, mgl_attr.y,
-                        mgl_attr.width, mgl_attr.height, mgl_attr.width, mgl_attr.height,
-                        GDK_HINT_POS | GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
+   gdk_window_set_geometry_hints(m->win, &mgl_hints,
+     GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
    gdk_window_set_decorations(m->win, GDK_DECOR_BORDER);
    gdk_flush();
 }
@@ -805,13 +813,10 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
 
 //    printf("MGL: xcur: %d, ycur: %d, xx: %d, yy: %d\n", xcur, ycur, xx, yy);
 
-    if (m->im) {
-      gdk_imlib_kill_image(m->im);
-      m->im = NULL;
-    }
-
-    m->im=gdk_imlib_crop_and_clone_image(q->im, xx, yy, m->win_w, m->win_h);
-    gdk_imlib_apply_image(m->im, m->win);
+    setup_imlib_for_drawable(m->win);
+    imlib_render_image_part_on_drawable_at_size(xx, yy, m->win_w, m->win_h,
+						0, 0, m->win_w, m->win_h);
+    setup_imlib_for_drawable(q->win);
     gdk_window_show(m->win);
 
     // xcur= m->frame_x + xcur +
