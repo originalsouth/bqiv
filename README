@@ -1,0 +1,154 @@
+Quick Image Viewer (qiv) version 1.6  by Adam Kopacz / kLoGraFX Network
+http://www.klografx.net/qiv/ - adam.k@klografx.de
+Released on: 18.01.2001
+=======================================================================
+
+
+Installation (Linux/Solaris/FreeBSD):
+-------------------------------------
+
+ Solaris Users: please rename "Makefile.Solaris" to "Makefile" if the
+ default Makefile doesn't work for you. 
+ 
+ Various compile-time options are in the Makefile; be sure to at least
+ read over them before typing "make install"... :)
+
+ if you get errors like this: "/bin/sh: imlib-config: command not
+ found" then your Imlib is to old.. this mean you don't have the
+ script imlib-config..  you should update Imlib (see "Links" below) or
+ replace the `imlib-config` calls in the Makefile:
+
+ `imlib-config --cflags-gdk` -->
+ -I/usr/X11R6/include -I/usr/local/lib/glib/include -I/usr/local/include \
+ -I/usr/local/include -I/usr/X11R6/include
+
+ `imlib-config --libs-gdk` -->
+ -L/usr/local/lib -lgdk_imlib -L/usr/local/lib -L/usr/X11R6/lib -lgtk-1.1 \
+ -lgdk-1.1 -rdynamic -lgmodule-1.1 -lglib-1.1 -ldl -lXi -lXext -lX11 -lm \
+ -ljpeg -ltiff -lgif -lpng -lz -lm
+
+ If you want to use qiv as a screensaver so please type 
+ "make install-xscreensaver"
+ 
+
+Other OSes:
+----------
+
+ Try the Linux/Solaris/FreeBSD stuff.. it would be nice if you could drop 
+ me some lines if qiv work also on other systems (HP-UX?) ...
+	
+
+Authors:
+--------
+
+  Adam Kopacz / kLoGraFX  <adam.k@klografx.de>
+  Darren Smith            <darren.smith@verinet.com>
+  Pavel Andreev           <paxvel@vumsoft.cz>   
+  Decklin Foster          <decklin@red-bean.com>
+
+  Other contributors:
+  
+  Holger Mueller         <hmueller@hrzpub.tu-darmstadt.de>
+  Scott Sams             <sbsams@eos.ncsu.edu>
+  Serge Winitzki         <winitzki@geocities.com>
+  Frederic Crozat        <fcrozat@mail.dotcom.fr>
+  Rutger Nijlunsing      <rutger@null.net>
+  John Knottenbelt       <jak97@doc.ic.ac.uk>
+  Danny                  <dannys@mail.com>
+  Tomas Ogren            <stric@ing.umu.se>
+  Erik Jacobsen          <erik@openix.com>
+  Alfred Weyers          <alfred@otto.gia.RWTH-Aachen.DE>
+  Daniel                 <danad157@student.liu.se>
+  Henning Kulander       <hennikul@ifi.uio.no>    
+  Ask Bjoern Hansen      <ask@valueclick.com>
+  Adrian Lopez           <adrian2@caribe.net>
+
+Homepage:   
+---------
+
+  http://www.klografx.net/qiv/
+
+
+Misc:
+-----
+
+  Thanx to all programers, Owen Taylor and Rasterman (@REDHAT)
+  for helping with patches and their knowledge :-)
+
+  type "man qiv" for more information.
+  See the Makefile if you have problems compiling.
+
+  qiv is designed to work with any gtk/gdk, it also
+  should work with ANY version of Imlib of Linux (Intel/Mac),
+  Solaris (SunOS) and FreeBSD.
+
+
+Centering:
+----------
+
+  As of version 1.6, qiv centers images by applying the correct window
+  position and setting the window gravity to Static, so that window
+  managers don't move the window when adding borders. If you come
+  across a window manager that does mess up our centering, or has
+  other problems with qiv, email Decklin (decklin@red-bean.com) and
+  he'll quickly send off a patch to whoever maintains that WM. ;-)
+
+
+Thumbnails:
+-----------
+
+  i don't plan on adding a thumbnail function.  sorry, but qiv is a
+  QUICK image VIEWER and nothing more.  if you want more features
+  (with Imlib) then try Electric Eyes or gqview ...
+
+  
+Image caching:
+--------------
+
+  if you want image caching then find the line at the top of image.c
+  which says 'gdk_imlib_kill_image(q->im);', and change 'kill' to
+  'destroy'. Don't forget to set your cache sizes with imlib_config!
+  This stuff doesn't work right here (imlib 1.8 cvs) and on a imlib
+  1.6 system so i have disabled it.
+
+
+Speeding Up qiv:
+----------------
+
+  If you have a Pentium CPU and a recent copy of GCC, try enabling
+  "-march=pentium" in the Makefile. "pentiumpro", "k6", and "athlon"
+  can also be used in place of "pentium".
+
+  The program "imlib_config" can be used to create an .imrc file with
+  settings tuned for faster rendering. We recommend turning on these
+  options:
+
+  [x] High Quality in 15/16 bpp
+  [x] Limit Maximum Shared Memory: 4 MB
+  [x] Use Ordered Dither
+  [x] MIT-SHM
+  [x] Shared Pixmaps
+  [x] Fast render
+  [x] Imagemagick & NETPBM Fallback
+  [x] Image Cache: 4 MB (or more)
+  [x] Pixmap Cache: 40 Mbits (or more)
+
+  After setting this stuff you can try: "qiv -d 0 *.jpg" (delay: 0
+  secs) in a directory with for example 5 jpeg files. push "s" to
+  start the slideshow and wait a few secs..  after all images are
+  shown the first time (and cached) you should notice a big speed up
+  in the second run.
+
+
+Links:
+------
+
+  ImLib   : ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/
+  gtk/gdk : http://www.gtk.org/
+
+
+Contact:
+--------
+
+  Mail bug, reports and comments to Adam Kopacz <adam.k@klografx.de>
+
