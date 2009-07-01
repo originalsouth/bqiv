@@ -232,28 +232,95 @@ int undelete_image()
   return 0;
 }
 
+#define MAXOUTPUTBUFFER 16384
+#define MAXLINES 100
+
 /* run a command ... */
-void run_command(qiv_image *q, int n, char *filename)
+void run_command(qiv_image *q, int n, char *filename, int *numlines, const char ***output)
 {
-    static char nr[10];
-    snprintf(infotext, sizeof infotext, "Running: 'qiv-command %i %s'", n, filename);
+  static char nr[10];
+  static char *buffer = 0;
+  static const char *lines[MAXLINES + 1];
+  int pipe_stdout[2];
+  int pid;
+  struct stat before, after;
+
+  stat(filename, &before);
+
+  if (!buffer) 
+    buffer = malloc(MAXOUTPUTBUFFER + 1);
+
+  *numlines = 0;
+  *output = lines;
+  
+  snprintf(infotext, sizeof infotext, "Running: 'qiv-command %i %s'", n, filename);
     
-    snprintf(nr, sizeof nr, "%i", n);
-	if (!fork()) {
-	    execlp("qiv-command", "qiv-command", nr, filename, 0);
-	    perror("error calling qiv-command");
-	    abort();
-	}
-    wait(NULL);
+  snprintf(nr, sizeof nr, "%i", n);
+  
+  /* Use some pipes for stdout and stderr */
 
+  if (pipe(pipe_stdout) < 0) {
+    perror("pipe");
+    return;
+  }
+  
+  pid = fork();
+
+  if (pid == 0) {
+    /* Child */
+    dup2(pipe_stdout[1], 1);
+    dup2(pipe_stdout[1], 2);
+    close(pipe_stdout[1]);
+
+    execlp("qiv-command", "qiv-command", nr, filename, 0);
+    perror("Error calling qiv-command");
+    abort();
+  }
+  else if (pid > 0) {
+    /* parent */
+    int len = 0;
+    char *p = buffer;
+      
+    gboolean finished = FALSE;
+    close(pipe_stdout[1]);
+
+    do {
+      char *s = p, *q;
+      finished = waitpid(pid, 0, WNOHANG) > 0;
+      len = read(pipe_stdout[0], s, MAXOUTPUTBUFFER - (s - buffer));
+      
+      if (len < 0 || (finished && len == 0))
+	break;
+
+      s[len] = '\0';
+      /* Process the buffer into lines */
+      for (; *numlines < MAXLINES && p < s + len; ) {
+	lines[(*numlines)++] = p;
+	/* Find the end of the line */
+	q = strchr(p, '\n');
+	if (!q) break;
+	*q = '\0';
+	p = q + 1;
+      }
+    } while (len > 0);
+    lines[(*numlines)] = 0;
+    if (!finished) 
+      waitpid(pid, 0, 0);
+    
+    close(pipe_stdout[0]);
+  }
+  else {
+    perror("fork");
+    return;
+  }
+
+  stat(filename, &after);
+
+  /* If image modified reload, otherwise redraw */
+  if (before.st_mtime == after.st_mtime)
+    update_image(q, FULL_REDRAW);
+  else
     qiv_load_image(q);
-
-    /* 
-    zoom_factor = fixed_zoom_factor;
-    reload_image(q);
-    check_size(q, TRUE);
-    update_image(q, REDRAW); 
-    */
 }
 
   
@@ -330,8 +397,12 @@ void next_image(int direction)
     last_modif = direction;
   if (random_order)
     image_idx = get_random(random_replace, images, direction);
-  else
-    image_idx = (image_idx + direction + images) % images;
+  else {
+    image_idx = (image_idx + direction) % images;
+    if (image_idx < 0)
+      image_idx += images;
+  }    
+    
 }
 
 int checked_atoi (const char *s)
@@ -374,12 +445,13 @@ void show_help(char *name, int exit_status)
           "    --contrast, -c x       Set contrast to x (-32..32)\n"
           "    --display x            Open qiv window on display x\n"
           "    --do_grab, -a          Grab the pointer in windowed mode\n"
+          "    --disable_grab, -G     Disable pointer/kbd grab in fullscreen mode\n"
           "    --fixed_width, -w x    Window with fixed width x\n"
           "    --fixed_zoom, -W x     Window with fixed zoom factor (percentage x)\n"
           "    --fullscreen, -f       Use fullscreen window on start-up\n"
           "    --gamma, -g x          Set gamma to x (-32..32)\n"
           "    --help, -h             This help screen\n"
-          "    --ignore_path_sort, -I Sort filenames by the name only\n"
+          "    --ignore_path_sort, -P Sort filenames by the name only\n"
           "    --readonly, -R         Disable the deletion feature\n"
           "    --maxpect, -m          Zoom to screen size and preserve aspect ratio\n"
           "    --merged_case_sort, -M Sort filenames with AaBbCc... alpha order\n"
@@ -569,7 +641,7 @@ void swap(int *a, int *b)
 }
 
 /* rounding a float to an int */
-int round( double a )
+int myround( double a )
 {
   return( (a-(int)a > 0.5) ? (int)a+1 : (int)a);
 }

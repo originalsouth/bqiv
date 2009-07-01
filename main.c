@@ -26,6 +26,10 @@ static void qiv_signal_usr2();
 static gboolean qiv_handle_timer(gpointer);
 static void qiv_timer_restart(gpointer);
 
+#ifdef GTD_XINERAMA
+static XineramaScreenInfo * get_preferred_xinerama_screen(void);
+#endif
+
 int main(int argc, char **argv)
 {
   struct timeval tv;
@@ -50,6 +54,10 @@ int main(int argc, char **argv)
   text_font = gdk_font_load(STATUSBAR_FONT);
   screen_x = gdk_screen_width();
   screen_y = gdk_screen_height();
+
+#ifdef GTD_XINERAMA
+  preferred_screen = get_preferred_xinerama_screen();
+#endif
 
   gtk_widget_push_visual(gdk_imlib_get_visual());
   gtk_widget_push_colormap(gdk_imlib_get_colormap());
@@ -207,3 +215,54 @@ static int check_extension(const char *name)
 
   return 0;
 }
+
+#ifdef GTD_XINERAMA
+
+static XineramaScreenInfo *
+largest_xinerama_screen (XineramaScreenInfo * screens, int nscreens)
+{
+  XineramaScreenInfo * screen;
+  long pixels;
+  long maxpixels = 0;
+  XineramaScreenInfo * largest_screen = screens;
+  
+  for (screen = screens; nscreens--; screen++) {
+    pixels = screen->width * screen->height;
+    if (pixels > maxpixels) {
+      maxpixels = pixels;
+      largest_screen = screen;
+    }
+  }
+  return largest_screen;
+}
+
+static XineramaScreenInfo *
+get_preferred_xinerama_screen(void)
+{
+  static XineramaScreenInfo preferred_screen[1];
+  Display * dpy;
+  XineramaScreenInfo *screens;
+  int nscreens = 0;
+
+  dpy = XOpenDisplay(gdk_get_display());
+  if (!dpy) {
+    return 0;
+  }
+  screens = XineramaQueryScreens(dpy, &nscreens);
+  if (screens) {
+    XineramaScreenInfo * s = largest_xinerama_screen(screens,nscreens);
+    *preferred_screen = *s;
+  }
+  else {
+    /* If we don't have Xinerama, fake it: */
+    preferred_screen->screen_number = DefaultScreen(dpy);
+    preferred_screen->x_org = 0;
+    preferred_screen->y_org = 0;
+    preferred_screen->width = DisplayWidth(dpy, DefaultScreen(dpy));
+    preferred_screen->height = DisplayHeight(dpy, DefaultScreen(dpy));
+  }
+  XFree(screens);
+  XCloseDisplay(dpy);
+  return preferred_screen;
+}
+#endif

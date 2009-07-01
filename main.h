@@ -43,6 +43,7 @@ int	to_root_t; /* display on root (tiled) */
 int	to_root_s; /* display on root (stretched) */
 int	transparency; /* transparency on/off */
 int	do_grab; /* grab keboard/pointer (default off) */
+int disable_grab; /* disable keyboard/mouse grabbing in fullscreen mode */
 int	max_rand_num; /* the largest random number range we will ask for */
 int	fixed_window_size = 0; /* window width fixed size/off */
 int	fixed_zoom_factor = 0; /* window fixed zoom factor (percentage)/off */
@@ -53,8 +54,7 @@ int watch_file = 0; /* watch current files Timestamp, reload if changed */
 
 const char *helpstrs[] =
 {
-    " ",
-    "Quick Image Viewer (qiv) Keys:", 
+    VERSION_FULL,
     "",
     "space/left mouse/wheel down      next picture",
     "backspace/right mouse/wheel up   previous picture",
@@ -62,43 +62,44 @@ const char *helpstrs[] =
     "PgUp                             5 pictures backward",
     "q/ESC/middle mouse               exit",
     "",
-    "0-9                Run 'qiv-command <key> <current-img>'",
-    "?/F1               show keys (in fullscreen mode)",
-    "F11/F12            in/decrease slideshow delay (1 second)",
-    "a/A                copy current image to .qiv-select",
-    "d/D/del            move picture to .qiv-trash",
-    "u                  undelete the previously trashed image",
-    "+/=                zoom in (10%)",
-    "-                  zoom out (10%)",
-    "e                  center mode on/off",
-    "f                  fullscreen mode on/off",
-    "m                  scale to screen size on/off",
-    "t                  scale down on/off",
-    "s                  slide show on/off",
-    "p                  transparency on/off",
-    "r                  random order on/off",
-    "b                  - brightness",
-    "B                  + brightness",
-    "c                  - contrast",
-    "C                  + contrast",
-    "g                  - gamma",
-    "G                  + gamma",
-    "arrow keys         move image (in fullscreen mode)",
-    "h                  flip horizontal",
-    "v                  flip vertical",
-    "k                  rotate right",
-    "l                  rotate left",
-    "jtx<return>        jump to image number x",
-    "jfx<return>        jump forward x images",
-    "jbx<return>        jump backward x images",
-    "enter/return       reset zoom and color settings",
-    "i                  statusbar on/off",
-    "I                  iconify window",
-    "w                  watch file on/off",
-    "x                  center image on background",
-    "y                  tile image on background",
-    "z                  stretch image on background",
-    " ",
+    "0-9                  Run 'qiv-command <key> <current-img>'",
+    "?/F1                 show keys (in fullscreen mode)",
+    "F11/F12              in/decrease slideshow delay (1 second)",
+    "a/A                  copy current image to .qiv-select",
+    "d/D/del              move picture to .qiv-trash",
+    "u                    undelete the previously trashed image",
+    "+/=                  zoom in (10%)",
+    "-                    zoom out (10%)",
+    "e                    center mode on/off",
+    "f                    fullscreen mode on/off",
+    "m                    scale to screen size on/off",
+    "t                    scale down on/off",
+    "s                    slide show on/off",
+    "p                    transparency on/off",
+    "r                    random order on/off",
+    "b                    - brightness",
+    "B                    + brightness",
+    "c                    - contrast",
+    "C                    + contrast",
+    "g                    - gamma",
+    "G                    + gamma",
+    "arrow keys                 move image (in fullscreen mode)",
+    "arrow keys+Shift           move image faster (in fullscreen mode)",
+    "NumPad-arrow keys+NumLock  move image faster (in fullscreen mode)",
+    "h                    flip horizontal",
+    "v                    flip vertical",
+    "k                    rotate right",
+    "l                    rotate left",
+    "jtx<return>          jump to image number x",
+    "jfx<return>          jump forward x images",
+    "jbx<return>          jump backward x images",
+    "enter/return         reset zoom and color settings",
+    "i                    statusbar on/off",
+    "I                    iconify window",
+    "w                    watch file on/off",
+    "x                    center image on background",
+    "y                    tile image on background",
+    "z                    stretch image on background",
     NULL
 };
 
@@ -151,4 +152,7 @@ const char *image_extensions[] = {
     NULL
 };
 
+#ifdef GTD_XINERAMA
+XineramaScreenInfo *preferred_screen = 0;
+#endif
 #endif /* MAIN_H */

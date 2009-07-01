@@ -1,7 +1,7 @@
-######################################################################
-# Makefile for qiv
+#######################################################################
+# Makefile for qiv - Quick Image Viewer - http://www.klografx.net/qiv/
 # User Options
-######################################################################
+#######################################################################
 
 # Directory where qiv will be installed under.
 PREFIX = /usr/local
@@ -29,6 +29,10 @@ GETOPT_LONG = -DHAVE_GETOPT_LONG
 # This program will be run on the manual page after it is installed.
 # If you don't want to compress the manpage, change it to 'true'.
 COMPRESS_PROG = gzip -9f
+
+# Comment this line out if your system doesn't have libXinerama
+# installed (for centering on dual-screen)
+# GTD_XINERAMA = -DGTD_XINERAMA
 
 ######################################################################
 
@@ -69,11 +73,16 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DSTATUSBAR_FONT='$(STATUSBAR_FONT)' \
             -DCENTER=$(CENTER) \
             -DFILTER=$(FILTER) \
-            -DCURSOR=$(CURSOR)
+            -DCURSOR=$(CURSOR) \
+	    $(GTD_XINERAMA)
 
 ifndef GETOPT_LONG
 OBJS     += lib/getopt.o lib/getopt1.o
 OBJS_G   += lib/getopt.g lib/getopt1.g
+endif
+
+ifdef GTD_XINERAMA
+LIBS	 += -L/usr/X11R6/lib -lXinerama
 endif
 
 PROGRAM_G = qiv-g
@@ -87,7 +96,7 @@ SS_PROG   = $(PREFIX)/ss-qiv
 all: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
-	$(CC) $(CFLAGS) $(DEFINES) $(LIBS) $(OBJS) -o $(PROGRAM)
+	$(CC) $(CFLAGS) $(DEFINES) $(OBJS) $(LIBS) -o $(PROGRAM)
 
 $(OBJS): %.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
@@ -114,14 +123,15 @@ distclean : clean
 	rm -f $(PROGRAM) $(PROGRAM_G)
 
 install: $(PROGRAM)
-	@echo "Installing..."
+	@echo "Installing QIV..."
 	install -s -m 0755 $(PROGRAM) $(PREFIX)/bin
 	install -m 0644 $(PROGRAM).1 $(PREFIX)/man/man1
 	$(COMPRESS_PROG) $(PREFIX)/man/man1/$(PROGRAM).1
-	@if ./qiv -o white -f ./intro.jpg ; \
+	@if ./qiv -f ./intro.jpg ; \
 	then echo "-- Test Passed --" ; \
 	else echo "-- Test Failed --" ; \
 	fi
+	@echo -ne "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n" 
 
 install-xscreensaver: install
 	@echo "#!/bin/sh" > $(SS_PROG)

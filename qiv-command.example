@@ -1,22 +1,19 @@
 #! /bin/sh
 
+### QUICK IMAGE VIEWER "qiv-command" file
+### http://www.klografx.net/qiv/
 ###
-### example "qiv-command" file for key 1-3
+### example "qiv-command" file for key 1-9
 ### this file will be launched by QIV if you push 0-9
 ### just put it in a directory that is in your path
 ###
-###
-###
 ### syntax: qiv-command [pushed_number] [image_filename_with_full_path]
-###
-### example: copy current image to /tmp/ :
-### cp "$2" "/tmp/";
 ###
 
 
 case "$1" in
 
-    1)
+    0)
 	# do something with the image ($2) -> 
 	#
 	# example: copy
@@ -25,22 +22,53 @@ case "$1" in
 	# example: move
 	# mv "$2" "/home/myfiles/download/";
 	#
-	echo -ne "$0: 1 was pushed... \n\n";
+	# ecample: show EXIF Header using "metacam"
+	# metacam "$2"
 	
+	echo -ne "0 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
 
 
+    1)
+	echo -ne "1 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+
     2)
-	echo -ne "$0: 2 was pushed... \n\n";
+	echo -ne "2 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
 
 
     3)
-	echo -ne "$0: 3 was pushed... \n\n";
+	echo -ne "3 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
 
+    4)
+	echo -ne "4 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    5)
+	echo -ne "5 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    6)
+	echo -ne "6 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    7)
+	echo -ne "7 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+    
+    8)
+	echo -ne "8 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+
+    9)
+	echo -ne "9 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
+    ;;
+
+
     *)
-    echo "Usage: $0 [1-3]"
+    echo "Usage: $0 [0-9]"
     exit 1
 esac
 

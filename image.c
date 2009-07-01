@@ -87,7 +87,7 @@ void qiv_load_image(qiv_image *q)
 
   gdk_window_set_background(q->win, q->im ? &image_bg : &error_bg);
 
-  if (do_grab || fullscreen) {
+  if (do_grab || (fullscreen && !disable_grab) ) {
     gdk_keyboard_grab(q->win, FALSE, CurrentTime);
     gdk_pointer_grab(q->win, FALSE,
       GDK_BUTTON_PRESS_MASK| GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK,
@@ -251,7 +251,7 @@ void zoom_in(qiv_image *q)
 
   /* first compute current zoom_factor */
   if (fixed_window_size) {
-    zoom_percentage=round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
+    zoom_percentage=myround((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
     zoom_factor=(zoom_percentage - 100) / 10;
   }
 
@@ -272,7 +272,7 @@ void zoom_out(qiv_image *q)
 
   /* first compute current zoom_factor */
   if (fixed_window_size) {
-    zoom_percentage=round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
+    zoom_percentage=myround((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
     zoom_factor=(zoom_percentage - 100) / 10;
   }
 
@@ -396,7 +396,7 @@ void update_image(qiv_image *q, int mode)
       g_snprintf(win_title, sizeof win_title,
                  "qiv: %s (%dx%d) %d%% [%d/%d] b%d/c%d/g%d %s",
                  image_names[image_idx], q->orig_w, q->orig_h,
-                 round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
+                 myround((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
                  q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
       snprintf(infotext, sizeof infotext, "(-)");
 
@@ -419,7 +419,7 @@ void update_image(qiv_image *q, int mode)
       g_snprintf(win_title, sizeof win_title,
                  "qiv: %s (%dx%d) %1.01fs %d%% [%d/%d] b%d/c%d/g%d %s",
                  image_names[image_idx], q->orig_w, q->orig_h, load_elapsed+elapsed,
-                 round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
+                 myround((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
                  q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
       snprintf(infotext, sizeof infotext, "(-)");
     }
@@ -555,8 +555,47 @@ void destroy_image(qiv_image *q)
   if (q->status_gc) gdk_gc_destroy(q->status_gc);
 }
 
+#ifdef GTD_XINERAMA
+void center_image(qiv_image *q)
+{
+  XineramaScreenInfo * pscr = preferred_screen;
+
+  /* Figure out x position */
+  if (q->win_w <= screen_x) {
+    /* If image fits on screen try to center image
+     * within preferred (sub)screen */
+    q->win_x = (pscr->width - q->win_w) / 2 + pscr->x_org;
+    /* Ensure image actually lies within screen boundaries */
+    if (q->win_x < 0) {
+      q->win_x = 0;
+    }
+    else if (q->win_x + q->win_w > screen_x) {
+      q->win_x = screen_x - q->win_w;
+    }
+  }
+  else {
+    /* If image wider than screen, just center it. */
+    q->win_x = (screen_x - q->win_w) / 2;
+  }
+
+  /* Same thing for y position */
+  if (q->win_h <= screen_y) {
+    q->win_y = (pscr->height - q->win_h) / 2 + pscr->y_org;
+    if (q->win_y < 0) {
+      q->win_y = 0;
+    }
+    else if (q->win_y + q->win_h > screen_y) {
+      q->win_y = screen_y - q->win_h;
+    }
+  }
+  else {
+    q->win_y = (screen_y - q->win_h) / 2;
+  }
+}
+#else
 void center_image(qiv_image *q)
 {
   q->win_x = (screen_x - q->win_w) / 2;
   q->win_y = (screen_y - q->win_h) / 2;
 }
+#endif

@@ -1,5 +1,8 @@
-just type: "make install" (or "gmake install", if your standard make
-doesn't like the Makefile) to compile and install qiv.
+
+Pleas read the "README" file first!
+
+..just type: "make install" (or "gmake install", if your standard 
+make doesn't like the Makefile) to compile and install qiv.
 
 If you are compiling on FreeBSD, Solaris, or any other system without
 GNU getopt_long, comment out the GETOPT_LONG line in the Makefile.

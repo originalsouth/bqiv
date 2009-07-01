@@ -2,8 +2,13 @@
 #include <gdk_imlib.h>
 #include <unistd.h>
 #include <stdlib.h>
+#ifdef GTD_XINERAMA
+# include <X11/Xlib.h>
+# include <X11/extensions/Xinerama.h>
+#endif
 
-#define VERSION "1.9"
+#define VERSION "2.0"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.0 - http://www.klografx.net/qiv/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
@@ -88,6 +93,7 @@ extern int		to_root_t;
 extern int		to_root_s;
 extern int		transparency;
 extern int		do_grab;
+extern int      disable_grab;
 extern int		max_rand_num;
 extern int		fixed_window_size;
 extern int		fixed_zoom_factor;
@@ -95,6 +101,10 @@ extern int		zoom_factor;
 extern int		watch_file;
 
 extern const char	*helpstrs[], **helpkeys, *image_extensions[];
+
+#ifdef GTD_XINERAMA
+extern XineramaScreenInfo *preferred_screen;
+#endif
 
 /* main.c */
 
@@ -139,7 +149,7 @@ extern int  move2trash(void);
 extern int  copy2select(void);
 extern int  undelete_image(void);
 extern void jump2image(char *);
-extern void run_command(qiv_image *, int, char *);
+extern void run_command(qiv_image *, int, char *, int *, const char ***);
 extern void finish(int);
 extern void next_image(int);
 extern int checked_atoi(const char *);
@@ -148,5 +158,6 @@ extern void show_help(char *, int);
 extern int get_random(int, int, int);
 extern gboolean color_alloc(const char *, GdkColor *);
 extern void swap(int *, int *);
-extern int round(double);
+#define myround qiv_round
+extern int myround(double);
 extern gboolean qiv_watch_file (gpointer);

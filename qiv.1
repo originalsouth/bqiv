@@ -10,10 +10,10 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "14 Jan 2003" "qiv version 1.9" "X Tools"
+.TH qiv 1 "14 Jan 2003" "qiv version 2.0" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
-Version: 1.9, released on 13.12.2003
+Version: 2.0, released on 22.05.2004
 by Adam Kopacz / KLOGRAFX.DE Network
 http://www.klografx.net/qiv/ - adam.k@klografx.de
 .SH SYNOPSIS
@@ -86,6 +86,11 @@ Enable transparency for transparent images.
 .B \-a, \-\-do_grab
 Grab the pointer in windowed mode.
 .TP
+.B \-G, \-\-disable_grab
+Disable grabbing the pointer/kbd in fullscreen mode. Useful e.g. if
+qiv displays images on a display other than where it was envoked
+from. Use with caution!
+.TP
 .B \-v, \-\-version
 Print version information.
 .TP
@@ -111,7 +116,7 @@ Set slideshow delay to \fIx\fR seconds.
 .B \-f, \-\-fullscreen
 Use fullscreen window on start-up.
 .TP
-.B \-I, \-\-ignore_path_sort
+.B \-P, \-\-ignore_path_sort
 Sort all the image files by just their filename, ignoring the path.
 .TP
 .B \-M, \-\-merged_case_sort
@@ -168,7 +173,9 @@ c                  - contrast
 C                  + contrast
 g                  - gamma
 G                  + gamma
-arrow keys         move image (in fullscreen mode)
+arrow keys                 move image (in fullscreen mode)
+arrow keys+Shift           move image faster (in fullscreen mode)
+NumPad-arrow keys+NumLock  move image faster (in fullscreen mode)
 h                  flip horizontal
 v                  flip vertical
 k                  rotate right
@@ -242,31 +249,30 @@ xscreensaver.programs: \\
 .EE
 .SH AUTHORS
 .EX
-Adam Kopacz            <adam.k@klografx.de>
-Darren Smith           <darren.smith@juno.com>
-Pavel Andreev          <paxvel@vumsoft.cz>
-Decklin Foster         <decklin@red-bean.com>
-Andy Spiegl            <qiv.Andy@spiegl.de>
-.EE
-.SH OTHER
-.EX
-Frederic Crozat        <fcrozat@mail.dotcom.fr>
-John Knottenbelt       <jak97@doc.ic.ac.uk>
-Holger Mueller         <hmueller@hrzpub.tu-darmstadt.de>
-Rutger Nijlunsing      <rutger@null.net>
-Scott Sams             <sbsams@eos.ncsu.edu>
-Serge Winitzki         <winitzki@geocities.com>
-Danny                  <dannys@mail.com>
-Tomas Ogren            <stric@ing.umu.se>
-Erik Jacobsen          <erik@openix.com>
-Alfred Weyers          <alfred@otto.gia.RWTH-Aachen.DE>
-Daniel                 <danad157@student.liu.se>
-Henning Kulander       <hennikul@ifi.uio.no>
-Ask Bjoern Hansen      <ask@valueclick.com>
-Adrian Lopez           <adrian2@caribe.net>
-Y Furuhashi            <y_furuhashi@ot.olympus.co.jp>
-Wayne Davison          <wayned@users.sourceforge.net>
-OEyvind Kolaas         <pippin@users.sourceforge.net>
+Adam Kopacz             (adam.k@klografx.de)
+Andy Spiegl             (qiv.andy@spiegl.de)
+Darren Smith            (darren.smith@juno.com)
+Pavel Andreev           (paxvel@vumsoft.cz)
+Decklin Foster          (decklin@red-bean.com)
+Holger Mueller          (hmueller@hrzpub.tu-darmstadt.de)
+Scott Sams              (sbsams@eos.ncsu.edu)
+Serge Winitzki          (winitzki@geocities.com)
+Frederic Crozat         (fcrozat@mail.dotcom.fr)
+Rutger Nijlunsing       (rutger@wingding.demon.nl)
+John Knottenbelt        (jak97@doc.ic.ac.uk)
+Danny                   (dannys@mail.com)
+Tomas Ogren             (stric@ing.umu.se)
+Erik Jacobsen           (erik@openix.com)
+Alfred Weyers           (alfred@otto.gia.RWTH-Aachen.DE)
+Daniel                  (danad157@student.liu.se)
+Henning Kulander        (hennikul@ifi.uio.no)
+Ask Bjoern Hansen       (ask@valueclick.com)
+Adrian Lopez            (adrian2@caribe.net)
+Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
+Wayne Davison           (wayned@users.sourceforge.net)
+Johannes Stezenbach     (js@convergence.de)
+OEyvind Kolaas          (pippin@users.sourceforge.net)
+Matthieu Castet         (castet.matthieu@free.fr)
 .EE
 .SH MISC
 .P

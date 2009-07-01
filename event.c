@@ -13,11 +13,13 @@
 #include <gtk/gtkmain.h>
 #include "qiv.h"
 
+#define STEP 3 //When using KP arrow, number of step for seeing all the image. 
+
 static int	jumping;
 static char	jcmd[100];
 static int	jidx;
 static int	cursor_timeout;
-
+static gboolean displaying_textwindow = FALSE;
 
 static void qiv_enable_mouse_events(qiv_image *q)
 {
@@ -88,11 +90,62 @@ static void qiv_drag_image(qiv_image *q, int move_to_x, int move_to_y)
   update_image(q, MOVED);
 }
 
+void qiv_display_text_window(qiv_image *q, const char *infotextdisplay, const char *strs[])
+{
+  if (fullscreen) {
+    int temp, text_w = 0, text_h, i, maxlines;
+    const char *continue_msg = "Push any key...";
+
+    /* Calculate maximum number of lines to display */
+    if (text_font->ascent + text_font->descent > 0) 
+       maxlines = screen_y / (text_font->ascent + text_font->descent) - 2;
+    else
+       maxlines = 60;
+
+    for (i = 0; strs[i] && i < maxlines; i++) {
+      temp = gdk_text_width(text_font, strs[i], strlen(strs[i]));
+      if (text_w < temp) text_w = temp;
+    }
+
+    text_h = (i + 2) * (text_font->ascent + text_font->descent);
+
+    snprintf(infotext, sizeof infotext, infotextdisplay);
+    update_image(q, REDRAW);
+    
+    gdk_draw_rectangle(q->win, q->bg_gc, 0,
+		       screen_x/2 - text_w/2 - 4,
+		       screen_y/2 - text_h/2 - 4,
+		       text_w + 7, text_h + 7);
+    gdk_draw_rectangle(q->win, q->status_gc, 1,
+		       screen_x/2 - text_w/2 - 3,
+		       screen_y/2 - text_h/2 - 3,
+		       text_w + 6, text_h + 6);
+    for (i = 0; strs[i] && i < maxlines; i++) {
+      gdk_draw_text(q->win, text_font, q->text_gc, screen_x/2 - text_w/2,
+		    screen_y/2 - text_h/2 - text_font->descent +
+		    (i+1) * (text_font->ascent + text_font->descent),
+		    strs[i], strlen(strs[i]));
+    }
+
+    /* Display Push Any Key... message */
+    gdk_draw_text(q->win, text_font, q->text_gc, screen_x/2 - gdk_text_width(text_font, continue_msg, strlen(continue_msg))/2,
+	          screen_y/2 - text_h/2 - text_font->descent +
+		  (i+2) * (text_font->ascent + text_font->descent),
+		  continue_msg, strlen(continue_msg));
+
+    displaying_textwindow = TRUE;
+  } else {
+    int i;
+    for (i = 0; strs[i] != NULL; i++) {
+      printf("%s\n", strs[i]);
+    }
+  }
+}
+
 void qiv_handle_event(GdkEvent *ev, gpointer data)
 {
   gboolean exit_slideshow = FALSE;
   qiv_image *q = data;
-  gint i;
   Window xwindow;
   int move_step;
   char digit_buf[2];
@@ -198,6 +251,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       g_print("\tstring: %s\n",ev->key.string);
       g_print("\tkeyval: %d\n",ev->key.keyval);
    #endif
+
+      if (displaying_textwindow) {
+	/* Hide the text window if it is showing */
+	displaying_textwindow = FALSE;
+	update_image(q, FULL_REDRAW);
+	break;
+      }
+      
       if (jumping) {
 	if((ev->key.keyval == GDK_Return) ||
 	   (ev->key.keyval == GDK_KP_Enter) ||
@@ -217,36 +278,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 	  case '?':
 	  case GDK_F1:
-	    if (fullscreen) {
-              int temp, text_w = 0, text_h;
-
-              for (i = 0; helpstrs[i]; i++) {
-                  temp = gdk_text_width(text_font, helpstrs[i], strlen(helpstrs[i]));
-                  if (text_w < temp) text_w = temp;
-              }
-
-              text_h = i * (text_font->ascent + text_font->descent);
-
-	      snprintf(infotext, sizeof infotext, "(Showing Help)");
-	      gdk_draw_rectangle(q->win, q->bg_gc, 0,
-				 screen_x/2 - text_w/2 - 4,
-				 screen_y/2 - text_h/2 - 4,
-				 text_w + 7, text_h + 7);
-	      gdk_draw_rectangle(q->win, q->status_gc, 1,
-				 screen_x/2 - text_w/2 - 3,
-				 screen_y/2 - text_h/2 - 3,
-				 text_w + 6, text_h + 6);
-	      for (i = 0; helpstrs[i]; i++) {
-		gdk_draw_text(q->win, text_font, q->text_gc, screen_x/2 - text_w/2,
-                  screen_y/2 - text_h/2 - text_font->descent +
-                  (i+1) * (text_font->ascent + text_font->descent),
-                  helpstrs[i], strlen(helpstrs[i]));
-	      }
-	    } else {
-	      for (i = 0; helpstrs[i] != NULL; i++) {
-		printf("%s\n", helpstrs[i]);
-	      }
-	    }
+	    qiv_display_text_window(q, "(Showing Help)", helpstrs);
 	    break;
 
 	  /* Exit */
@@ -360,8 +392,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* move image right */
 
 	  case GDK_Left:
+	  case GDK_KP_4:
+	  case GDK_KP_Left:
 	    if (fullscreen) {
-          move_step = (q->win_w / 100);
+	      if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_4) {
+            move_step = (MIN(screen_x, q->win_w) / STEP);
+          } else {
+            move_step = (q->win_w / 100);
+          }
           if (move_step < 10)
             move_step = 10;
 
@@ -401,8 +439,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* move image left */
 
 	  case GDK_Right:
+	  case GDK_KP_6:
+	  case GDK_KP_Right:
 	    if (fullscreen) {
-          move_step = (q->win_w / 100);
+	      if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_6) {
+            move_step = (MIN(screen_x, q->win_w) / STEP);
+          } else {
+            move_step = (q->win_w / 100);
+          }
           if (move_step < 10)
             move_step = 10;
 
@@ -442,8 +486,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* move image up */
 
 	  case GDK_Down:
+	  case GDK_KP_2:
+	  case GDK_KP_Down:
 	    if (fullscreen) {
-          move_step = (q->win_h / 100);
+	      if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_2) {
+            move_step = (MIN(screen_y, q->win_h) / STEP);
+          } else {
+            move_step = (q->win_h / 100);
+          }
           if (move_step < 10)
             move_step = 10;
 
@@ -483,8 +533,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  /* move image down */
 
 	  case GDK_Up:
+	  case GDK_KP_8:
+	  case GDK_KP_Up:
 	    if (fullscreen) {
-          move_step = (q->win_h / 100);
+	      if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_8) {
+            move_step = (MIN(screen_y, q->win_h) / STEP);
+          } else {
+            move_step = (q->win_h / 100);
+          }
           if (move_step < 10)
             move_step = 10;
 
@@ -558,9 +614,9 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case GDK_Return:
 	  case GDK_KP_Enter:
 	    snprintf(infotext, sizeof infotext, "(Reset size)");
-        reload_image(q);
-        zoom_factor = fixed_zoom_factor;  /* reset zoom */
-        check_size(q, TRUE);
+	    reload_image(q);
+	    zoom_factor = fixed_zoom_factor;  /* reset zoom */
+	    check_size(q, TRUE);
 	    update_image(q, REDRAW);
 	    break;
 
@@ -812,7 +868,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 
 	  /* run qiv-command */
-
+	  
           case '0':
           case '1':
           case '2':
@@ -825,7 +881,13 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case '9':
             digit_buf[0] = ev->key.keyval;
             digit_buf[1] = '\0';
-            run_command(q, atoi(digit_buf), image_names[image_idx]);
+	    {
+	      int numlines = 0;
+	      const char **lines;
+	      run_command(q, atoi(digit_buf), image_names[image_idx], &numlines, &lines);
+	      if (lines && numlines) 
+		qiv_display_text_window(q, "(Command output)", lines);
+	    }
             break;
 
 	  default:

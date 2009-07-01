@@ -1,16 +1,24 @@
-Quick Image Viewer (qiv) version 1.9  by Adam Kopacz / KLOGRAFX.DE Network
-http://www.klografx.net/qiv/ - adam.k@klografx.de - Released on: 13.12.2003
+Quick Image Viewer (qiv) version 2.0  by Adam Kopacz / KLOGRAFX.DE Network
+http://www.klografx.net/qiv/ - adam.k@klografx.de - Released on: 22.05.2004
 ===========================================================================
 
 
 Installation (Linux/Solaris/FreeBSD):
 -------------------------------------
 
- Solaris Users: please rename "Makefile.Solaris" to "Makefile" if the
- default Makefile doesn't work for you. 
- 
  Various compile-time options are in the Makefile; be sure to at least
  read over them before typing "make install"... :)
+ Remove the "#" if you want to use the libXinerama for centering on 
+ dual-screen:  #GTD_XINERAMA = -DGTD_XINERAMA
+
+ qiv-command
+ -----------
+ Rename "qiv-command.example" to "qiv-command" and copy it in your path if 
+ you want to launch other programs within qiv. This is verry nice for stuff 
+ like "metacam" to show the EXIF-Headers of digital photos.
+
+ If you want to use qiv as a screensaver so please type 
+ "make install-xscreensaver"
 
  if you get errors like this: "/bin/sh: imlib-config: command not
  found" then your Imlib is to old.. this mean you don't have the
@@ -26,8 +34,9 @@ Installation (Linux/Solaris/FreeBSD):
  -lgdk-1.1 -rdynamic -lgmodule-1.1 -lglib-1.1 -ldl -lXi -lXext -lX11 -lm \
  -ljpeg -ltiff -lgif -lpng -lz -lm
 
- If you want to use qiv as a screensaver so please type 
- "make install-xscreensaver"
+
+ Solaris Users: please rename "Makefile.Solaris" to "Makefile" if the
+ default Makefile doesn't work for you. 
  
 
 Other OSes:
@@ -40,30 +49,30 @@ Other OSes:
 Authors:
 --------
 
-  Adam Kopacz             <adam.k@klografx.de>
-  Andy Spiegl             <qiv.andy@spiegl.de>
-  Darren Smith            <darren.smith@verinet.com>
-  Pavel Andreev           <paxvel@vumsoft.cz>   
-  Decklin Foster          <decklin@red-bean.com>
+ Adam Kopacz             (adam.k@klografx.de)
+ Andy Spiegl             (qiv.andy@spiegl.de)
+ Darren Smith            (darren.smith@juno.com)
+ Pavel Andreev           (paxvel@vumsoft.cz)
+ Decklin Foster          (decklin@red-bean.com)
+ Holger Mueller          (hmueller@hrzpub.tu-darmstadt.de)
+ Scott Sams              (sbsams@eos.ncsu.edu)
+ Serge Winitzki          (winitzki@geocities.com)
+ Frederic Crozat         (fcrozat@mail.dotcom.fr)
+ Rutger Nijlunsing       (rutger@wingding.demon.nl)
+ John Knottenbelt        (jak97@doc.ic.ac.uk)
+ Danny                   (dannys@mail.com)
+ Tomas Ogren             (stric@ing.umu.se)
+ Erik Jacobsen           (erik@openix.com)
+ Alfred Weyers           (alfred@otto.gia.RWTH-Aachen.DE)
+ Daniel                  (danad157@student.liu.se)
+ Henning Kulander        (hennikul@ifi.uio.no)
+ Ask Bjoern Hansen       (ask@valueclick.com)
+ Adrian Lopez            (adrian2@caribe.net)
+ Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
+ Wayne Davison           (wayned@users.sourceforge.net)
+ Johannes Stezenbach     (js@convergence.de)
+ OEyvind Kolaas          (pippin@users.sourceforge.net)
 
-  Other contributors:
-  
-  Holger Mueller         <hmueller@hrzpub.tu-darmstadt.de>
-  Scott Sams             <sbsams@eos.ncsu.edu>
-  Serge Winitzki         <winitzki@geocities.com>
-  Frederic Crozat        <fcrozat@mail.dotcom.fr>
-  Rutger Nijlunsing      <rutger@null.net>
-  John Knottenbelt       <jak97@doc.ic.ac.uk>
-  Danny                  <dannys@mail.com>
-  Tomas Ogren            <stric@ing.umu.se>
-  Erik Jacobsen          <erik@openix.com>
-  Alfred Weyers          <alfred@otto.gia.RWTH-Aachen.DE>
-  Daniel                 <danad157@student.liu.se>
-  Henning Kulander       <hennikul@ifi.uio.no>    
-  Ask Bjoern Hansen      <ask@valueclick.com>
-  Adrian Lopez           <adrian2@caribe.net>
-  Y Furuhashi            <y_furuhashi@ot.olympus.co.jp>
-  OEyvind Kolaas         <pippin@users.sourceforge.net>
 
 Homepage:   
 ---------
@@ -145,7 +154,7 @@ Speeding Up qiv:
 Links:
 ------
 
-  ImLib   : ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/
+  ImLib   : (ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/) 
   gtk/gdk : http://www.gtk.org/
 
 

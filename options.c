@@ -22,7 +22,7 @@ extern int optind, opterr, optopt;
 extern int rreaddir(const char *);
 extern int rreadfile(const char *);
 
-static char *short_options = "hexyzmtb:c:g:niIpaA:vo:srRSd:u:fw:W:PMNF:T";
+static char *short_options = "hexyzmtb:c:g:niIpaGA:vo:srRSd:u:fw:W:PMNF:T";
 static struct option long_options[] =
 {
     {"help",             0, NULL, 'h'},
@@ -40,6 +40,7 @@ static struct option long_options[] =
     {"statusbar",        0, NULL, 'I'},
     {"transparency",     0, NULL, 'p'},
     {"do_grab",	         0, NULL, 'a'},
+    {"disable_grab",     0, NULL, 'G'},
     {"select_dir",       1, NULL, 'A'},
     {"version",          0, NULL, 'v'},
     {"bg_color",         1, NULL, 'o'},
@@ -228,6 +229,8 @@ void options_read(int argc, char **argv, qiv_image *q)
 	    case 'p': transparency=1;
 		      break;
 	    case 'a': do_grab=1;
+		      break;
+	    case 'G': disable_grab=1;
 		      break;
         case 'A': snprintf(select_dir, sizeof select_dir, "%s", optarg);
               break;
