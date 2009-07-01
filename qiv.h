@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define VERSION "1.7"
+#define VERSION "1.8"
 #define TRASH_DIR ".qiv-trash"
 #define SLIDE_DELAY 3000 /* milliseconds */
 #define IMAGE_BG "black"
@@ -29,13 +29,12 @@ typedef struct _qiv_image {
     int error; /* 1 if Imlib couldn't load image */
     gint win_x, win_y, win_w, win_h; /* window co-ordinates */
     gint orig_w, orig_h; /* Size of original image in pixels */
-    gint move_x, move_y; /* offset when moving image */
     GdkGC *black_gc; /* Background GC (black), also for statusbar font */
     GdkGC *status_gc; /* Background for the statusbar-background ;) */
 } qiv_image;
 
 typedef struct _qiv_deletedfile {
-    char *filename, *realpath;
+    char *filename, *trashfile;
     int pos;
 } qiv_deletedfile;
 
@@ -69,7 +68,8 @@ extern int		random_order;
 extern int		random_replace;
 extern int		fullscreen;
 extern int		maxpect;
-extern int		statusbar;
+extern int		statusbar_fullscreen;
+extern int		statusbar_window;
 extern int		slide;
 extern int		scale_down;
 extern int		to_root;
@@ -78,7 +78,9 @@ extern int		to_root_s;
 extern int		transparency;
 extern int		do_grab;
 extern int		max_rand_num;
-extern int		width_fix_size;
+extern int		fixed_window_size;
+extern int		fixed_zoom_factor;
+extern int		zoom_factor;
 
 extern const char	*helpstrs[], **helpkeys, *image_extensions[];
 
@@ -89,6 +91,11 @@ extern void qiv_load_image();
 
 /* image.c */
 
+/* Modes for update_image */
+#define REDRAW 0
+#define MOVED  1
+#define ZOOMED 2
+
 extern void qiv_load_image(qiv_image *);
 extern void set_desktop_image(qiv_image *);
 extern void zoom_in(qiv_image *);
@@ -98,7 +105,7 @@ extern void reload_image(qiv_image *q);
 extern void reset_coords(qiv_image *);
 extern void check_size(qiv_image *, gint);
 extern void render_to_pixmap(qiv_image *, double *);
-extern void update_image(qiv_image *);
+extern void update_image(qiv_image *, int);
 extern void update_m_image(qiv_image *);
 extern void update_z_image(qiv_image *);
 extern void reset_mod(qiv_image *);
@@ -126,3 +133,4 @@ extern void show_help(char *, int);
 extern int get_random(int, int, int);
 extern gboolean color_alloc(const char *, GdkColor *);
 extern void swap(int *, int *);
+extern int round(double);

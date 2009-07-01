@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <gdk/gdkx.h>
 #include <dirent.h>
@@ -29,20 +31,40 @@ int move2trash()
   char trashfile[FILENAME_LEN], path_result[PATH_MAX];
   int i;
 
-  if(!realpath(filename,path_result)) {
-    g_print("Error: realpath failure moving file to trash\a\n");
-    return 1;
-  }
+  if(!(ptr = strrchr(filename, '/'))) {   /* search rightmost slash */
+    /* no slash in filename */
+    strncpy(path_result, filename, PATH_MAX);
+    /* move file to TRASH_DIR/filename */
+    snprintf(trashfile, sizeof trashfile, "%s/%s", TRASH_DIR, path_result);
+  } else {
+    /* find full path to file */
+    *ptr = 0;
+    if(!realpath(filename,path_result)) {
+      g_print("Error: realpath failure while moving file to trash\a\n");
+      *ptr = '/';
+      return 1;
+    }
+    /* move file to fullpath/TRASH_DIR/filename */
+    snprintf(trashfile, sizeof trashfile, "%s/%s/%s", path_result, TRASH_DIR, ptr+1);
 
-  snprintf(trashfile, sizeof trashfile, "%s%s", TRASH_DIR, path_result);
+    strncat(path_result, "/", PATH_MAX);
+    strncat(path_result, ptr + 1, PATH_MAX);
+    *ptr = '/';
+}
 
+#ifdef DEBUG
+  g_print("*** trashfile: '%s'\n",trashfile);
+#endif
   ptr = ptr2 = trashfile;
+  if(trashfile[0] == '/') {  /* filename starts with a slash? */
+    ptr += 1;
+  }
   while((ptr = strchr(ptr,'/'))) {
     *ptr = '\0';
     if(access(ptr2,F_OK)) {
       if(mkdir(ptr2,0700)) {
-	g_print("Error: Could not make directory %s\a\n",ptr2);
-	return 1;
+        g_print("Error: Could not make directory '%s'\a\n",ptr2);
+        return 1;
       }
     }
     *ptr = '/';
@@ -51,7 +73,7 @@ int move2trash()
 
   unlink(trashfile); /* Just in case it already exists... */
   if(link(filename,trashfile)) {
-    g_print("Error: Could not link file into %s\a\n",trashfile);
+    g_print("Error: Could not link file into '%s'\a\n",trashfile);
     return 1;
   }
 
@@ -65,9 +87,9 @@ int move2trash()
     if (delete_idx == MAX_DELETE)
       delete_idx = 0;
     if (del->filename)
-	free(del->realpath);
+	free(del->trashfile);
     del->filename = filename;
-    del->realpath = strdup(path_result);
+    del->trashfile = strdup(trashfile);
     del->pos = image_idx;
 
     --images;
@@ -84,7 +106,7 @@ int move2trash()
       gdk_exit(0);
   }
   else {
-    g_print("Error: Could not write to %s\a\n", TRASH_DIR);
+    g_print("Error: Could not remove file '%s'\a\n", filename);
     return 1;
   }
   return 0;
@@ -94,8 +116,8 @@ int move2trash()
 int undelete_image()
 {
   int i;
-  char trashfile[FILENAME_LEN];
   qiv_deletedfile *del;
+  char *ptr;
 
   if (!deleted_files) {
     g_print("Error: nothing to undelete\a\n");
@@ -109,15 +131,23 @@ int undelete_image()
     return 1;
   }
 
-  snprintf(trashfile, sizeof trashfile, "%s%s", TRASH_DIR, del->realpath);
-
-  if (link(trashfile,del->realpath) < 0) {
+  if (link(del->trashfile,del->filename) < 0) {
+    g_print("Error: undelete_image '%s' failed\a\n", del->filename);
     del->filename = NULL;
-    free(del->realpath);
-    g_print("Error: undelete_image failed\a\n");
+    free(del->trashfile);
     return 1;
   }
-  unlink(trashfile);
+  unlink(del->trashfile);
+
+  /* unlink TRASH_DIR if empty */
+  ptr = del->trashfile;
+  /* the path without the filename is the TRASH_DIR */
+  ptr = strrchr(ptr,'/');
+  *ptr = '\0';
+  if(rmdir(del->trashfile)) {
+    /* we can't delete the TRASH_DIR because there are still files */
+  }
+  *ptr = '/';
 
   image_idx = del->pos;
   for(i=images;--i>=image_idx;) {
@@ -126,7 +156,7 @@ int undelete_image()
   images++;
   image_names[image_idx] = del->filename;
   del->filename = NULL;
-  free(del->realpath);
+  free(del->trashfile);
 
   return 0;
 }
@@ -136,7 +166,6 @@ void run_command(qiv_image *q, int n, char *filename)
 {
     static char nr[10];
     snprintf(infotext, sizeof infotext, "Running: 'qiv-command %i %s'", n, filename);
-    update_image(q);
     
     snprintf(nr, sizeof nr, "%i", n);
 	if (!fork()) {
@@ -144,6 +173,11 @@ void run_command(qiv_image *q, int n, char *filename)
 	    perror("error calling qiv-command");
 	    abort();
 	}
+    wait(NULL);
+    reload_image(q);
+    zoom_factor = fixed_zoom_factor; /* reset zoom */
+    check_size(q, TRUE);
+    update_image(q, REDRAW);
 }
 
   
@@ -160,7 +194,7 @@ void jump2image(char *cmd)
   int x;
 
 #ifdef DEBUG
-    g_print("*** starting jump2image function: %s\n", cmd);
+    g_print("*** starting jump2image function: '%s'\n", cmd);
 #endif
 
   if(cmd[0] == 'f' || cmd[0] == 'F')
@@ -257,7 +291,8 @@ void show_help(char *name, int exit_status)
           "    --maxpect, -m          Zoom to screen size and preserve aspect ratio\n"
           "    --merged_case_sort, -M Sort filenames with AaBbCc... alpha order\n"
           "    --no_filter, -n        Do not filter images by extension\n"
-          "    --no_statusbar, -i     Disable statusbar in fullscreen_mode\n"
+          "    --no_statusbar, -i     Disable statusbar\n"
+          "    --statusbar, -I        Enable statusbar\n"
           "    --numeric_sort, -N     Sort filenames with numbers intuitively\n"
           "    --root, -x             Set centered desktop background and exit\n"
           "    --root_t, -y           Set tiled desktop background and exit\n"
@@ -266,7 +301,8 @@ void show_help(char *name, int exit_status)
           "    --transparency, -p     Enable transparency for transparent images\n"
           "    --recursive, -u x      Recursively retrieve all files from directory x\n"
           "    --version, -v          Print version information and exit\n"
-          "    --width x, -w x        Disable window with fixed width x\n"
+          "    --fixed_width x, -w x  Window with fixed width x\n"
+          "    --fixed_zoom x, -W x   Window with fixed zoom factor (percentage x)\n"
           "\n"
           "Slideshow options:\n"
           "    --slide, -s            Start slideshow immediately\n"
@@ -396,4 +432,10 @@ void swap(int *a, int *b)
     temp = *a;
     *a = *b;
     *b = temp;
+}
+
+/* rounding a float to an int */
+int round( double a )
+{
+  return( (a-(int)a > 0.5) ? (int)a+1 : (int)a);
 }

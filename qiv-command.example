@@ -2,7 +2,7 @@
 
 ###
 ### example "qiv-command" file for key 1-3
-### this file will be launched by QIV if you push 1-9
+### this file will be launched by QIV if you push 0-9
 ### just put it in a directory that is in your path
 ###
 ### syntax: qiv-command [pushed_number] [image_filename_with_full_path]

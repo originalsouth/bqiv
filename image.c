@@ -14,6 +14,9 @@
 
 static void setup_win(qiv_image *);
 static void really_set_static_grav(GdkWindow *);
+static int used_masks_before=0;
+static struct timeval load_before, load_after;
+static double load_elapsed;
 
 /*
  *	Load & display image
@@ -21,6 +24,10 @@ static void really_set_static_grav(GdkWindow *);
 
 void qiv_load_image(qiv_image *q)
 {
+  GdkImlibColor color;
+
+  gettimeofday(&load_before, 0);
+
   if (q->im) {
     /* Discard previous image. To enable caching, s/kill/destroy/. */
     gdk_imlib_kill_image(q->im);
@@ -28,6 +35,20 @@ void qiv_load_image(qiv_image *q)
   }
 
   q->im = gdk_imlib_load_image(image_names[image_idx]);
+
+  /* this function doesn't seem to work :-(  */
+  gdk_imlib_get_image_shape(q->im,&color);
+#ifdef DEBUG
+  g_print("transparent color (RGB): %d, %d, %d\n", color.r, color.g, color.b);
+#endif
+
+  /* turn transparency off */
+  /* this function doesn't seem to work, but isn't necessary either  */
+/*  if (!transparency) {
+    color.r = color.g = color.b = -1;
+    gdk_imlib_set_image_shape(q->im,&color);
+  }
+*/
 
   if (!q->im) { /* error */
     q->im = NULL;
@@ -43,7 +64,6 @@ void qiv_load_image(qiv_image *q)
   check_size(q, TRUE);
 
   /* desktop-background -> exit */
-
   if (to_root || to_root_t || to_root_s) {
     if (!q->im) {
       fprintf(stderr, "qiv: cannot load background_image\n");
@@ -66,8 +86,11 @@ void qiv_load_image(qiv_image *q)
       GDK_BUTTON_PRESS_MASK| GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK,
       NULL, NULL, CurrentTime);
   }
+  gettimeofday(&load_after, 0);
+  load_elapsed = ((load_after.tv_sec +  load_after.tv_usec / 1.0e6) -
+                 (load_before.tv_sec + load_before.tv_usec / 1.0e6));
 
-  update_image(q);
+  update_image(q, REDRAW);
 }
 
 static gchar blank_cursor[1];
@@ -93,7 +116,7 @@ static void setup_win(qiv_image *q)
         q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
         GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_POS);
       /* this call is broken. hack it ourselves... */
-      //gdk_window_set_static_gravities(q->win, TRUE);
+      /* gdk_window_set_static_gravities(q->win, TRUE); */
       really_set_static_grav(q->win);
       gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
     } else {
@@ -169,9 +192,10 @@ void set_desktop_image(qiv_image *q)
   gdk_imlib_changed_image(q->im);
   gdk_imlib_render(q->im, root_w, root_h);
   q->p = gdk_imlib_move_image(q->im);
-
-  if (transparency)
-    m = gdk_imlib_move_mask(q->im);
+  m = gdk_imlib_move_mask(q->im);
+#ifdef DEBUG
+  if (m)  g_print("*** image has transparency\n");
+#endif
 
   if (gvis != gdk_imlib_get_visual()) {
     fprintf(stderr,
@@ -199,28 +223,48 @@ void set_desktop_image(qiv_image *q)
 
 void zoom_in(qiv_image *q)
 {
+  int zoom_percentage;
+
   maxpect = scale_down = 0;
-  q->win_w += (gint)(q->orig_w * 0.1);
-  q->win_h += (gint)(q->orig_h * 0.1);
-  center_image(q);
+
+  /* first compute current zoom_factor */
+  if (fixed_window_size) {
+    zoom_percentage=round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
+    zoom_factor=(zoom_percentage - 100) / 10;
+  }
+
+  zoom_factor++;
+  q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
+  q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
+
+  /* adapt image position */
+  q->win_x = (screen_x - q->win_w) / 2;
+  q->win_y = (screen_y - q->win_h) / 2;
 }
 
 void zoom_out(qiv_image *q)
 {
+  int zoom_percentage;
+
   maxpect = scale_down = 0;
-  if(!fullscreen) {
-    if(q->win_w > 64 && q->win_h > 64) {
-      q->win_w -= (gint)(q->orig_w * 0.1);
-      q->win_h -= (gint)(q->orig_h * 0.1);
-      center_image(q);
-    } else {
-      snprintf(infotext, sizeof infotext, "(Can not zoom_out anymore)");
-      fprintf(stderr, "qiv: can not zoom_out anymore\n");
-    }
+
+  /* first compute current zoom_factor */
+  if (fixed_window_size) {
+    zoom_percentage=round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100);
+    zoom_factor=(zoom_percentage - 100) / 10;
+  }
+
+  if(q->win_w > MIN(64, q->orig_w) && q->win_h > MIN(64, q->orig_h)) {
+    zoom_factor--;
+    q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
+    q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
+
+    /* adapt image position */
+    q->win_x = (screen_x - q->win_w) / 2;
+    q->win_y = (screen_y - q->win_h) / 2;
   } else {
-    q->win_w -= (gint)(q->orig_w * 0.1);
-    q->win_h -= (gint)(q->orig_h * 0.1);
-    center_image(q);
+    snprintf(infotext, sizeof infotext, "(Can not zoom_out anymore)");
+    fprintf(stderr, "qiv: can not zoom_out anymore\n");
   }
 }
 
@@ -242,8 +286,10 @@ void reload_image(qiv_image *q)
 {
   gdk_imlib_destroy_image(q->im);
   q->im = gdk_imlib_load_image(image_names[image_idx]);
-  q->win_w = q->orig_w = q->im->rgb_width;
-  q->win_h = q->orig_h = q->im->rgb_height;
+  q->orig_w = q->im->rgb_width;
+  q->orig_h = q->im->rgb_height;
+  q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
+  q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
   reset_mod(q);
   center_image(q);
 }
@@ -261,21 +307,22 @@ void check_size(qiv_image *q, gint reset)
 
 void reset_coords(qiv_image *q)
 {
-  if (width_fix_size) {
-    double w_o_ratio = (double)(width_fix_size) / q->orig_w;
-    q->win_w = width_fix_size;
+  if (fixed_window_size) {
+    double w_o_ratio = (double)(fixed_window_size) / q->orig_w;
+    q->win_w = fixed_window_size;
     q->win_h = q->orig_h * w_o_ratio;
   } else {
-    q->win_w = q->orig_w;
-    q->win_h = q->orig_h;
+    if (fixed_zoom_factor) {
+      zoom_factor = fixed_zoom_factor; /* reset zoom */
+    }
+    q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
+    q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
   }
-  q->move_x = 0;
-  q->move_y = 0;
 }
 
 /* Something changed the image.  Redraw it. */
 
-void update_image(qiv_image *q)
+void update_image(qiv_image *q, int mode)
 {
   GdkPixmap *m = NULL;
   gint text_len, text_w, text_h;
@@ -288,28 +335,50 @@ void update_image(qiv_image *q)
         "qiv: ERROR! cannot load image: %s", image_names[image_idx]);
     gdk_beep();
   } else {
-    gdk_imlib_set_image_modifier(q->im, &q->mod);
-    gdk_imlib_changed_image(q->im);
+    if (mode == REDRAW) {
+      gdk_imlib_set_image_modifier(q->im, &q->mod);
+      gdk_imlib_changed_image(q->im);
+    }
 
-    /* calculate elapsed time while we render image */
-    gettimeofday(&before, 0);
-    gdk_imlib_render(q->im, q->win_w, q->win_h);
-    gettimeofday(&after, 0);
-    elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
-              (before.tv_sec + before.tv_usec / 1.0e6));
-
-    if (q->p) gdk_imlib_free_pixmap(q->p);
-    q->p = gdk_imlib_move_image(q->im);
-
-    if (transparency)
+    if (mode == MOVED) {
+      if (transparency && used_masks_before) {
+        /* there should be a faster way to update the mask, but how? */
+        gdk_imlib_render(q->im, q->win_w, q->win_h);
+        if (q->p) gdk_imlib_free_pixmap(q->p);
+        q->p = gdk_imlib_move_image(q->im);
         m = gdk_imlib_move_mask(q->im);	/* creating transparency */
+      }
 
-    g_snprintf(win_title, sizeof win_title,
-        "qiv: %s (%dx%d) %1.01fs %d%% [%d/%d] b%d/c%d/g%d %s",
-        image_names[image_idx], q->orig_w, q->orig_h, elapsed,
-        (int)((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
-        q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
-    snprintf(infotext, sizeof infotext, "(-)");
+      g_snprintf(win_title, sizeof win_title,
+                 "qiv: %s (%dx%d) %d%% [%d/%d] b%d/c%d/g%d %s",
+                 image_names[image_idx], q->orig_w, q->orig_h,
+                 round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
+                 q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
+      snprintf(infotext, sizeof infotext, "(-)");
+
+    } else {
+
+      /* calculate elapsed time while we render image */
+      gettimeofday(&before, 0);
+      gdk_imlib_render(q->im, q->win_w, q->win_h);
+      gettimeofday(&after, 0);
+      elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
+                 (before.tv_sec + before.tv_usec / 1.0e6));
+
+      if (q->p) gdk_imlib_free_pixmap(q->p);
+      q->p = gdk_imlib_move_image(q->im);
+      m = gdk_imlib_move_mask(q->im);	/* creating transparency */
+#ifdef DEBUG
+      if (m)  g_print("*** image has transparency\n");
+#endif
+
+      g_snprintf(win_title, sizeof win_title,
+                 "qiv: %s (%dx%d) %1.01fs %d%% [%d/%d] b%d/c%d/g%d %s",
+                 image_names[image_idx], q->orig_w, q->orig_h, load_elapsed+elapsed,
+                 round((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
+                 q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
+      snprintf(infotext, sizeof infotext, "(-)");
+    }
   }
 
   gdk_window_set_title(q->win, win_title);
@@ -332,19 +401,59 @@ void update_image(qiv_image *q)
     }
     if (!q->error) {
       gdk_window_set_back_pixmap(q->win, q->p, FALSE);
-      if (transparency)
-        gdk_window_shape_combine_mask(q->win, m, 0, 0);
+      /* remove or set transparency mask */
+      if (used_masks_before) {
+        if (transparency)
+          gdk_window_shape_combine_mask(q->win, m, 0, 0);
+        else
+          gdk_window_shape_combine_mask(q->win, 0, 0, 0);
+      }
+      else
+      {
+        if (transparency && m) {
+          gdk_window_shape_combine_mask(q->win, m, 0, 0);
+          used_masks_before=1;
+        }
+      }
     }
     gdk_window_clear(q->win);
+
+    gdk_flush();
+    if (statusbar_window) {
+      gdk_draw_rectangle(q->win, q->black_gc, 0,
+                         MAX(2,q->win_w-text_w-10), MAX(2,q->win_h-text_h-10),
+                         text_w+5, text_h+5);
+      gdk_draw_rectangle(q->win, q->status_gc, 1,
+                         MAX(3,q->win_w-text_w-9), MAX(3,q->win_h-text_h-9),
+                         text_w+4, text_h+4);
+      gdk_draw_text(q->win, text_font, q->black_gc,
+                    MAX(5,q->win_w-text_w-7), MAX(5,q->win_h-7-text_font->descent),
+                    win_title, text_len);
+    }
   }
   else {
     gdk_window_clear(q->win);
 
-    if (!q->error)
-        gdk_draw_pixmap(q->win, q->black_gc, q->p, q->move_x, q->move_y,
-            q->win_x, q->win_y, q->win_w, q->win_h);
+    /* remove or set transparency mask */
+    if (used_masks_before) {
+      if (transparency)
+        gdk_window_shape_combine_mask(q->win, m, q->win_x, q->win_y);
+      else
+        gdk_window_shape_combine_mask(q->win, 0, q->win_x, q->win_y);
+    }
+    else
+    {
+      if (transparency && m) {
+        gdk_window_shape_combine_mask(q->win, m, q->win_x, q->win_y);
+        used_masks_before=1;
+      }
+    }
 
-    if (statusbar) {
+    if (!q->error)
+      gdk_draw_pixmap(q->win, q->black_gc, q->p, 0, 0,
+                      q->win_x, q->win_y, q->win_w, q->win_h);
+
+    if (statusbar_fullscreen) {
       gdk_draw_rectangle(q->win, q->black_gc, 0,
           screen_x-text_w-10, screen_y-text_h-10, text_w+5, text_h+5);
       gdk_draw_rectangle(q->win, q->status_gc, 1,
@@ -355,151 +464,6 @@ void update_image(qiv_image *q)
   }
   gdk_flush();
 }
-
-void update_m_image(qiv_image *q)
-{
-  GdkPixmap *m = NULL;
-  gint text_len, text_w, text_h;
-  gchar win_title[BUF_LEN];
-
-  if (q->error) {
-    g_snprintf(win_title, sizeof win_title,
-        "qiv: ERROR! cannot load image: %s", image_names[image_idx]);
-    gdk_beep();
-  } else {
-
-    g_snprintf(win_title, sizeof win_title,
-        "qiv: %s (%dx%d) %d%% [%d/%d] b%d/c%d/g%d %s",
-        image_names[image_idx], q->orig_w, q->orig_h,
-        (int)((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
-        q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
-    snprintf(infotext, sizeof infotext, "(-)");
-  }
-
-  gdk_window_set_title(q->win, win_title);
-
-  text_len = strlen(win_title);
-  text_w = gdk_text_width(text_font, win_title, text_len);
-  text_h = text_font->ascent + text_font->descent;
-
-  if (!fullscreen) {
-    if (center) {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_POS);
-      gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
-    } else {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
-      gdk_window_resize(q->win, q->win_w, q->win_h);
-    }
-    if (!q->error) {
-      gdk_window_set_back_pixmap(q->win, q->p, FALSE);
-      if (transparency)
-        gdk_window_shape_combine_mask(q->win, m, 0, 0);
-    }
-    gdk_window_clear(q->win);
-  }
-  else {
-    gdk_window_clear(q->win);
-    
-    if (!q->error)
-        gdk_draw_pixmap(q->win, q->black_gc, q->p, q->move_x, q->move_y,
-            q->win_x, q->win_y, q->win_w, q->win_h);
-
-    if (statusbar) {
-      gdk_draw_rectangle(q->win, q->black_gc, 0,
-          screen_x-text_w-10, screen_y-text_h-10, text_w+5, text_h+5);
-      gdk_draw_rectangle(q->win, q->status_gc, 1,
-          screen_x-text_w-9, screen_y-text_h-9, text_w+4, text_h+4);
-      gdk_draw_text(q->win, text_font, q->black_gc,
-          screen_x-text_w-7, screen_y-7-text_font->descent, win_title, text_len);
-    }
-  }
-  gdk_flush();
-}
-
-
-void update_z_image(qiv_image *q)
-{
-  GdkPixmap *m = NULL;
-  gint text_len, text_w, text_h;
-  gchar win_title[BUF_LEN];
-  double elapsed;
-  struct timeval before, after;
-
-  if (q->error) {
-    g_snprintf(win_title, sizeof win_title,
-        "qiv: ERROR! cannot load image: %s", image_names[image_idx]);
-    gdk_beep();
-  } else {
-
-    /* calculate elapsed time while we render image */
-    gettimeofday(&before, 0);
-    gdk_imlib_render(q->im, q->win_w, q->win_h);
-    gettimeofday(&after, 0);
-    elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
-              (before.tv_sec + before.tv_usec / 1.0e6));
-
-    if (q->p) gdk_imlib_free_pixmap(q->p);
-    q->p = gdk_imlib_move_image(q->im);
-
-    if (transparency)
-        m = gdk_imlib_move_mask(q->im);	/* creating transparency */
-
-    g_snprintf(win_title, sizeof win_title,
-        "qiv: %s (%dx%d) %1.01fs %d%% [%d/%d] b%d/c%d/g%d %s",
-        image_names[image_idx], q->orig_w, q->orig_h, elapsed,
-        (int)((1.0-(q->orig_w - q->win_w)/(double)q->orig_w)*100), image_idx+1, images,
-        q->mod.brightness/8-32, q->mod.contrast/8-32, q->mod.gamma/8-32, infotext);
-    snprintf(infotext, sizeof infotext, "(-)");
-  }
-
-  gdk_window_set_title(q->win, win_title);
-
-  text_len = strlen(win_title);
-  text_w = gdk_text_width(text_font, win_title, text_len);
-  text_h = text_font->ascent + text_font->descent;
-
-  if (!fullscreen) {
-    if (center) {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_POS);
-      gdk_window_move_resize(q->win, q->win_x, q->win_y, q->win_w, q->win_h);
-    } else {
-      gdk_window_set_hints(q->win,
-        q->win_x, q->win_y, q->win_w, q->win_h, q->win_w, q->win_h,
-        GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
-      gdk_window_resize(q->win, q->win_w, q->win_h);
-    }
-    if (!q->error) {
-      gdk_window_set_back_pixmap(q->win, q->p, FALSE);
-      if (transparency)
-        gdk_window_shape_combine_mask(q->win, m, 0, 0);
-    }
-    gdk_window_clear(q->win);
-  }
-  else {
-    gdk_window_clear(q->win);
-
-    if (!q->error)
-        gdk_draw_pixmap(q->win, q->black_gc, q->p, q->move_x, q->move_y,
-            q->win_x, q->win_y, q->win_w, q->win_h);
-
-    if (statusbar) {
-      gdk_draw_rectangle(q->win, q->black_gc, 0,
-          screen_x-text_w-10, screen_y-text_h-10, text_w+5, text_h+5);
-      gdk_draw_rectangle(q->win, q->status_gc, 1,
-          screen_x-text_w-9, screen_y-text_h-9, text_w+4, text_h+4);
-      gdk_draw_text(q->win, text_font, q->black_gc,
-          screen_x-text_w-7, screen_y-7-text_font->descent, win_title, text_len);
-    }
-  }
-  gdk_flush();
-}
-
 
 
 void reset_mod(qiv_image *q)

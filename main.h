@@ -1,3 +1,4 @@
+
 #ifndef MAIN_H
 #define MAIN_H
 
@@ -31,7 +32,8 @@ int	random_order; /* TRUE if random delay in slideshow */
 int	random_replace = 1; /* random with replacement by default */
 int	fullscreen; /* TRUE if fullscreen mode */
 int	maxpect; /* TRUE if autozoom (fit-to-screen) mode */
-int	statusbar = 1; /* TRUE if statusbar is turned on (default) */
+int	statusbar_fullscreen = 1; /* TRUE if statusbar in fullscreen is turned on (default) */
+int	statusbar_window = 0; /* FALSE if statusbar in window is turned off (default) */
 int	slide; /* 1=slide show running */
 int	scale_down; /* resize down if image x/y > screen */
 int	to_root; /* display on root (centered) */
@@ -40,17 +42,21 @@ int	to_root_s; /* display on root (stretched) */
 int	transparency; /* transparency on/off */
 int	do_grab; /* grab keboard/pointer (default off) */
 int	max_rand_num; /* the largest random number range we will ask for */
-int	width_fix_size = 0; /* window width fix size/off */
+int	fixed_window_size = 0; /* window width fixed size/off */
+int	fixed_zoom_factor = 0; /* window fixed zoom factor (percentage)/off */
+int zoom_factor = 0; /* zoom factor/off */
 
-/* Used for the ? key in fullscreen */
+/* Used for the ? key */
 
 const char *helpstrs[] =
 {
     "Quick Image Viewer (qiv) Keys:",
     "",
-    "space/PgDn/left mouse/wheel down        next picture",
-    "backspace/PgUp/right mouse/wheel up     previous picture",
-    "q/ESC/middle mouse                      exit",
+    "space/left mouse/wheel down      next picture",
+    "backspace/right mouse/wheel up   previous picture",
+    "PgDn                             5 pictures forward",
+    "PgUp                             5 pictures backward",
+    "q/ESC/middle mouse               exit",
     "",
     "0-9                Run 'qiv-command <key> <current-img>'",
     "?                  show keys (in fullscreen mode)",
@@ -58,10 +64,12 @@ const char *helpstrs[] =
     "u                  undelete the previously trashed image",
     "+/=                zoom in (10%)",
     "-                  zoom out (10%)",
+    "e                  center mode on/off",
     "f                  fullscreen mode on/off",
     "m                  scale to screen size on/off",
     "t                  scale down on/off",
     "s                  slide show on/off",
+    "p                  transparency on/off",
     "r                  random order on/off",
     "b                  - brightness",
     "B                  + brightness",
@@ -79,6 +87,7 @@ const char *helpstrs[] =
     "jbx<return>        jump backward x images",
     "enter/return       reset zoom and color settings",
     "i                  statusbar on/off",
+    "I                  iconify window",
     "x                  center image on background",
     "y                  tile image on background",
     "z                  stretch image on background",

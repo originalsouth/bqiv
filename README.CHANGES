@@ -1,6 +1,7 @@
 Authors:
 
-  ak: Adam Kopacz / kLoGraFX  (adam.k@klografx.de)
+  ak: Adam Kopacz             (adam.k@klografx.de)
+  as: Andy Spiegl             (qiv.andy@spiegl.de)
   de: Darren Smith            (darren.smith@juno.com)
   pa: Pavel Andreev           (paxvel@vumsoft.cz)
   df: Decklin Foster          (decklin@red-bean.com)
@@ -24,6 +25,40 @@ Other contributors:
   yf: Y Furuhashi             (y_furuhashi@ot.olympus.co.jp)
   wd: Wayne Davison           (wayned@users.sourceforge.net)
 
+
+1.8
+===
+
+ 16.07.02 [----] [ak] Released 1.8 :-)
+
+ 07.07.02 [pre8] [ak] added zoom in/out bugfix from Qef Richards <qef@rosies-dumplings.co.uk>
+ 
+ 29.06.02 [pre7] [as] fixed load_time. now the real render/load/display-time is displayed.
+
+ 09.06.02 [pre6] [as] fixed image moving
+                      merged update_m_image and update_z_image into update_image
+
+ 05.06.02 [pre5] [as] fixed trashdir and delete path,
+                      fixed rounding error of zoom factor in statusbar
+                      added support for transparency in fullscreen mode
+                        (leaves a problem with the disappearing window border)
+                      added a Transparency toggle
+                      added possibility for the statusbar in non-fullscreen mode
+                      added command line switch "I" to force display of the statusbar
+                      changed command line switch ignore_path_sort from "I" to "P"
+                      added command line switch "W" for a fixed zoom factor
+                      added a Center mode toggle
+                      changed meaning of page down/up keys
+
+ 16.05.02 [pre4] [ak] Added reload-after-qiv-command-patch from "Andy Spiegl <qiv.andy@spiegl.de>"
+
+ 12.05.02 [pre3] [ak] Added Iconify-Patch (Key: I) from "Goetz Waschk <waschk@informatik.uni-rostock.de>"
+                          
+ 29.12.01 [pre2] [ak] Added manpage-patch (qiv-command changes) from James M Corey 
+                      <jmcorey@ptdcs2.ra.intel.com>
+ 31.07.01 [pre1] [ak] added patch from Matthias Kilian <kili@outback.escape.de>
+                      (adds random order when starting qiv in shuffle mode & 
+                       fixed deleting and undeleting a picture which is a symlink)
 
 1.7
 ===

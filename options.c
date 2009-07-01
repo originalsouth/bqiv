@@ -18,7 +18,7 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 extern int rreaddir(const char *);
 
-static char *short_options = "hexyzmtb:c:g:nipavo:srSd:u:fw:IMN";
+static char *short_options = "hexyzmtb:c:g:niIpavo:srSd:u:fw:W:PMN";
 static struct option long_options[] =
 {
     {"help",		0, NULL, 'h'},
@@ -33,6 +33,7 @@ static struct option long_options[] =
     {"gamma",		1, NULL, 'g'},
     {"no_filter",	0, NULL, 'n'},
     {"no_statusbar",	0, NULL, 'i'},
+    {"statusbar",	0, NULL, 'I'},
     {"transparency",	0, NULL, 'p'},
     {"do_grab",		0, NULL, 'a'},
     {"version",		0, NULL, 'v'},
@@ -43,8 +44,9 @@ static struct option long_options[] =
     {"delay",		1, NULL, 'd'},
     {"recursive",   	1, NULL, 'u'},
     {"fullscreen",	0, NULL, 'f'},
-    {"width",		1, NULL, 'w'},
-    {"ignore_path_sort",0, NULL, 'I'},
+    {"fixed_width",		1, NULL, 'w'},
+    {"fixed_zoom",		1, NULL, 'W'},
+    {"ignore_path_sort",0, NULL, 'P'},
     {"merged_case_sort",0, NULL, 'M'},
     {"numeric_sort",	0, NULL, 'N'},
     {0,			0, NULL, 0}
@@ -179,6 +181,7 @@ void options_read(int argc, char **argv, qiv_image *q)
 {
     int long_index, shuffle = 0, need_sort = 0;
     int c, cnt;
+    int force_statusbar=-1;             /* default is don't force */
 
     while ((c = getopt_long(argc, argv, short_options,
 	    long_options, &long_index)) != -1) {
@@ -210,7 +213,9 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'n': filter=0;
 		      break;
-	    case 'i': statusbar=0;
+	    case 'i': force_statusbar=0;
+		      break;
+	    case 'I': force_statusbar=1;
 		      break;
 	    case 'p': transparency=1;
 		      break;
@@ -225,8 +230,7 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'r': random_order=1;
 		      break;
-	    case 'S': random_order=1;
-	              shuffle=1;
+	    case 'S': shuffle=1;
 		      break;
 	    case 'd': delay=atoi(optarg)*1000+1;
 		      if (delay<1) usage(argv[0],1);
@@ -239,9 +243,11 @@ void options_read(int argc, char **argv, qiv_image *q)
 		      break;
 	    case 'f': fullscreen=1;
 		      break;
-	    case 'w': q->win_w = width_fix_size = atoi(optarg);
+	    case 'w': q->win_w = fixed_window_size = atoi(optarg);
 		      break;
-	    case 'I': need_sort = ignore_path_sort = 1;
+	    case 'W': fixed_zoom_factor = (atoi(optarg) - 100) / 10;
+		      break;
+	    case 'P': need_sort = ignore_path_sort = 1;
 		      break;
 	    case 'M': need_sort = merged_case_sort = 1;
 		      break;
@@ -251,6 +257,12 @@ void options_read(int argc, char **argv, qiv_image *q)
 	    case '?': usage(argv[0], 1);
 		      gdk_exit(0);
 	}
+    }
+
+    /* default: show statusbar only in fullscreen mode */
+    /* user wants to override? */
+    if (force_statusbar != -1) {
+      statusbar_window=statusbar_fullscreen = force_statusbar;
     }
 
     if((cnt = argc - optind) > 0) {

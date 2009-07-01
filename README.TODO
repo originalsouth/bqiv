@@ -1,4 +1,7 @@
 
-we need a better function that checks if the moved image (in fullscreenmode) is outside the viewable area. 
-this isn't easy because the qiv window can be bigger than the screen-size .. 
 
+after displaying one transparent image, the window border doesn't
+reappear when displaying in non-transparency mode              (as)
+
+
+an XV-like (clickable) list of the image-names would be great  (as)

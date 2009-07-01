@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 #include "qiv.h"
 
@@ -20,6 +21,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
   gboolean exit_slideshow = FALSE;
   qiv_image *q = data;
   gint i;
+  Window xwindow;
+  int move_step;
 
   switch(ev->type) {
     case GDK_DELETE:
@@ -140,16 +143,39 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    qiv_load_image(q);
 	    break;
 
+	  /* Center mode (on/off) */
+
+	  case 'E':
+	  case 'e':
+	    exit_slideshow = FALSE;
+	    center ^= 1;
+        snprintf(infotext, sizeof infotext, center ? 
+                "(Centering: on)" : "(Centering: off)");
+	    update_image(q, MOVED);
+	    break;
+
+	  /* Transparency on/off */
+
+	  case 'P':
+	  case 'p':
+	    exit_slideshow = FALSE;
+	    transparency ^= 1;
+        snprintf(infotext, sizeof infotext, transparency ? 
+                "(Transparency: on)" : "(Transparency: off)");
+	    update_image(q, REDRAW);
+	    break;
+
 	  /* Maxpect on/off */
 
 	  case 'M':
 	  case 'm':
-            scale_down = 0;
+        scale_down = 0;
 	    maxpect ^= 1;
-            snprintf(infotext, sizeof infotext, maxpect ? 
-                "(Maxpect: on)" : "(Maxpect: off)");
+        snprintf(infotext, sizeof infotext, maxpect ? 
+                 "(Maxpect: on)" : "(Maxpect: off)");
+        zoom_factor = maxpect ? 0 : fixed_zoom_factor; /* reset zoom */
 	    check_size(q, TRUE);
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* Random on/off */
@@ -159,16 +185,39 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    random_order ^= 1;
             snprintf(infotext, sizeof infotext, random_order ?
                 "(Random order: on)" : "(Random order: off)");
-	    update_image(q);
+	    update_image(q, REDRAW);
+	    break;
+
+	    /* iconify */
+
+	  case 'I':
+	    exit_slideshow = TRUE;
+	    if (fullscreen) {
+	      gdk_window_withdraw(q->win);
+	      if (cursor == invisible_cursor)
+		gdk_window_set_cursor(q->win, cursor = visible_cursor);
+	      fullscreen=0;
+	      first=1;
+	      qiv_load_image(q);
+	    }
+	    xwindow = GDK_WINDOW_XWINDOW(q->win);
+	    XIconifyWindow(GDK_DISPLAY(), xwindow, DefaultScreen(GDK_DISPLAY()));
 	    break;
 
 	  /* Statusbar on/off  */
 
-	  case 'I':
 	  case 'i':
-	    exit_slideshow = FALSE;
-	    statusbar ^= 1;
-	    update_image(q);
+        exit_slideshow = FALSE;
+	    if (fullscreen) {
+          statusbar_fullscreen ^= 1;
+          snprintf(infotext, sizeof infotext, statusbar_fullscreen ?
+                 "(Statusbar: on)" : "(Statusbar: off)");
+        } else {
+          statusbar_window ^= 1;
+          snprintf(infotext, sizeof infotext, statusbar_window ?
+                 "(Statusbar: on)" : "(Statusbar: off)");
+        }
+        update_image(q, REDRAW);
 	    break;
 
 	  /* Slide show on/off */
@@ -179,87 +228,184 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    slide ^= 1;
             snprintf(infotext, sizeof infotext, slide ?
                 "(Slideshow: on)" : "(Slideshow: off)");
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* move image right */
 
 	  case GDK_Left:
 	    if (fullscreen) {
-		if (q->win_w + q->move_x > 10) {
-	          q->move_x = q->move_x - (q->win_w / 100);
-	          snprintf(infotext, sizeof infotext, "(Moving right)");
-		} else {
-	          snprintf(infotext, sizeof infotext, "(Can not move anymore)");
-		} 
+          move_step = (q->win_w / 100);
+          if (move_step < 10)
+            move_step = 10;
+
+          /* is image greater than screen? */
+          if (q->win_w > screen_x) {
+            /* left border visible yet? */
+            if (q->win_x < 0) {
+              q->win_x += move_step;
+              /* sanity check */
+              if (q->win_x > 0)
+                q->win_x = 0;
+              snprintf(infotext, sizeof infotext, "(Moving right)");
+            } else {
+              snprintf(infotext, sizeof infotext, "(Cannot move further to the right)");
+            }
+
+          } else {                      /* user is just playing around */
+
+            /* right border reached? */
+            if (q->win_x + q->win_w < screen_x) {
+              q->win_x += move_step;
+              /* sanity check */
+              if (q->win_x + q->win_w > screen_x)
+                q->win_x = screen_x - q->win_w;
+              snprintf(infotext, sizeof infotext, "(Moving right)");
+            } else {
+              snprintf(infotext, sizeof infotext, "(Cannot move further to the right)");
+            }
+          }
 	    } else {
 	      snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
 	      fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
 	    }
-	    update_m_image(q);
+        update_image(q, MOVED);
 	    break;
 
 	  /* move image left */
 
 	  case GDK_Right:
-	   if(fullscreen) {
-		if (q->win_w - q->move_x > 10) {
-	    	    q->move_x = q->move_x + (q->win_w / 100);
-	            snprintf(infotext, sizeof infotext, "(Moving left)");
-		} else {
-	          snprintf(infotext, sizeof infotext, "(Can not move anymore)");
-		} 
+	    if (fullscreen) {
+          move_step = (q->win_w / 100);
+          if (move_step < 10)
+            move_step = 10;
+
+          /* is image greater than screen? */
+          if (q->win_w > screen_x) {
+            /* right border visible yet? */
+            if (q->win_x + q->win_w > screen_x) {
+              q->win_x -= move_step;
+              /* sanity check */
+              if (q->win_x + q->win_w < screen_x)
+                q->win_x = screen_x - q->win_w;
+              snprintf(infotext, sizeof infotext, "(Moving left)");
+            } else {
+              snprintf(infotext, sizeof infotext, "(Cannot move further to the left)");
+            }
+
+          } else {                      /* user is just playing around */
+
+            /* left border reached? */
+            if (q->win_x > 0) {
+              q->win_x -= move_step;
+              /* sanity check */
+              if (q->win_x < 0)
+                q->win_x = 0;
+              snprintf(infotext, sizeof infotext, "(Moving left)");
+            } else {
+              snprintf(infotext, sizeof infotext, "(Cannot move further to the left)");
+            }
+          }
 	    } else {
 	      snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
 	      fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
 	    }
-	    update_m_image(q);
+	    update_image(q, MOVED);
 	    break;
-
+        
 	  /* move image up */
 
 	  case GDK_Down:
-            if (fullscreen) {
-                if(q->win_h - q->move_y > 10) {
-                    q->move_y = q->move_y + (q->win_h / 100);
-                    snprintf(infotext, sizeof infotext, "(Moving up)");
-                } else {
-                    snprintf(infotext, sizeof infotext, "(Can not move anymore)");
-                }		 
+	    if (fullscreen) {
+          move_step = (q->win_h / 100);
+          if (move_step < 10)
+            move_step = 10;
+
+          /* is image greater than screen? */
+          if (q->win_h > screen_y) {
+            /* bottom visible yet? */
+            if (q->win_y + q->win_h > screen_y) {
+              q->win_y -= move_step;
+              /* sanity check */
+              if (q->win_y + q->win_h < screen_y)
+                q->win_y = screen_y - q->win_h;
+              snprintf(infotext, sizeof infotext, "(Moving up)");
             } else {
-                snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
-                fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
+              snprintf(infotext, sizeof infotext, "(Cannot move further up)");
             }
-	    update_m_image(q);
+
+          } else {                      /* user is just playing around */
+
+            /* top reached? */
+            if (q->win_y > 0) {
+              q->win_y -= move_step;
+              /* sanity check */
+              if (q->win_y < 0)
+                q->win_y = 0;
+              snprintf(infotext, sizeof infotext, "(Moving up)");
+            } else {
+              snprintf(infotext, sizeof infotext, "(Cannot move further up)");
+            }
+          }
+	    } else {
+	      snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
+	      fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
+	    }
+	    update_image(q, MOVED);
 	    break;
 
 	  /* move image down */
 
 	  case GDK_Up:
-            if(fullscreen) {
-                if(q->move_y + q->win_h > 10) {
-                    q->move_y = q->move_y - (q->win_h / 100);
-                    snprintf(infotext, sizeof infotext, "(Moving down)");
-                } else {
-                    snprintf(infotext, sizeof infotext, "(Can not move anymore)");
-                }		 
+	    if (fullscreen) {
+          move_step = (q->win_h / 100);
+          if (move_step < 10)
+            move_step = 10;
+
+          /* is image greater than screen? */
+          if (q->win_h > screen_y) {
+            /* top visible yet? */
+            if (q->win_y < 0) {
+              q->win_y += move_step;
+              /* sanity check */
+              if (q->win_y > 0)
+                q->win_y = 0;
+              snprintf(infotext, sizeof infotext, "(Moving down)");
             } else {
-                snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
-                fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
+              snprintf(infotext, sizeof infotext, "(Cannot move further down)");
             }
-            update_m_image(q);
-            break;
+
+          } else {                      /* user is just playing around */
+
+            /* bottom reached? */
+            if (q->win_y + q->win_h < screen_y) {
+              q->win_y += move_step;
+              /* sanity check */
+              if (q->win_y + q->win_h > screen_y)
+                q->win_y = screen_y - q->win_h;
+              snprintf(infotext, sizeof infotext, "(Moving down)");
+            } else {
+              snprintf(infotext, sizeof infotext, "(Cannot move further down)");
+            }
+          }
+	    } else {
+	      snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
+	      fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
+	    }
+        update_image(q, MOVED);
+        break;
 
 	  /* Scale_down */
 
 	  case 'T':
 	  case 't':
-            maxpect = 0;
+        maxpect = 0;
 	    scale_down ^= 1;
-            snprintf(infotext, sizeof infotext, scale_down ?
-                "(Scale down: on)" : "(Scale down: off)");
+        snprintf(infotext, sizeof infotext, scale_down ?
+                 "(Scale down: on)" : "(Scale down: off)");
+	    zoom_factor = maxpect ? 0 : fixed_zoom_factor;  /* reset zoom */
 	    check_size(q, TRUE);
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* Resize + */
@@ -269,7 +415,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case '=':
 	    snprintf(infotext, sizeof infotext, "(Zoomed in)");
 	    zoom_in(q);
-	    update_z_image(q);
+	    update_image(q, ZOOMED);
 	    break;
 
 	  /* Resize - */
@@ -278,36 +424,51 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case '-':
 	    snprintf(infotext, sizeof infotext, "(Zoomed out)");
 	    zoom_out(q);
-	    update_z_image(q);
+	    update_image(q, ZOOMED);
 	    break;
 
 	  /* Reset Image / Original (best fit) size */
 
 	  case GDK_Return:
 	  case GDK_KP_Enter:
-	    snprintf(infotext, sizeof infotext, "(Original size)");
-            reload_image(q);
-            check_size(q, TRUE);
-	    update_image(q);
+	    snprintf(infotext, sizeof infotext, "(Reset size)");
+        reload_image(q);
+        zoom_factor = fixed_zoom_factor;  /* reset zoom */
+        check_size(q, TRUE);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* Next picture - or loop to the first */
 
 	  case ' ':
-	  case GDK_Page_Down:
-	  case GDK_KP_Page_Down:
 	    snprintf(infotext, sizeof infotext, "(Next picture)");
 	    next_image(1);
+	    qiv_load_image(q);
+	    break;
+
+	  /* 5 pictures forward - or loop to the beginning */
+
+	  case GDK_Page_Down:
+	  case GDK_KP_Page_Down:
+	    snprintf(infotext, sizeof infotext, "(5 pictures forward)");
+	    next_image(5);
 	    qiv_load_image(q);
 	    break;
 
 	  /* Previous picture - or loop back to the last */
 
 	  case GDK_BackSpace:
-	  case GDK_Page_Up:
-	  case GDK_KP_Page_Up:
 	    snprintf(infotext, sizeof infotext, "(Previous picture)");
 	    next_image(-1);
+	    qiv_load_image(q);
+	    break;
+
+	  /* 5 pictures backward - or loop back to the last */
+
+	  case GDK_Page_Up:
+	  case GDK_KP_Page_Up:
+	    snprintf(infotext, sizeof infotext, "(5 pictures backward)");
+	    next_image(-5);
 	    qiv_load_image(q);
 	    break;
 
@@ -316,7 +477,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'B':
 	    snprintf(infotext, sizeof infotext, "(More brightness)");
 	    q->mod.brightness += 8;
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* - brightness */
@@ -324,7 +485,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'b':
 	    snprintf(infotext, sizeof infotext, "(Less brightness)");
 	    q->mod.brightness -= 8;
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* + contrast */
@@ -332,7 +493,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'C':
 	    snprintf(infotext, sizeof infotext, "(More contrast)");
 	    q->mod.contrast += 8;
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* - contrast */
@@ -340,7 +501,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'c':
 	    snprintf(infotext, sizeof infotext, "(Less contrast)");
 	    q->mod.contrast -= 8;
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
           /* + gamma */
@@ -348,7 +509,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'G':
 	    snprintf(infotext, sizeof infotext, "(More gamma)");
 	    q->mod.gamma += 8;
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* - gamma */
@@ -356,7 +517,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'g':
 	    snprintf(infotext, sizeof infotext, "(Less gamma)");
 	    q->mod.gamma -= 8;
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* Delete image */
@@ -396,7 +557,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'h':
 	    gdk_imlib_flip_image_horizontal(q->im);
 	    snprintf(infotext, sizeof infotext, "(Flipped horizontal)");
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* Flip vertical */
@@ -405,7 +566,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	  case 'v':
 	    gdk_imlib_flip_image_vertical(q->im);
 	    snprintf(infotext, sizeof infotext, "(Flipped vertical)");
-	    update_image(q);
+	    update_image(q, REDRAW);
 	    break;
 
 	  /* Rotate right */
@@ -418,7 +579,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             swap(&q->orig_w, &q->orig_h);
             swap(&q->win_w, &q->win_h);
             check_size(q, FALSE);
-            update_image(q);
+            update_image(q, REDRAW);
 	    break;
 
 	  /* Rotate left */
@@ -431,7 +592,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             swap(&q->orig_w, &q->orig_h);
             swap(&q->win_w, &q->win_h);
             check_size(q, FALSE);
-            update_image(q);
+            update_image(q, REDRAW);
 	    break;
 
 	  /* Center image on background */
@@ -441,7 +602,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    to_root=1;
             set_desktop_image(q);
             snprintf(infotext, sizeof infotext, "(Centered image on background)");
-            update_image(q);
+            update_image(q, REDRAW);
 	    to_root=0;
 	    break;
 
@@ -452,7 +613,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    to_root_t=1;
             set_desktop_image(q);
             snprintf(infotext, sizeof infotext, "(Tiled image on background)");
-            update_image(q);
+            update_image(q, REDRAW);
 	    to_root_t=0;
 	    break;
 
@@ -461,7 +622,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 	    to_root_s=1;
 	    set_desktop_image(q);
             snprintf(infotext, sizeof infotext, "(Stretched image on background)");
-            update_image(q);
+            update_image(q, REDRAW);
 	    to_root_s=0;
 	    break;
 

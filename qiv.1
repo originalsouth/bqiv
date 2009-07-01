@@ -10,11 +10,11 @@
 .if n .sp .5
 .if t .sp .5
 ..
-.TH qiv 1 "05 Jul 2001" "qiv version 1.7" "X Tools"
+.TH qiv 1 "16 Jul 2002" "qiv version 1.8" "X Tools"
 .SH NAME
 qiv \- a fast gdk/imlib image viewer for X.
-Version: 1.7, released on 05.07.2001
-by Adam Kopacz / kLoGraFX
+Version: 1.8, released on 16.07.2002
+by Adam Kopacz / KLOGRAFX.DE Network
 http://www.klografx.net/qiv/ - adam.k@klografx.de
 .SH SYNOPSIS
 .B qiv
@@ -36,8 +36,11 @@ Open qiv window on display \fIdisp\fR.
 .B \-e, \-\-center
 Disable window centering.
 .TP
-.B \-w x, \-\-width x
-Dissable window with fixed width x.
+.B \-w x, \-\-fixed_width x
+Window with fixed width x.
+.TP
+.B \-W x, \-\-fixed_zoom x
+Window with fixed zoom factor (percentage x).
 .TP
 .B \-x, \-\-root \fIfile\fB
 Set \fIfile\fR as the current desktop background (centered) and exit.
@@ -67,7 +70,10 @@ Set gamma to \fIx\fR (-32..32).
 Disable filtering of images by extension.
 .TP
 .B \-i, \-\-no_statusbar
-Disable statusbar in fullscreen_mode.
+Disable statusbar.
+.TP
+.B \-I, \-\-statusbar
+Enable statusbar.
 .TP
 .B \-p, \-\-transparency
 Enable transparency for transparent images.
@@ -127,9 +133,11 @@ qiv \-\-bg_color 0000FF \-\-root image.png
 qiv \-\-bg_color blue \-\-root image.png
 .SH KEYS
 .EX
-space/PgDn/left mouse/wheel down        next picture
-backspace/PgUp/right mouse/wheel up     previous picture
-q/ESC/middle mouse                      exit
+space/left mouse/wheel down        next picture
+backspace/right mouse/wheel up     previous picture
+PgDn                               5 pictures forward
+PgUp                               5 pictures backward
+q/ESC/middle mouse                 exit
 
 0-9                Run 'qiv-command <key> <current-img>'
 ?                  show keys (only in fullscreen-mode)
@@ -137,10 +145,12 @@ d/D/del            move picture to .qiv-trash
 u                  undelete the previously trashed image
 +/=                zoom in (10%)
 -                  zoom out (10%)
+e                  center mode on/off
 f                  fullscreen mode on/off
 m                  scale to screen size on/off
 t                  scale down on/off
 s                  slide show on/off
+p                  transparency on/off
 r                  random order on/off
 b                  - brightness
 B                  + brightness
@@ -158,6 +168,7 @@ jfx<return>        jump forward x images
 jbx<return>        jump backward x images
 enter/return       reset zoom and color settings
 i                  statusbar on/off
+I                  iconify window
 x                  center image on background
 y                  tile image on background
 z                  stretch image on background
@@ -188,6 +199,24 @@ lines must be add to imwheel config file :
 "qiv"
 .br
 @Exclude
+.SH USER-DEFINED KEYBOARD ACTIONS
+Keys 0-9 will invoke 
+.B qiv-command
+with the key pressed as the first argument and the current image filename
+as the second argument.
+.B qiv-command
+is not distributed with qiv; it is to be supplied by the user.  Thus, this
+feature could be enabled by placing a simple shell script such as the following in
+the command search path (for example, in the user's ~/bin directory):
+.P
+.EX
+#!/bin/sh
+# Argument sanity checking eliminated for brevity
+case $1 in
+  0|1|2|3|4|5|6|7|8|9) mkdir -f dir$1; mv "$fname" dir$1 ;;
+  *) echo "unrecognized command"; exit ;;
+esac
+.EE
 .SH XSCREENSAVER SUPPORT
 To use qiv with xscreensaver, either type "make install-xscreensaver"
 or add the following to your ~/.Xresources:
@@ -199,10 +228,11 @@ xscreensaver.programs: \\
 .EE
 .SH AUTHORS
 .EX
-Adam Kopacz / kLoGraFX <adam.k@klografx.de>
+Adam Kopacz            <adam.k@klografx.de>
 Darren Smith           <darren.smith@juno.com>
 Pavel Andreev          <paxvel@vumsoft.cz>
 Decklin Foster         <decklin@red-bean.com>
+Andy Spiegl            <qiv.Andy@spiegl.de>
 .EE
 .SH OTHER
 .EX
