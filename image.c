@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include "qiv.h"
 #include "xmalloc.h"
+#include "qiv_icon.h"
 
 static void setup_win(qiv_image *);
 //static void setup_magnify(qiv_image *, qiv_mgl *); // [lc]
@@ -210,6 +211,9 @@ static void setup_win(qiv_image *q)
 {
   GdkWindowAttr attr;
   GdkPixmap *cursor_pixmap;
+  static GdkPixbuf *icon=NULL;;
+  static GdkPixmap *icon_pixmap;
+  static GdkBitmap *icon_bitmap;
 
   if (!fullscreen) {
     attr.window_type=GDK_WINDOW_TOPLEVEL;
@@ -221,6 +225,14 @@ static void setup_win(qiv_image *q)
     attr.height = q->win_h;
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
 
+    /* create the icon only once */
+    if(icon==NULL)
+    {
+      icon = gdk_pixbuf_new_from_inline (-1, qiv_icon, FALSE, NULL);
+      gdk_pixbuf_render_pixmap_and_mask(icon, &icon_pixmap, &icon_bitmap, 10);
+    }
+    gdk_window_set_icon(q->win, NULL, icon_pixmap, icon_bitmap);
+                                             
     if (center) {
       GdkGeometry geometry = {
         .min_width = q->win_w,
