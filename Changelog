@@ -38,6 +38,10 @@ Authors:
 =====
   ????
                     [tw] add 'Q' icon in qiv-window
+                    [tw] bring back scrollwheel functionality
+                         (Based upon a patch sent by "Johnny")
+                         Zoom in/out with left/right scroll and
+                         forward/back buttons 
 
 2.2.2
 =====

@@ -292,6 +292,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
     case GDK_BUTTON_RELEASE:
       exit_slideshow = TRUE;
       switch (ev->button.button) {
+        /* [tw]: I think buttons 4-7 don't work in GDK-2.0 as button events,
+         *       they are now GDK_SCROLL events */
         case 1:        /* left button pressed */
           if (q->drag) {
             int move_x, move_y;
@@ -310,6 +312,10 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           }
         case 5:        /* scroll wheel down emulated by button 5 */
           goto next_image;
+        case 8:
+          goto zoom_out;
+        case 9:
+          goto zoom_in;
         default:
           g_print("unmapped button event %d, exiting\n",ev->button.button);
         case 2:        /* middle button pressed */
@@ -321,6 +327,21 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           break;
       }
       break;
+
+    case GDK_SCROLL:
+      switch (ev->scroll.direction) {
+        case GDK_SCROLL_UP:
+	  goto next_image;
+        case GDK_SCROLL_DOWN:
+	  goto previous_image;
+        case GDK_SCROLL_LEFT:
+          goto zoom_out;
+        case GDK_SCROLL_RIGHT:
+          goto zoom_in;
+        default:
+	  break;
+      }
+    break;
 
     case GDK_KEY_PRESS:
 
@@ -701,6 +722,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KP_Add:
           case '+':
           case '=':
+          zoom_in:
             snprintf(infotext, sizeof infotext, "(Zoomed in)");
             zoom_in(q);
             update_image(q, ZOOMED);
@@ -710,6 +732,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
           case GDK_KP_Subtract:
           case '-':
+          zoom_out:
             snprintf(infotext, sizeof infotext, "(Zoomed out)");
             zoom_out(q);
             update_image(q, ZOOMED);
