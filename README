@@ -25,7 +25,7 @@ Installation (Linux/Solaris/FreeBSD):
 
  If you get errors like this: "/bin/sh: pkg-config: command not
  found" then your Imlib is too old.. this means you don't have the
- script pkg-config.  You should update Imlib (see "Links" below) or
+ program pkg-config.  You should install pkg-config or replace
  replace the `pkg-config` calls in the Makefile:
 
  `pkg-config --cflags gdk-2.0 imlib2` -->

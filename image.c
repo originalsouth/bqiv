@@ -99,6 +99,109 @@ enum Orientation orient( const char * path) {
 }
 #endif  //HAVE_EXIF
 
+Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
+{
+  GError    *error=NULL;
+  GdkPixbuf *pixbuf_ori;
+  GdkPixbuf *pixbuf;
+  char * argbdata;
+  guchar * pixels;
+  guchar * pixels_ori;
+  int i,j,k,rs;
+  int pb_w, pb_h;
+  Imlib_Image * im=NULL;
+
+  pixbuf_ori = gdk_pixbuf_new_from_file(image_name, &error);
+  if (error != NULL)
+  {
+    /* Report error to user, and free error */
+    fprintf(stderr, "Unable to read file: %s\n", error->message);
+    g_error_free (error);
+  }
+  else
+  {
+
+    *has_alpha =  ( gdk_pixbuf_get_n_channels(pixbuf_ori) == 4) ? 1 : 0;
+
+    pixels_ori = gdk_pixbuf_get_pixels(pixbuf_ori);
+    /* create checkboard if image has transparency */
+    if(*has_alpha)
+    {
+      pixbuf = gdk_pixbuf_composite_color_simple(pixbuf_ori, gdk_pixbuf_get_width(pixbuf_ori),
+                   gdk_pixbuf_get_height(pixbuf_ori), GDK_INTERP_NEAREST, 255, 0x08, 0x00666666, 0x00aaaaaa);
+
+      pixels = gdk_pixbuf_get_pixels(pixbuf);
+    }
+    else
+    {
+      pixbuf = pixbuf_ori;
+      pixels = pixels_ori;
+    }
+
+#ifdef DEBUG
+    printf("channels %i\n", gdk_pixbuf_get_n_channels(pixbuf));
+    printf("rowstride %i\n", gdk_pixbuf_get_rowstride(pixbuf));
+#endif
+
+    pb_w = gdk_pixbuf_get_width(pixbuf);
+    pb_h = gdk_pixbuf_get_height(pixbuf);
+
+    argbdata=malloc(4 * pb_w * pb_h);
+
+    /* create imlib2 compatible data */
+    if(*has_alpha)
+    {
+      for(i=0; i< pb_w*pb_h*4; i=i+4)
+      {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+        argbdata[i+0]=pixels[i+2]; // B
+        argbdata[i+1]=pixels[i+1]; // G
+        argbdata[i+2]=pixels[i];   // R
+        // keep old alpha values
+        argbdata[i+3]=pixels_ori[i+3]; // Alpha
+#else
+        // BIG_ENDIAN
+        argbdata[i+3]=pixels[i+2]; // B
+        argbdata[i+2]=pixels[i+1]; // G
+        argbdata[i+1]=pixels[i];   // R
+        // keep old alpha values
+        argbdata[i+0]=pixels_ori[i+3]; // Alpha
+#endif
+      }
+    }
+    else
+    {
+      rs = gdk_pixbuf_get_rowstride (pixbuf);
+      k=0;
+      for(i=0; i < pb_h; i++)
+      {
+        for(j=0; j< pb_w*3; j+=3)
+        {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+          argbdata[k++]=pixels[i*rs+j+2]; // B
+          argbdata[k++]=pixels[i*rs+j+1]; // G
+          argbdata[k++]=pixels[i*rs+j];   // R
+          argbdata[k++]=0;
+#else
+          argbdata[k++]=0;
+          argbdata[k++]=pixels[i*rs+j];   // R
+          argbdata[k++]=pixels[i*rs+j+1]; // G
+          argbdata[k++]=pixels[i*rs+j+2]; // B
+#endif
+        }
+      }
+    }
+    im = imlib_create_image_using_copied_data(pb_w, pb_h, (DATA32*)argbdata);
+    free(argbdata);
+    if(*has_alpha)
+    {
+      g_object_unref(pixbuf);
+    }
+    g_object_unref(pixbuf_ori);
+  }
+  return im;
+}
+
 /*
  *    Load & display image
  */
@@ -107,6 +210,8 @@ void qiv_load_image(qiv_image *q)
 {
   struct stat statbuf;
   const char * image_name = image_names[ image_idx];
+  Imlib_Image * im=NULL;
+  int has_alpha=0;
 
   gettimeofday(&load_before, 0);
 
@@ -115,7 +220,16 @@ void qiv_load_image(qiv_image *q)
 
   stat(image_name, &statbuf);
   current_mtime = statbuf.st_mtime;
-  Imlib_Image * im = imlib_load_image( (char*)image_name );
+
+#ifdef DEBUG
+  g_print("loading %s\n",image_name);
+#endif
+
+  /* use gdk_pixbuf for loading
+  im = imlib_load_image( (char*)image_name );
+  */
+
+  im = im_from_pixbuf_loader( (char*)image_name, &has_alpha);
 
   if (!im) { /* error */
     q->error = 1;
@@ -123,6 +237,9 @@ void qiv_load_image(qiv_image *q)
     q->orig_h = 300;
   } else { /* Retrieve image properties */
     imlib_context_set_image(im);
+    if(has_alpha) {
+      imlib_image_set_has_alpha(has_alpha);
+    }
     q->error = 0;
     q->orig_w = imlib_image_get_width();
     q->orig_h = imlib_image_get_height();

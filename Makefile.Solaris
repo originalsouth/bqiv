@@ -23,7 +23,7 @@ FILTER = 1
 # skipped.) It should reflect whatever is compiled into imlib.
 # The latest version of imlib has removed imagemagick fallback support,
 # so some extensions (XBM TGA) have been removed.
-EXTNS = GIF TIFF XPM PNG PPM PNM PGM PCX BMP EIM JPEG
+EXTNS = GIF TIFF XPM PNG PPM PNM PGM PCX BMP EIM JPEG SVG WMF ICO
 
 # Comment this line out if your system doesn't have getopt_long().
 #GETOPT_LONG = -DHAVE_GETOPT_LONG

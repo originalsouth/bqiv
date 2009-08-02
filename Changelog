@@ -36,12 +36,16 @@ Authors:
 
 2.2.3pre
 =====
-  ????
+  ??.??.2009
                     [tw] add 'Q' icon in qiv-window
                     [tw] bring back scrollwheel functionality
                          (Based upon a patch sent by "Johnny")
                          Zoom in/out with left/right scroll and
                          forward/back buttons 
+                    [tw] change loading of images from imlib2_loader to
+                         pixbuf_loader. Adds support for additional file
+                         types, e.g. pcx, ico, svg, wmf and better handling
+                         of transparency.
 
 2.2.2
 =====

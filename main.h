@@ -165,6 +165,15 @@ const char *image_extensions[] = {
 #ifdef EXTN_TGA
     ".tga",
 #endif
+#ifdef EXTN_ICO
+    ".ico",
+#endif
+#ifdef EXTN_WMF
+    ".wmf",
+#endif
+#ifdef EXTN_SVG
+    ".svg",
+#endif
     NULL
 };
 
@@ -194,6 +203,15 @@ const char *image_magic[] = {
 #endif
 #ifdef EXTN_TGA
   "Targa image data",
+#endif
+#ifdef EXTN_PCX
+  "PCX ver. 3.0 image",
+#endif
+#ifdef EXTN_SVG
+  "SVG Scalable Vector",
+#endif
+#ifdef EXTN_ICO
+  "MS Windows icon resource",
 #endif
  NULL
 };
