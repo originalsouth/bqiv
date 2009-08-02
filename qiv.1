@@ -183,34 +183,34 @@ PgDn                               5 pictures forward
 PgUp                               5 pictures backward
 q/ESC/middle mouse                 exit
 
-0-9                run 'qiv-command <key> <current-img>'
-^\fI...\fR<return>       run 'qiv-command ^\fI...\fR <current-img>' where \fI...\fR can be any string
-?/F1               show keys
-F11/F12            in/decrease slideshow delay (1 second)
-a/A                copy picture to .qiv-select
-d/D/del            move picture to .qiv-trash (-R disables this feature)
-u                  undelete the previously trashed image
-+/=                zoom in (10%)
--                  zoom out (10%)
-e                  center mode on/off
-f                  fullscreen mode on/off
-m                  scale to screen size on/off
-t                  scale down on/off
-X                  cycle through xinerama screens
-s                  slide show on/off
-p                  transparency on/off
-r                  random order on/off
-b                  - brightness
-B                  + brightness
-c                  - contrast
-C                  + contrast
-g                  - gamma
-G                  + gamma
-o                  reset brightness, contrast, gamma
-h                  flip horizontally
-v                  flip vertically
-k                  rotate right
-l                  rotate left
+0-9                 run 'qiv-command <key> <current-img>'
+^\fI...\fR<return>        run 'qiv-command ^\fI...\fR <current-img>' where \fI...\fR can be any string
+?/F1                show keys
+F11/F12             in/decrease slideshow delay (1 second)
+a/A                 copy picture to .qiv-select
+d/D/del             move picture to .qiv-trash (-R disables this feature)
+u                   undelete the previously trashed image
++/=/wheel r/btn fwd zoom in (10%)
+-/wheel l/btn back  zoom out (10%)
+e                   center mode on/off
+f                   fullscreen mode on/off
+m                   scale to screen size on/off
+t                   scale down on/off
+X                   cycle through xinerama screens
+s                   slide show on/off
+p                   transparency on/off
+r                   random order on/off
+b                   - brightness
+B                   + brightness
+c                   - contrast
+C                   + contrast
+g                   - gamma
+G                   + gamma
+o                   reset brightness, contrast, gamma
+h                   flip horizontally
+v                   flip vertically
+k                   rotate right
+l                   rotate left
 jt\fIx\fR<return>        jump to image number \fIx\fR
 jf\fIx\fR<return>        jump forward \fIx\fR images
 jb\fIx\fR<return>        jump backward \fIx\fR images
@@ -234,6 +234,8 @@ Button 2                            quit
 Button 3                            previous picture
 Wheel Up                            next picture
 Wheel Dn                            previous picture
+Wheel Lt/Button back                zoom out (10%)
+Wheel Rt/Button forward             zoom out (10%)
 .EE
 .SH DELETING
 qiv doesn't actually delete files. It creates a directory named ".qiv-trash"
