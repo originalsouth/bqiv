@@ -36,10 +36,6 @@ COMPRESS_PROG = gzip -9f
 # installed (for centering on dual-screen)
 GTD_XINERAMA = -DGTD_XINERAMA
 
-# Comment this line out if you do not want to use libexif to
-# autorotate images
-EXIF = -DHAVE_EXIF
-
 # Comment this line out if you do not want to use libmagic to
 # identify if a file is an image
 MAGIC = -DHAVE_MAGIC
@@ -50,8 +46,8 @@ MAGIC = -DHAVE_MAGIC
 ######################################################################
 
 CC        = gcc
-#CFLAGS    = -O -g -Wall
-CFLAGS    = -O2 -Wall \
+CFLAGS    = -O -g -Wall
+#CFLAGS    = -O2 -Wall \
 	    -fcaller-saves -ffast-math -fno-strength-reduce \
 	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 #CFLAGS    = -O2 -Wall -fomit-frame-pointer -finline-functions \
@@ -78,7 +74,6 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DCENTER=$(CENTER) \
             -DFILTER=$(FILTER) \
             -DCURSOR=$(CURSOR) \
-            $(EXIF) \
             $(MAGIC) \
             $(GTD_XINERAMA)
 
@@ -93,10 +88,6 @@ endif
 
 ifdef MAGIC
 LIBS    += -lmagic
-endif
-
-ifdef EXIF
-LIBS     += -lexif
 endif
 
 PROGRAM_G = qiv-g

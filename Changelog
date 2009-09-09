@@ -46,6 +46,8 @@ Authors:
                          pixbuf_loader. Adds support for additional file
                          types, e.g. pcx, ico, svg, wmf and better handling
                          of transparency.
+                    [tw] use gdk_pixbuf to autorotate with EXIF tags instead
+                         of libexif. Note: needs at least GDK 2.12
 
 2.2.2
 =====

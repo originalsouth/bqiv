@@ -35,7 +35,9 @@ static struct option long_options[] =
     {"gamma",            1, NULL, 'g'},
     {"help",             0, NULL, 'h'},
     {"no_statusbar",     0, NULL, 'i'},
+#if GDK_PIXBUF_MINOR >= 12
     {"autorotate",       0, NULL, 'l'},
+#endif
     {"maxpect",          0, NULL, 'm'},
     {"no_filter",        0, NULL, 'n'},
     {"bg_color",         1, NULL, 'o'},
@@ -231,8 +233,10 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'h': show_help(argv[0], 0); break;
             case 'i': force_statusbar=0;
                 break;
+#if GDK_PIXBUF_MINOR >= 12
             case 'l': autorotate=1;
                 break;
+#endif
             case 'm': maxpect=1;
                 break;
             case 'n': filter=0;

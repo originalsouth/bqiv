@@ -25,80 +25,6 @@ static struct timeval load_before, load_after;
 static double load_elapsed;
 static GdkCursor *cursor, *visible_cursor, *invisible_cursor;
 
-#ifdef HAVE_EXIF
-//////////// these taken from gwenview/src/imageutils/ //////////////////
-//
-/* Explanation extracted from http://sylvana.net/jpegcrop/exif_orientation.html
-
-   For convenience, here is what the letter F would look like if it were tagged
-correctly and displayed by a program that ignores the orientation tag (thus
-showing the stored image):
-
-  1        2       3      4         5            6           7          8
-
-888888  888888      88  88      8888888888  88                  88  8888888888
-88          88      88  88      88  88      88  88          88  88      88  88
-8888      8888    8888  8888    88          8888888888  8888888888          88
-88          88      88  88
-88          88  888888  888888
-
-NORMAL  HFLIP   ROT_180 VFLIP   TRANSPOSE   ROT_90      TRANSVERSE  ROT_270
-*/
-
-enum Orientation {
-    NOT_AVAILABLE=0,
-    NORMAL  =1,
-    HFLIP   =2,
-    ROT_180 =3,
-    VFLIP   =4,
-    TRANSPOSE   =5,
-    ROT_90  =6,
-    TRANSVERSE  =7,
-    ROT_270 =8
-};
-
-// Exif
-#include "libexif/exif-data.h"
-
-#define flipH(q)    imlib_image_flip_horizontal();
-#define flipV(q)    imlib_image_flip_vertical();
-#define transpose(q) imlib_image_flip_diagonal();
-#define rot90(q)    imlib_image_orientate(1);
-#define rot180(q)   imlib_image_orientate(2);
-#define rot270(q)   imlib_image_orientate(3);
-#define swapWH(q)  swap(&q->orig_w, &q->orig_h); swap(&q->win_w, &q->win_h);
-void transform( qiv_image *q, enum Orientation orientation) {
-    switch (orientation) {
-     default: return;
-     case HFLIP:     flipH(q); snprintf(infotext, sizeof infotext, "(Flipped horizontally)"); break;
-     case VFLIP:     flipV(q); snprintf(infotext, sizeof infotext, "(Flipped vertically)"); break;
-     case ROT_180:   rot180(q); snprintf(infotext, sizeof infotext, "(Turned upside down)"); break;
-      case TRANSPOSE: transpose(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Transposed)"); break;
-     case ROT_90:    rot90(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
-     case TRANSVERSE: transpose(q); rot180(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Transversed)"); break;
-     case ROT_270:   rot270(q); swapWH(q); snprintf(infotext, sizeof infotext, "(Rotated left)"); break;
-    }
-}
-
-//#include "libexif/exif-tag.h"   //EXIF_TAG_ORIENTATION
-enum Orientation orient( const char * path) {
-    enum Orientation orientation = NOT_AVAILABLE;
-
-    ExifData * mExifData = exif_data_new_from_file( path);
-    if (mExifData) {
-        ExifEntry * mOrientationEntry = exif_content_get_entry( mExifData->ifd[ EXIF_IFD_0], EXIF_TAG_ORIENTATION);
-        if (mOrientationEntry) {
-            ExifByteOrder mByteOrder = exif_data_get_byte_order( mExifData);
-            short value=exif_get_short( mOrientationEntry->data, mByteOrder);
-            if (value>=NORMAL && value<=ROT_270)
-                orientation = value;    //Orientation( value);
-        }
-        exif_data_unref( mExifData );
-    }
-    return orientation;
-}
-#endif  //HAVE_EXIF
-
 Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
 {
   GError    *error=NULL;
@@ -110,6 +36,7 @@ Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
   int i,j,k,rs;
   int pb_w, pb_h;
   Imlib_Image * im=NULL;
+  const gchar *gdk_orientation = NULL;
 
   pixbuf_ori = gdk_pixbuf_new_from_file(image_name, &error);
   if (error != NULL)
@@ -120,6 +47,23 @@ Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
   }
   else
   {
+#if GDK_PIXBUF_MINOR >= 12
+  if(autorotate)
+    {
+      gdk_orientation = gdk_pixbuf_get_option(pixbuf_ori, "orientation");
+      if(gdk_orientation)
+      {
+#ifdef DEBUG
+        printf("orientation %s\n", gdk_orientation);
+#endif
+        pixbuf = gdk_pixbuf_apply_embedded_orientation (pixbuf_ori);
+        g_object_unref(pixbuf_ori);
+        pixbuf_ori = pixbuf;
+      }
+    }
+#else
+#warning autoration needs at least gdk version 2.12
+#endif
 
     *has_alpha =  ( gdk_pixbuf_get_n_channels(pixbuf_ori) == 4) ? 1 : 0;
 
@@ -243,11 +187,6 @@ void qiv_load_image(qiv_image *q)
     q->error = 0;
     q->orig_w = imlib_image_get_width();
     q->orig_h = imlib_image_get_height();
-#ifdef HAVE_EXIF
-    if (autorotate) {
-      transform( q, orient( image_name));
-    }
-#endif
   }
 
   check_size(q, TRUE);

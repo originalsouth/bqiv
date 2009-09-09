@@ -36,10 +36,6 @@ COMPRESS_PROG = gzip -9f
 # installed (for centering on dual-screen)
 #GTD_XINERAMA = -DGTD_XINERAMA
 
-# Comment this line out if you do not want to use libexif to
-# autorotate images
-EXIF = -DHAVE_EXIF
-
 # Comment this line out if you do not want to use libmagic to
 # identify if a file is an image
 MAGIC = -DHAVE_MAGIC
@@ -77,7 +73,6 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DCENTER=$(CENTER) \
             -DFILTER=$(FILTER) \
             -DCURSOR=$(CURSOR) \
-            $(EXIF) \
             $(MAGIC) \
             $(GTD_XINERAMA)
 
@@ -96,10 +91,6 @@ INCLUDES += -I$(MAGIC_PREFIX)/include
 LIBS     += -L$(MAGIC_PREFIX)/lib
 endif
 LIBS     +=  -lmagic -lz
-endif
-
-ifdef EXIF
-LIBS     += -lexif
 endif
 
 PROGRAM_G = qiv-g

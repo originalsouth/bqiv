@@ -497,8 +497,12 @@ void show_help(char *name, int exit_status)
           "    --watch, -T            Reload the image if it has changed on disk\n"
           "    --recursivedir, -u     Recursively include all files\n"
           "    --select_dir, -A x     Store the selected files in dir x (default is .qiv-select)\n"
+#if GDK_PIXBUF_MINOR >= 12
           "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
+#endif
+#ifdef GTD_XINERAMA
           "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"
+#endif
           "    --version, -v          Print version information and exit\n"
           "\n"
           "Slideshow options:\n"
