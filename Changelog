@@ -48,6 +48,8 @@ Authors:
                          of transparency.
                     [tw] use gdk_pixbuf to autorotate with EXIF tags instead
                          of libexif. Note: needs at least GDK 2.12
+                    [tw] Resetting the image (pressing return) no longer 
+                         destroys "transparency checkboard"
 
 2.2.2
 =====

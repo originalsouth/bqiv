@@ -508,9 +508,13 @@ void zoom_maxpect(qiv_image *q)
 
 void reload_image(qiv_image *q)
 {
+  Imlib_Image *im;
+  int has_alpha = 0;
+
   imlib_image_set_changes_on_disk();
 
-  Imlib_Image *im = imlib_load_image(image_names[image_idx]);
+  im = im_from_pixbuf_loader(image_names[image_idx], &has_alpha);
+
   if (!im && watch_file)
     return;
 
@@ -529,6 +533,9 @@ void reload_image(qiv_image *q)
   } else { /* Retrieve image properties */
     q->error = 0;
     imlib_context_set_image(im);
+    if(has_alpha) {
+      imlib_image_set_has_alpha(has_alpha);
+    }
     q->orig_w = imlib_image_get_width();
     q->orig_h = imlib_image_get_height();
   }
