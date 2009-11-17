@@ -46,8 +46,8 @@ MAGIC = -DHAVE_MAGIC
 ######################################################################
 
 CC        = gcc
-CFLAGS    = -O -g -Wall
-#CFLAGS    = -O2 -Wall \
+#CFLAGS    = -O -g -Wall
+CFLAGS    = -O2 -Wall \
 	    -fcaller-saves -ffast-math -fno-strength-reduce \
 	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 #CFLAGS    = -O2 -Wall -fomit-frame-pointer -finline-functions \
@@ -55,7 +55,7 @@ CFLAGS    = -O -g -Wall
 #	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 
 INCLUDES  := $(shell pkg-config --cflags gdk-2.0 imlib2)
-LIBS      := $(shell pkg-config --libs gdk-2.0 imlib2)
+LIBS      := $(shell pkg-config --libs gdk-2.0 imlib2) -lX11
 
 # [as] thinks that this is not portable enough:
 # [lc] I use a virtual screen of 1600x1200, and the resolution is 1024x768,

@@ -50,6 +50,8 @@ Authors:
                          of libexif. Note: needs at least GDK 2.12
                     [tw] Resetting the image (pressing return) no longer 
                          destroys "transparency checkboard"
+                    [tw] Fix compilation issues with unusual linker defaults.
+                         Update solaris Makefile.
 
 2.2.2
 =====
