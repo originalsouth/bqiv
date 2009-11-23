@@ -500,6 +500,7 @@ void show_help(char *name, int exit_status)
 #if GDK_PIXBUF_MINOR >= 12
           "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
 #endif
+          "    --rotate, -q x         Rotate 90(x=1),180(x=2),270(x=3) degrees clockwise\n"
 #ifdef GTD_XINERAMA
           "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"
 #endif

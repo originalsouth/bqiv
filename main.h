@@ -57,6 +57,7 @@ int magnify = 0; /* [lc] */
 int user_screen = -1; /* preferred (by user) Xinerama screen */
 int browse = 0; /* scan directory of file for browsing */
 int autorotate = 0; /* autorotate JPEGs according to EXIF tag */
+int rotation = 0; /* rotation x degrees clockwise, 1=90degrees 2=180degrees 3=270degrees */
 
 #ifdef GTD_XINERAMA
 int number_xinerama_screens = 0;

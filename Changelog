@@ -34,9 +34,9 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
-2.2.3pre
+2.2.3
 =====
-  ??.??.2009
+  ??.11.2009
                     [tw] add 'Q' icon in qiv-window
                     [tw] bring back scrollwheel functionality
                          (Based upon a patch sent by "Johnny")
@@ -52,6 +52,8 @@ Authors:
                          destroys "transparency checkboard"
                     [tw] Fix compilation issues with unusual linker defaults.
                          Update solaris Makefile.
+                    [tw] new option to start with default rotation
+                         (patch submitted by Atsushi Kamoshida)
 
 2.2.2
 =====

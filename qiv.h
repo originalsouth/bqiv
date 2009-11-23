@@ -145,6 +145,7 @@ extern int     browse;
 extern int     magnify;     // [lc]
 extern qiv_mgl magnify_img; // [lc]
 extern int     autorotate;
+extern int     rotation;
 
 extern const char   *helpstrs[], **helpkeys, *image_extensions[];
 

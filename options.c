@@ -23,7 +23,7 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-static char *short_options = "ab:c:d:efg:hilmno:prstuvw:xyzA:BDF:GIMNPRSTW:X:";
+static char *short_options = "ab:c:d:efg:hilmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:";
 static struct option long_options[] =
 {
     {"do_grab",          0, NULL, 'a'},
@@ -42,6 +42,7 @@ static struct option long_options[] =
     {"no_filter",        0, NULL, 'n'},
     {"bg_color",         1, NULL, 'o'},
     {"transparency",     0, NULL, 'p'},
+    {"rotation",         1, NULL, 'q'},
     {"random",           0, NULL, 'r'},
     {"slide",            0, NULL, 's'},
     {"scale_down",       0, NULL, 't'},
@@ -244,6 +245,10 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'o': image_bg_spec = optarg;
                 break;
             case 'p': transparency=1;
+                break;
+            case 'q': rotation=checked_atoi(optarg);
+                if ((rotation<0) || (rotation>3))
+                    usage(argv[0],1);
                 break;
             case 'r': random_order=1;
                 break;

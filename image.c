@@ -189,7 +189,19 @@ void qiv_load_image(qiv_image *q)
     q->orig_h = imlib_image_get_height();
   }
 
+  if (rotation>0) {
+    imlib_image_orientate(rotation);
+    if (rotation!=2) {
+      swap(&q->orig_w, &q->orig_h);
+      swap(&q->win_w, &q->win_h);
+    }
+  }
+
   check_size(q, TRUE);
+
+  if (rotation>0) {
+    correct_image_position(q);
+  }
 
   if (first) {
     setup_win(q);
