@@ -26,7 +26,7 @@ Installation (Linux/Solaris/FreeBSD):
  If you get errors like this: "/bin/sh: pkg-config: command not
  found" then your Imlib is too old.. this means you don't have the
  program pkg-config.  You should install pkg-config or replace
- replace the `pkg-config` calls in the Makefile:
+ the `pkg-config` calls in the Makefile:
 
  `pkg-config --cflags gdk-2.0 imlib2` -->
   -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/pango-1.0 \
