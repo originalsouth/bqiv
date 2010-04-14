@@ -34,6 +34,12 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
+2.2.4pre
+=====
+  14.04.2010
+                    [tw] only center image upon reload when center
+                         option is active
+
 2.2.3
 =====
   10.01.2010

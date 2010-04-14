@@ -555,7 +555,7 @@ void reload_image(qiv_image *q)
   q->win_w = (gint)(q->orig_w * (1 + zoom_factor * 0.1));
   q->win_h = (gint)(q->orig_h * (1 + zoom_factor * 0.1));
   reset_mod(q);
-  center_image(q);
+  if (center) center_image(q);
 }
 
 void check_size(qiv_image *q, gint reset)
