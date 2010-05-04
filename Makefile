@@ -127,13 +127,21 @@ distclean : clean
 
 install: $(PROGRAM)
 	@echo "Installing QIV..."
+	@if [ ! -e $(PREFIX)/bin ]; then \
+	  install -d -m 0755 $(PREFIX)/bin; \
+	  echo install -d -m 0755 $(PREFIX)/bin; \
+        fi
 	install -s -m 0755 $(PROGRAM) $(PREFIX)/bin
+	@if [ ! -e $(PREFIX)/man/man1 ]; then \
+	  echo install -d -m 0755 $(PREFIX)/man/man1; \
+	  install -d -m 0755 $(PREFIX)/man/man1; \
+	fi
 	install -m 0644 $(PROGRAM).1 $(PREFIX)/man/man1
 	$(COMPRESS_PROG) $(PREFIX)/man/man1/$(PROGRAM).1
 	@if ./qiv -f ./intro.jpg ; \
 	then echo "-- Test Passed --" ; \
 	else echo "-- Test Failed --" ; \
 	fi
-	@echo -ne "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n"
+	@echo "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n"
 
 # the end... ;-)
