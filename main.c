@@ -59,14 +59,14 @@ int main(int argc, char **argv)
   gettimeofday(&tv,NULL);
   srand(tv.tv_usec*1000000+tv.tv_sec);
 
+  /* Initialize GDK */
+
+  gdk_init(&argc,&argv);
+
   /* Set up our options, image list, etc */
   strncpy(select_dir, SELECT_DIR, sizeof select_dir);
   reset_mod(&main_img);
   options_read(argc, argv, &main_img);
-
-  /* Initialize GDK */
-
-  gdk_init(&argc,&argv);
 
   /* Load things from GDK/Imlib */
 
