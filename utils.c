@@ -590,20 +590,22 @@ int rreaddir(const char *dirname, int recursive)
         strcmp(entry->d_name,TRASH_DIR) == 0)
       continue;
     snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
-    if (stat(name, &sb) >= 0 && S_ISDIR(sb.st_mode)) {
-      if (!recursive)
-        continue;
-      rreaddir(name,1);
-    }
-    else {
-      if (images >= max_image_cnt) {
-        max_image_cnt += 8192;
-        if (!image_names)
-          image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
-        else
-          image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
+    if (lstat(name, &sb) >= 0) {
+      if (S_ISDIR(sb.st_mode)) {
+        if (!recursive)
+          continue;
+        rreaddir(name,1);
       }
-      image_names[images++] = strdup(name);
+      else {
+        if (images >= max_image_cnt) {
+          max_image_cnt += 8192;
+          if (!image_names)
+            image_names = (char**)xmalloc(max_image_cnt * sizeof(char*));
+          else
+            image_names = (char**)xrealloc(image_names,max_image_cnt*sizeof(char*));
+        }
+        image_names[images++] = strdup(name);
+      }
     }
   }
   closedir(d);

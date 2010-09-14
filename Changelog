@@ -36,12 +36,14 @@ Authors:
 
 2.2.4pre
 =====
-  26.06.2010
+  14.09.2010
                     [tw] only center image upon reload when center
                          option is active
                     [tw] Do not break install if using a non existing
                          target location (clemens fischer)
                     [tw] make gdk options work again (e.g. --display)
+                    [tw] Do not follow symlinked directories, when
+                         using recursivedir option (Goswin v. Brederlow)
 
 2.2.3
 =====
