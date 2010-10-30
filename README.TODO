@@ -38,15 +38,6 @@
  jf[n] shortcuts.  But for the most common case, I think it would be a
  very nice performance optimization.
 
-- option to exit slideshow after showing all images
- Such an option would allow the following:
-
- | while true ; do
- |  qiv -s --exit-on-endofslideshow -u mypictures/
- | done
-
- This wrapper would recognize added images.
-
 - use nifty new features of imlib2 (compared to imlib1)
  I am sure there are lots!  :-)
 

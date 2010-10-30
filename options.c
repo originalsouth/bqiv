@@ -23,7 +23,7 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-static char *short_options = "ab:c:d:efg:hilmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:";
+static char *short_options = "ab:c:Cd:efg:hilmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:";
 static struct option long_options[] =
 {
     {"do_grab",          0, NULL, 'a'},
@@ -54,6 +54,7 @@ static struct option long_options[] =
     {"root_s",           0, NULL, 'z'},
     {"select_dir",       1, NULL, 'A'},
     {"browse",           0, NULL, 'B'},
+    {"cycle",            0, NULL, 'C'},
     {"no_sort",          0, NULL, 'D'},
     {"file",             1, NULL, 'F'},
     {"disable_grab",     0, NULL, 'G'},
@@ -272,6 +273,8 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'A': snprintf(select_dir, sizeof select_dir, "%s", optarg);
                 break;
             case 'B': browse=1;
+                break;
+            case 'C': cycle=1;
                 break;
             case 'D': need_sort = 0;
                 break;

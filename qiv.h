@@ -116,6 +116,7 @@ extern PangoFontMetrics *metrics;
 
 extern int     filter;
 extern gint    center;
+extern gint    cycle;
 extern gint    default_brightness;
 extern gint    default_contrast;
 extern gint    default_gamma;

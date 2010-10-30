@@ -429,8 +429,9 @@ void next_image(int direction)
     image_idx = (image_idx + direction) % images;
     if (image_idx < 0)
       image_idx += images;
+    else if (cycle && image_idx == 0)
+      qiv_exit(0);
   }
-
 }
 
 int checked_atoi (const char *s)
@@ -472,6 +473,7 @@ void show_help(char *name, int exit_status)
           "    --browse, -B           Scan directory of file for browsing\n"
           "    --center, -e           Disable window centering\n"
           "    --contrast, -c x       Set contrast to x (-32..32)\n"
+          "    --cycle, -C            do not cycle after last image\n"
           "    --display x            Open qiv window on display x\n"
           "    --do_grab, -a          Grab the pointer in windowed mode\n"
           "    --disable_grab, -G     Disable pointer/kbd grab in fullscreen mode\n"

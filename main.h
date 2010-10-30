@@ -28,6 +28,7 @@ PangoFontDescription *fontdesc;
 
 int	filter = FILTER;
 gint	center = CENTER;
+gint	cycle = 0; /* TRUE if cycle between images */
 gint	default_brightness = DEFAULT_BRIGHTNESS;
 gint	default_contrast = DEFAULT_CONTRAST;
 gint	default_gamma = DEFAULT_GAMMA;
