@@ -46,6 +46,8 @@ Authors:
                          using recursivedir option (Goswin v. Brederlow)
                     [tw] Add option to change cycle behavior after last
                          picture. (patch by Nicolas Pouillard)
+                    [tw] Images were displayed twice when using --browse
+                         option. (patch by Adam Lee)
 
 2.2.3
 =====
