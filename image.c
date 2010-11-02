@@ -215,10 +215,7 @@ void qiv_load_image(qiv_image *q)
       qiv_exit(1);
     }
     set_desktop_image(q);
-    if(slide)
-      return;
-    else
-      qiv_exit(0);
+    qiv_exit(0);
   }
 
   gdk_window_set_background(q->win, im ? &image_bg : &error_bg);
@@ -323,7 +320,7 @@ static void setup_win(qiv_image *q)
         GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
       gdk_window_resize(q->win, q->win_w, q->win_h);
     }
-
+   if (!(to_root || to_root_t || to_root_s))
     gdk_window_show(q->win);
 
   } else { /* fullscreen */
@@ -336,7 +333,8 @@ static void setup_win(qiv_image *q)
     attr.height=screen_y;
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
     gdk_window_set_cursor(q->win, cursor);
-    gdk_window_show(q->win);
+    if (!(to_root || to_root_t || to_root_s))
+      gdk_window_show(q->win);
   }
 
   q->bg_gc = gdk_gc_new(q->win);

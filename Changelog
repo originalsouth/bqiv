@@ -36,7 +36,7 @@ Authors:
 
 2.2.4pre
 =====
-  30.10.2010
+  02.11.2010
                     [tw] only center image upon reload when center
                          option is active
                     [tw] Do not break install if using a non existing
@@ -48,6 +48,7 @@ Authors:
                          picture. (patch by Nicolas Pouillard)
                     [tw] Images were displayed twice when using --browse
                          option. (patch by Adam Lee)
+                    [tw] Fix inconsistent behavior when using -x/-y/-z option.
 
 2.2.3
 =====
