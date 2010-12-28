@@ -36,6 +36,9 @@ Authors:
 
 2.2.4pre
 =====
+  28.12.2010
+                    [as] qiv-command: more examples from Clint Pachl <pachl@ecentryx.com>
+
   02.11.2010
                     [tw] only center image upon reload when center
                          option is active
@@ -57,14 +60,14 @@ Authors:
                     [tw] bring back scrollwheel functionality
                          (Based upon a patch sent by "Johnny")
                          Zoom in/out with left/right scroll and
-                         forward/back buttons 
+                         forward/back buttons
                     [tw] change loading of images from imlib2_loader to
                          pixbuf_loader. Adds support for additional file
                          types, e.g. pcx, ico, svg, wmf and better handling
                          of transparency.
                     [tw] use gdk_pixbuf to autorotate with EXIF tags instead
                          of libexif. Note: needs at least GDK 2.12
-                    [tw] Resetting the image (pressing return) no longer 
+                    [tw] Resetting the image (pressing return) no longer
                          destroys "transparency checkboard"
                     [tw] Fix compilation issues with unusual linker defaults.
                          Update solaris Makefile.
