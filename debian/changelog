@@ -1,3 +1,9 @@
+qiv (2.2.4) unstable; urgency=low
+
+  * new upstream version; see Changelog for details
+
+ -- Andy Spiegl <debian.andy@spiegl.de>  Mon, 02 May 2011 16:26:51 +0200
+
 qiv (2.2.4pre) unstable; urgency=low
 
   * new upstream version; see Changelog for details
