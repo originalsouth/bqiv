@@ -83,7 +83,7 @@ Misc:
   Solaris (SunOS) and FreeBSD.
   As of version 2.2 imlib2 and gdk-2.0 are required, as imlib1
   and gtk-1.2 are basically obsolete. To use autorotation based
-  on exif information gdk >= 2.12 ist required.
+  on exif information gdk >= 2.12 is required.
 
   Up to release 1.3 of imlib2 there is a problem with the includes.
   Imlib2.h does not load Xlib.h.

@@ -34,8 +34,11 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
-2.2.4pre
+2.2.4
 =====
+  02.05.2011
+                    [as] README: added note about obsoleted GTK v1
+
   28.12.2010
                     [as] qiv-command: more examples from Clint Pachl <pachl@ecentryx.com>
 
