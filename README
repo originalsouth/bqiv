@@ -81,7 +81,9 @@ Misc:
   qiv is designed to work with ANY gtk/gdk, it also
   should work with ANY version of Imlib of Linux (Intel/Mac),
   Solaris (SunOS) and FreeBSD.
-  As of version 2.2 imlib2 is required, as imlib1 is basically obsolete.
+  As of version 2.2 imlib2 and gdk-2.0 are required, as imlib1
+  and gtk-1.2 are basically obsolete. To use autorotation based
+  on exif information gdk >= 2.12 ist required.
 
   Up to release 1.3 of imlib2 there is a problem with the includes.
   Imlib2.h does not load Xlib.h.
