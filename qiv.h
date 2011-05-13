@@ -25,8 +25,8 @@
 #include <X11/extensions/xf86vmode.h> // for XF86VidModeGetModeLine
 */
 
-#define VERSION "2.2.4pre"
-#define VERSION_FULL "QIV - Quick Image Viewer v2.2.4pre - http://qiv.spiegl.de/"
+#define VERSION "2.2.4"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.2.4 - http://qiv.spiegl.de/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
