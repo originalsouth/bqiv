@@ -34,6 +34,12 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
+2.2.5pre
+=====
+  19.07.2011
+                    [tw] when using "--watch" option, make sure pic is not reloaded
+                         while still written.
+
 2.2.4
 =====
   02.05.2011

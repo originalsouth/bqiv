@@ -706,8 +706,11 @@ gboolean qiv_watch_file (gpointer data)
   stat(image_names[image_idx], &statbuf);
 
   if(current_mtime!=statbuf.st_mtime && statbuf.st_size){
-	  reload_image(q);
-          update_image(q, REDRAW);
+          if(time(NULL)-statbuf.st_mtime > 0)
+          {
+              reload_image(q);
+              update_image(q, REDRAW);
+          }
   }
   usleep(200);  /* avoid eating 100% cpu */
 
