@@ -12,6 +12,9 @@
 # include <X11/Xlib.h>
 # include <X11/extensions/Xinerama.h>
 #endif
+#ifdef SUPPORT_LCMS
+#include <lcms2.h>
+#endif
 
 /*
   // [as] thinks that this is not portable enough
@@ -156,6 +159,15 @@ extern XineramaScreenInfo statusbar_screen[1];
 extern int user_screen;
 extern int number_xinerama_screens;
 extern void get_preferred_xinerama_screens(void);
+#endif
+
+#ifdef SUPPORT_LCMS
+extern const char* source_profile;
+extern const char* display_profile;
+extern cmsHPROFILE h_source_profile;
+extern cmsHPROFILE h_display_profile;
+extern cmsHTRANSFORM h_cms_transform;
+extern int cms_transform;
 #endif
 
 /* main.c */

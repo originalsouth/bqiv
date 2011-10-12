@@ -66,7 +66,50 @@ int main(int argc, char **argv)
   /* Set up our options, image list, etc */
   strncpy(select_dir, SELECT_DIR, sizeof select_dir);
   reset_mod(&main_img);
+
   options_read(argc, argv, &main_img);
+
+#ifdef SUPPORT_LCMS
+  /* read profiles if provided */
+  if (cms_transform) 
+  {
+    if (source_profile) {
+      h_source_profile = cmsOpenProfileFromFile(source_profile, "r");
+    } else {
+      h_source_profile = cmsCreate_sRGBProfile();
+    }
+
+    if (h_source_profile == NULL)
+    {
+      g_print("qiv: cannot create source color profile.\n");
+      usage(argv[0],1);
+    }
+      
+    if (display_profile) {
+      h_display_profile = cmsOpenProfileFromFile(display_profile, "r");
+    } else {
+      h_display_profile = cmsCreate_sRGBProfile();
+    }
+    if (h_display_profile == NULL)
+    {
+      g_print("qiv: cannot create display color profile.\n");
+      usage(argv[0],1);
+    }
+
+  }
+  /* TYPE_BGRA_8 or TYPE_ARGB_8 depending on endianess */
+  h_cms_transform = cmsCreateTransform(h_source_profile,
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+				       TYPE_BGRA_8,
+				       h_display_profile,
+				       TYPE_BGRA_8,
+#else
+				       TYPE_ARGB_8,
+				       h_display_profile,
+				       TYPE_ARGB_8,
+#endif
+				       INTENT_PERCEPTUAL, 0);
+#endif
 
   /* Load things from GDK/Imlib */
 

@@ -506,6 +506,10 @@ void show_help(char *name, int exit_status)
 #ifdef GTD_XINERAMA
           "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"
 #endif
+#ifdef SUPPORT_LCMS
+          "    --source_profile, -Y x Use color profile file x as source profile for all images\n"
+          "    --display_profile,-Z x Use color profile file x as display profile for all images\n"
+#endif
           "    --version, -v          Print version information and exit\n"
           "\n"
           "Slideshow options:\n"

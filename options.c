@@ -23,7 +23,7 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-static char *short_options = "ab:c:Cd:efg:hilmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:";
+static char *short_options = "ab:c:Cd:efg:hilmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:Y:Z:";
 static struct option long_options[] =
 {
     {"do_grab",          0, NULL, 'a'},
@@ -67,6 +67,10 @@ static struct option long_options[] =
     {"watch",            0, NULL, 'T'},
     {"fixed_zoom",       1, NULL, 'W'},
     {"xineramascreen",   1, NULL, 'X'},
+#ifdef SUPPORT_LCMS
+    {"source_profile",   1, NULL, 'Y'},
+    {"display_profile",  1, NULL, 'Z'},
+#endif
     {0,                  0, NULL, 0}
 };
 
@@ -305,6 +309,14 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'X': user_screen = checked_atoi(optarg);
 //               g_print("set xinerama screen: %i\n", user_screen);
                 break;
+#endif
+#ifdef SUPPORT_LCMS
+            case 'Y': source_profile = optarg;
+	        cms_transform = 1;
+	        break;
+            case 'Z': display_profile = optarg;
+	        cms_transform = 1;
+	        break;
 #endif
             case 0:
             case '?': usage(argv[0], 1);

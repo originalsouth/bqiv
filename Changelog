@@ -36,6 +36,9 @@ Authors:
 
 2.2.5pre
 =====
+  12.10.2011
+                    [tw] add color profile support via lcms2. (patch by Hans
+                         Philipp Annen)
   19.07.2011
                     [tw] when using "--watch" option, make sure pic is not reloaded
                          while still written.

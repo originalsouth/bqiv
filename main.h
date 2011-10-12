@@ -66,6 +66,15 @@ XineramaScreenInfo preferred_screen[1];
 XineramaScreenInfo statusbar_screen[1];
 #endif
 
+#ifdef SUPPORT_LCMS
+const char* source_profile = NULL;
+const char* display_profile = NULL;
+cmsHPROFILE h_source_profile;
+cmsHPROFILE h_display_profile;
+cmsHTRANSFORM h_cms_transform;
+int cms_transform = 0;
+#endif
+
 
 /* Used for the ? key */
 

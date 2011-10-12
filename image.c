@@ -135,6 +135,11 @@ Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
         }
       }
     }
+#ifdef SUPPORT_LCMS
+    /* do the color transform */
+    if (cms_transform && h_cms_transform)
+      cmsDoTransform(h_cms_transform, argbdata, argbdata, pb_w*pb_h);
+#endif
     im = imlib_create_image_using_copied_data(pb_w, pb_h, (DATA32*)argbdata);
     free(argbdata);
     if(*has_alpha)
@@ -297,7 +302,7 @@ static void setup_win(qiv_image *q)
       gdk_pixbuf_render_pixmap_and_mask(icon, &icon_pixmap, &icon_bitmap, 10);
     }
     gdk_window_set_icon(q->win, NULL, icon_pixmap, icon_bitmap);
-                                             
+                           
     if (center) {
       GdkGeometry geometry = {
         .min_width = q->win_w,

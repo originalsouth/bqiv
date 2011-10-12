@@ -36,6 +36,10 @@ COMPRESS_PROG = gzip -9f
 # installed (for centering on dual-screen)
 GTD_XINERAMA = -DGTD_XINERAMA
 
+# Comment this line out if your system doesn't have lcms2 installed
+# (for minimal Color Management support)
+LCMS = -DSUPPORT_LCMS
+
 # Comment this line out if you do not want to use libmagic to
 # identify if a file is an image
 MAGIC = -DHAVE_MAGIC
@@ -75,7 +79,8 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DFILTER=$(FILTER) \
             -DCURSOR=$(CURSOR) \
             $(MAGIC) \
-            $(GTD_XINERAMA)
+            $(GTD_XINERAMA) \
+            $(LCMS)
 
 ifndef GETOPT_LONG
 OBJS     += lib/getopt.o lib/getopt1.o
@@ -84,6 +89,11 @@ endif
 
 ifdef GTD_XINERAMA
 LIBS     += -L/usr/X11R6/lib -lXinerama
+endif
+
+ifdef LCMS
+INCLUDES  += $(shell pkg-config --cflags lcms2)
+LIBS      += $(shell pkg-config --libs lcms2)
 endif
 
 ifdef MAGIC
