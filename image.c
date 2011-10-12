@@ -281,9 +281,7 @@ static void setup_win(qiv_image *q)
 {
   GdkWindowAttr attr;
   GdkPixmap *cursor_pixmap;
-  static GdkPixbuf *icon=NULL;;
-  static GdkPixmap *icon_pixmap;
-  static GdkBitmap *icon_bitmap;
+  static GList  icon_list = {NULL, NULL, NULL};
 
   if (!fullscreen) {
     attr.window_type=GDK_WINDOW_TOPLEVEL;
@@ -296,13 +294,12 @@ static void setup_win(qiv_image *q)
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
 
     /* create the icon only once */
-    if(icon==NULL)
+    if(icon_list.data==NULL)
     {
-      icon = gdk_pixbuf_new_from_inline (-1, qiv_icon, FALSE, NULL);
-      gdk_pixbuf_render_pixmap_and_mask(icon, &icon_pixmap, &icon_bitmap, 10);
+      icon_list.data = gdk_pixbuf_new_from_inline (-1, qiv_icon, FALSE, NULL);
     }
-    gdk_window_set_icon(q->win, NULL, icon_pixmap, icon_bitmap);
-                           
+    gdk_window_set_icon_list(q->win, &icon_list);
+
     if (center) {
       GdkGeometry geometry = {
         .min_width = q->win_w,

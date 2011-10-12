@@ -37,6 +37,8 @@ Authors:
 2.2.5pre
 =====
   12.10.2011
+                    [tw] replace gdk_window_set_icon with
+                         gdk_window_set_icon_list.
                     [tw] add color profile support via lcms2. (patch by Hans
                          Philipp Annen)
   19.07.2011
