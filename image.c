@@ -37,6 +37,12 @@ Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
   int pb_w, pb_h;
   Imlib_Image * im=NULL;
   const gchar *gdk_orientation = NULL;
+#ifdef SUPPORT_LCMS
+  char *icc_profile;
+  cmsHPROFILE h_emb_profile;
+  cmsHTRANSFORM h_emb_transform;
+#endif
+
 
   pixbuf_ori = gdk_pixbuf_new_from_file(image_name, &error);
   if (error != NULL)
@@ -135,9 +141,35 @@ Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
         }
       }
     }
+
 #ifdef SUPPORT_LCMS
+    if((icc_profile=get_icc_profile(image_name)))
+    {
+      h_emb_profile = cmsOpenProfileFromMem(icc_profile+sizeof(cmsUInt32Number), *(cmsUInt32Number *)icc_profile);
+      if(h_display_profile==NULL)
+      {
+        h_display_profile = cmsCreate_sRGBProfile();
+      }
+
+      h_emb_transform = cmsCreateTransform(h_emb_profile,
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+          TYPE_BGRA_8,
+          h_display_profile,
+          TYPE_BGRA_8,
+#else
+          TYPE_ARGB_8,
+          h_display_profile,
+          TYPE_ARGB_8,
+#endif
+          INTENT_PERCEPTUAL, 0);
+      cmsDoTransform(h_emb_transform, argbdata, argbdata, pb_w*pb_h);
+      cmsCloseProfile(h_emb_profile);
+      cmsDeleteTransform(h_emb_transform);
+      free(icc_profile);
+    }
+
     /* do the color transform */
-    if (cms_transform && h_cms_transform)
+    else if (cms_transform && h_cms_transform)
       cmsDoTransform(h_cms_transform, argbdata, argbdata, pb_w*pb_h);
 #endif
     im = imlib_create_image_using_copied_data(pb_w, pb_h, (DATA32*)argbdata);

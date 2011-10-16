@@ -93,7 +93,7 @@ endif
 
 ifdef LCMS
 INCLUDES  += $(shell pkg-config --cflags lcms2)
-LIBS      += $(shell pkg-config --libs lcms2)
+LIBS      += $(shell pkg-config --libs lcms2) -ljpeg
 endif
 
 ifdef MAGIC

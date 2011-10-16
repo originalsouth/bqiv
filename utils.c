@@ -825,3 +825,106 @@ get_preferred_xinerama_screens(void)
     XCloseDisplay(dpy);
 }
 #endif
+
+#ifdef SUPPORT_LCMS
+char *get_icc_profile(char *filename)
+{
+
+  FILE *infile;
+  jpeg_saved_marker_ptr marker;
+  struct jpeg_decompress_struct cinfo;
+  struct jpeg_error_mgr jerr;
+  int j,i=0;
+  cmsUInt32Number length=0;
+  int jpg_ok;
+  unsigned char jpg_tst[4];
+
+  char *icc_ptr=NULL;
+  short *tag_length=NULL;
+  unsigned char **tag_ptr=NULL;
+
+  /* ICC header:
+   * Marker 0xffe2
+   * "ICC_PROFILE\0"
+   * Marker ID
+   * No of total markers
+   * data length
+   * data
+   */
+  const char icc_string[]="ICC_PROFILE";
+  int seq_max;
+
+  if ((infile = fopen(filename, "rb")) == NULL) {
+
+    fprintf(stderr, "can't open %s\n", filename);
+    return NULL; 
+
+  }
+
+  if (fread(jpg_tst, 1, 4, infile) != 4)
+  {
+    fclose(infile);
+    return NULL;
+  }
+  /* Is pic a jpg? */
+  if ( (jpg_tst[0] != 0xff) && (jpg_tst[1] != 0xd8) && (jpg_tst[2] != 0xff) &&  ((jpg_tst[3]& 0xf0) != 0xff) )
+  {
+    fclose(infile);
+    return NULL; 
+  }
+
+  rewind(infile);
+
+  cinfo.err = jpeg_std_error(&jerr);
+
+  jpeg_create_decompress(&cinfo);
+  jpeg_stdio_src(&cinfo, infile); 
+  jpeg_save_markers(&cinfo, 0xE2, 0xFFFF);
+  jpg_ok = jpeg_read_header(&cinfo, 0);
+  fclose(infile);
+
+  for (marker = cinfo.marker_list; marker != NULL; marker = marker->next) 
+  {
+    if(strncmp(icc_string, (const char *)marker->data, 11)==0)
+    {
+      if(i==0)
+      {
+        seq_max=marker->data[13];
+        tag_length = calloc(seq_max, sizeof(short));
+        tag_ptr    = calloc(seq_max, sizeof(char *));
+      }
+
+      tag_length[marker->data[12]-1] = marker->data_length - 14;
+      (tag_ptr[marker->data[12]-1])  = marker->data;
+      (tag_ptr[marker->data[12]-1]) += 14;
+
+      i++;
+    }
+  }
+  if(i==0)
+  {
+    /* No icc markers found */
+    return NULL;
+  }
+  else
+  {
+    /* Sort the markers and copy them together */
+    for(j=0; j< i; j++)
+    {
+      length+= tag_length[j];
+    }
+    icc_ptr = malloc(length+sizeof(length));
+    *(unsigned int *)icc_ptr=length;
+    length=0;
+    for(j=0; j< i; j++)
+    {
+      memcpy(icc_ptr+length+sizeof(length), tag_ptr[j], tag_length[j]);
+      length+= tag_length[j];
+    }
+    free(tag_ptr);
+    free(tag_length);
+  }
+  jpeg_destroy_decompress(&cinfo);
+  return icc_ptr;
+}
+#endif

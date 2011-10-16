@@ -14,6 +14,7 @@
 #endif
 #ifdef SUPPORT_LCMS
 #include <lcms2.h>
+#include <jpeglib.h>
 #endif
 
 /*
@@ -168,6 +169,7 @@ extern cmsHPROFILE h_source_profile;
 extern cmsHPROFILE h_display_profile;
 extern cmsHTRANSFORM h_cms_transform;
 extern int cms_transform;
+extern char *get_icc_profile(char *filename);
 #endif
 
 /* main.c */
