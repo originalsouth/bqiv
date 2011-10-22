@@ -36,6 +36,8 @@ Authors:
 
 2.2.5pre
 =====
+  22.10.2011
+                    [tw] Replace GDK_<keyname> with GDK_KEY_<keyname>
   16.10.2011
                     [tw] Add support for embedded color profiles in jpg
   12.10.2011

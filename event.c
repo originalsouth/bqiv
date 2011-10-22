@@ -361,22 +361,22 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       }
 
       if (jumping || extcommand) {  // [lc] todo: Backspace,
-        if(ev->key.keyval == GDK_Escape) {
+        if(ev->key.keyval == GDK_KEY_Escape) {
           extcommand = 0;
           jidx = 0;
           displaying_textwindow = FALSE;
           update_image(q, FULL_REDRAW);
           break;
         }
-        if(ev->key.keyval == GDK_BackSpace) {
+        if(ev->key.keyval == GDK_KEY_BackSpace) {
           jidx--;
           jcmd[jidx]='\0';
           qiv_display_text_window(q, "(Sending Command)", mess,
                                   "Press <Return> to send, <Esc> to abort"); // [lc]
           break;
         }
-        if((ev->key.keyval == GDK_Return) ||
-           (ev->key.keyval == GDK_KP_Enter) ||
+        if((ev->key.keyval == GDK_KEY_Return) ||
+           (ev->key.keyval == GDK_KEY_KP_Enter) ||
            (jidx == 99)) {     /* 99 digits already typed */
           jcmd[jidx] = '\0';
           if (jumping) {
@@ -411,13 +411,13 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           /* Help */
 
           case '?':
-          case GDK_F1:
+          case GDK_KEY_F1:
             qiv_display_text_window(q, "(Showing Help)", helpstrs,"Press any key...");
             break;
 
             /* Exit */
 
-          case GDK_Escape:
+          case GDK_KEY_Escape:
           case 'q':
             qiv_exit(0);
             break;
@@ -519,11 +519,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* move image right */
 
-          case GDK_Left:
-          case GDK_KP_4:
-          case GDK_KP_Left:
+          case GDK_KEY_Left:
+          case GDK_KEY_KP_4:
+          case GDK_KEY_KP_Left:
             if (fullscreen) {
-              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_4) {
+              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_4) {
                 move_step = (MIN(screen_x, q->win_w) / STEP);
               } else {
                 move_step = (q->win_w / 100);
@@ -566,11 +566,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* move image left */
 
-          case GDK_Right:
-          case GDK_KP_6:
-          case GDK_KP_Right:
+          case GDK_KEY_Right:
+          case GDK_KEY_KP_6:
+          case GDK_KEY_KP_Right:
             if (fullscreen) {
-              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_6) {
+              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_6) {
                 move_step = (MIN(screen_x, q->win_w) / STEP);
               } else {
                 move_step = (q->win_w / 100);
@@ -613,11 +613,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* move image up */
 
-          case GDK_Down:
-          case GDK_KP_2:
-          case GDK_KP_Down:
+          case GDK_KEY_Down:
+          case GDK_KEY_KP_2:
+          case GDK_KEY_KP_Down:
             if (fullscreen) {
-              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_2) {
+              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_2) {
                 move_step = (MIN(screen_y, q->win_h) / STEP);
               } else {
                 move_step = (q->win_h / 100);
@@ -660,11 +660,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* move image down */
 
-          case GDK_Up:
-          case GDK_KP_8:
-          case GDK_KP_Up:
+          case GDK_KEY_Up:
+          case GDK_KEY_KP_8:
+          case GDK_KEY_KP_Up:
             if (fullscreen) {
-              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KP_8) {
+              if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_8) {
                 move_step = (MIN(screen_y, q->win_h) / STEP);
               } else {
                 move_step = (q->win_h / 100);
@@ -719,7 +719,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* Resize + */
 
-          case GDK_KP_Add:
+          case GDK_KEY_KP_Add:
           case '+':
           case '=':
           zoom_in:
@@ -730,7 +730,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* Resize - */
 
-          case GDK_KP_Subtract:
+          case GDK_KEY_KP_Subtract:
           case '-':
           zoom_out:
             snprintf(infotext, sizeof infotext, "(Zoomed out)");
@@ -740,8 +740,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* Reset Image / Original (best fit) size */
 
-          case GDK_Return:
-          case GDK_KP_Enter:
+          case GDK_KEY_Return:
+          case GDK_KEY_KP_Enter:
             snprintf(infotext, sizeof infotext, "(Reset size)");
             reload_image(q);
             zoom_factor = fixed_zoom_factor;  /* reset zoom */
@@ -768,8 +768,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* 5 pictures forward - or loop to the beginning */
 
-          case GDK_Page_Down:
-          case GDK_KP_Page_Down:
+          case GDK_KEY_Page_Down:
+          case GDK_KEY_KP_Page_Down:
             snprintf(infotext, sizeof infotext, "(5 pictures forward)");
             next_image(5);
             if(magnify && !fullscreen)    gdk_window_hide(magnify_img.win); // [lc]
@@ -778,7 +778,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* Previous picture - or loop back to the last */
 
-          case GDK_BackSpace:
+          case GDK_KEY_BackSpace:
           previous_image:
             snprintf(infotext, sizeof infotext, "(Previous picture)");
             next_image(-1);
@@ -788,8 +788,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* 5 pictures backward - or loop back to the last */
 
-          case GDK_Page_Up:
-          case GDK_KP_Page_Up:
+          case GDK_KEY_Page_Up:
+          case GDK_KEY_KP_Page_Up:
             snprintf(infotext, sizeof infotext, "(5 pictures backward)");
             next_image(-5);
             if(magnify && !fullscreen)    gdk_window_hide(magnify_img.win); // [lc]
@@ -854,7 +854,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
             /* Delete image */
 
-          case GDK_Delete:
+          case GDK_KEY_Delete:
           case 'd':
             if (!readonly) {
               if (move2trash() == 0)
@@ -977,7 +977,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
 
             /* Decrease slideshow delay */
-          case GDK_F11:
+          case GDK_KEY_F11:
             exit_slideshow = FALSE;
             if (delay > 1000) {
               delay-=1000;
@@ -1006,7 +1006,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             break;
 
             /* Increase slideshow delay */
-          case GDK_F12:
+          case GDK_KEY_F12:
             exit_slideshow = FALSE;
             delay+=1000;
             snprintf(infotext, sizeof infotext, "(Slideshow-Delay: %d seconds (+1)", delay/1000);

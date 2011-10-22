@@ -437,10 +437,10 @@ void set_desktop_image(qiv_image *q)
       gdk_window_set_back_pixmap(root_win, p, FALSE);
     } else {
       GdkGC *rootGC;
-      buffer = xcalloc(1, screen_x * screen_y * gvis->depth / 8);
+      buffer = xcalloc(1, screen_x * screen_y * gdk_visual_get_depth(gvis) / 8);
       rootGC = gdk_gc_new(root_win);
       temp = gdk_pixmap_create_from_data(root_win, buffer, screen_x,
-                                         screen_y, gvis->depth, &image_bg, &image_bg);
+                                         screen_y, gdk_visual_get_depth(gvis), &image_bg, &image_bg);
      gdk_drawable_set_colormap(GDK_DRAWABLE(temp),
 			      gdk_drawable_get_colormap(GDK_DRAWABLE(root_win)));
       gdk_draw_drawable(temp, rootGC, p, 0, 0, root_x, root_y, root_w, root_h);
