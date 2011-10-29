@@ -60,34 +60,33 @@ static void qiv_cancel_cursor_timeout(qiv_image *q)
   }
 }
 
-static void qiv_drag_image(qiv_image *q, int move_to_x, int move_to_y)
+static void qiv_drag_image(qiv_image *q, int move_to_x, int move_to_y,
+                           const char *action_msg, const char *stalled_msg)
 {
-  q->win_x = move_to_x;
-  if (q->win_w > screen_x) {
-    if (q->win_x > 0)
-      q->win_x = 0;
-    else if (q->win_x + q->win_w < screen_x)
-      q->win_x = screen_x - q->win_w;
-  } else {
-    if (q->win_x < 0)
-      q->win_x = 0;
-    else if (q->win_x + q->win_w > screen_x)
-      q->win_x = screen_x - q->win_w;
+  int moved = 0;
+
+  if (move_to_x < 0 - q->win_w)
+    move_to_x = 0 - q->win_w;
+  else if (move_to_x > screen_x)
+    move_to_x = screen_x;
+  if (q->win_x != move_to_x) {
+    q->win_x = move_to_x;
+    moved = 1;
   }
 
-  q->win_y = move_to_y;
-  if (q->win_h > screen_y) {
-    if (q->win_y > 0)
-      q->win_y = 0;
-    else if (q->win_y + q->win_h < screen_y)
-      q->win_y = screen_y - q->win_h;
-  } else {
-    if (q->win_y < 0)
-      q->win_y = 0;
-    else if (q->win_y + q->win_h > screen_y)
-      q->win_y = screen_y - q->win_h;
+  if (move_to_y < 0 - q->win_h)
+    move_to_y = 0 - q->win_h;
+  else if (move_to_y > screen_y)
+    move_to_y = screen_y;
+  if (q->win_y != move_to_y) {
+    q->win_y = move_to_y;
+    moved = 1;
   }
 
+  if (moved || !stalled_msg)
+    snprintf(infotext, sizeof infotext, "%s", action_msg);
+  else
+    snprintf(infotext, sizeof infotext, "%s", stalled_msg);
   update_image(q, MOVED);
 }
 
@@ -265,8 +264,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
                             q->win_y != q->drag_win_y + move_y)) {
           GdkEvent *e;
           qiv_disable_mouse_events(q);
-          qiv_drag_image(q, q->drag_win_x + move_x, q->drag_win_y + move_y);
-          snprintf(infotext, sizeof infotext, "(Drag)");
+          qiv_drag_image(q, q->drag_win_x + move_x, q->drag_win_y + move_y, "(Drag)", NULL);
           /* el cheapo mouse motion compression */
           while (gdk_events_pending()) {
             e = gdk_event_get();
@@ -312,8 +310,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             qiv_set_cursor_timeout(q);
 
             if (q->drag > 1) {
-              qiv_drag_image(q, q->drag_win_x + move_x, q->drag_win_y + move_y);
-              snprintf(infotext, sizeof infotext, "(Drag)");
+              qiv_drag_image(q, q->drag_win_x + move_x, q->drag_win_y + move_y, "(Drag)", NULL);
               q->drag = 0;
               break;
             }
@@ -540,37 +537,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
               if (move_step < 10)
                 move_step = 10;
 
-              /* is image greater than screen? */
-              if (q->win_w > screen_x) {
-                /* left border visible yet? */
-                if (q->win_x < 0) {
-                  q->win_x += move_step;
-                  /* sanity check */
-                  if (q->win_x > 0)
-                    q->win_x = 0;
-                  snprintf(infotext, sizeof infotext, "(Moving right)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further to the right)");
-                }
-
-              } else {                      /* user is just playing around */
-
-                /* right border reached? */
-                if (q->win_x + q->win_w < screen_x) {
-                  q->win_x += move_step;
-                  /* sanity check */
-                  if (q->win_x + q->win_w > screen_x)
-                    q->win_x = screen_x - q->win_w;
-                  snprintf(infotext, sizeof infotext, "(Moving right)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further to the right)");
-                }
-              }
+              qiv_drag_image(q, q->win_x + move_step, q->win_y, "(Moving right)", "(Cannot move further right)");
             } else {
               snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
               fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
             }
-            update_image(q, MOVED);
             break;
 
             /* move image left */
@@ -587,37 +558,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
               if (move_step < 10)
                 move_step = 10;
 
-              /* is image greater than screen? */
-              if (q->win_w > screen_x) {
-                /* right border visible yet? */
-                if (q->win_x + q->win_w > screen_x) {
-                  q->win_x -= move_step;
-                  /* sanity check */
-                  if (q->win_x + q->win_w < screen_x)
-                    q->win_x = screen_x - q->win_w;
-                  snprintf(infotext, sizeof infotext, "(Moving left)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further to the left)");
-                }
-
-              } else {                      /* user is just playing around */
-
-                /* left border reached? */
-                if (q->win_x > 0) {
-                  q->win_x -= move_step;
-                  /* sanity check */
-                  if (q->win_x < 0)
-                    q->win_x = 0;
-                  snprintf(infotext, sizeof infotext, "(Moving left)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further to the left)");
-                }
-              }
+              qiv_drag_image(q, q->win_x - move_step, q->win_y, "(Moving left)", "(Cannot move further left)");
             } else {
               snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
               fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
             }
-            update_image(q, MOVED);
             break;
 
             /* move image up */
@@ -634,37 +579,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
               if (move_step < 10)
                 move_step = 10;
 
-              /* is image greater than screen? */
-              if (q->win_h > screen_y) {
-                /* bottom visible yet? */
-                if (q->win_y + q->win_h > screen_y) {
-                  q->win_y -= move_step;
-                  /* sanity check */
-                  if (q->win_y + q->win_h < screen_y)
-                    q->win_y = screen_y - q->win_h;
-                  snprintf(infotext, sizeof infotext, "(Moving up)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further up)");
-                }
-
-              } else {                      /* user is just playing around */
-
-                /* top reached? */
-                if (q->win_y > 0) {
-                  q->win_y -= move_step;
-                  /* sanity check */
-                  if (q->win_y < 0)
-                    q->win_y = 0;
-                  snprintf(infotext, sizeof infotext, "(Moving up)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further up)");
-                }
-              }
+              qiv_drag_image(q, q->win_x, q->win_y - move_step, "(Moving up)", "(Cannot move further up)");
             } else {
               snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
               fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
             }
-            update_image(q, MOVED);
             break;
 
             /* move image down */
@@ -681,37 +600,11 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
               if (move_step < 10)
                 move_step = 10;
 
-              /* is image greater than screen? */
-              if (q->win_h > screen_y) {
-                /* top visible yet? */
-                if (q->win_y < 0) {
-                  q->win_y += move_step;
-                  /* sanity check */
-                  if (q->win_y > 0)
-                    q->win_y = 0;
-                  snprintf(infotext, sizeof infotext, "(Moving down)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further down)");
-                }
-
-              } else {                      /* user is just playing around */
-
-                /* bottom reached? */
-                if (q->win_y + q->win_h < screen_y) {
-                  q->win_y += move_step;
-                  /* sanity check */
-                  if (q->win_y + q->win_h > screen_y)
-                    q->win_y = screen_y - q->win_h;
-                  snprintf(infotext, sizeof infotext, "(Moving down)");
-                } else {
-                  snprintf(infotext, sizeof infotext, "(Cannot move further down)");
-                }
-              }
+              qiv_drag_image(q, q->win_x, q->win_y + move_step, "(Moving down)", "(Cannot move further down)");
             } else {
               snprintf(infotext, sizeof infotext, "(Moving works only in fullscreen mode)");
               fprintf(stdout, "qiv: Moving works only in fullscreen mode\n");
             }
-            update_image(q, MOVED);
             break;
 
             /* Scale_down */
