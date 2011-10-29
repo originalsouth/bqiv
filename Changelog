@@ -20,7 +20,7 @@ Authors:
   ab: Ask Bjoern Hansen       <ask@valueclick.com>
   al: Adrian Lopez            <adrian2@caribe.net>
   yf: Y Furuhashi             <y_furuhashi@ot.olympus.co.jp>
-  wd: Wayne Davison           <wayned@users.sourceforge.net>
+  wd: Wayne Davison           <wayne@opencoder.net>
   js: Johannes Stezenbach     <js@convergence.de>
   ok: OEyvind Kolaas          <pippin@users.sourceforge.net>
   mc: Matthieu Castet         <castet.matthieu@free.fr>
@@ -250,13 +250,13 @@ Authors:
                        --file=<file> (-F) option to qiv to allow it to read
                        image/directory names from a text file
  24.12.02 [pre9] [ak] added PBM support (just the extension)
- 20.10.02 [pre8] [ak] added patch by Wayne Davison <wayne@blorf.net>
+ 20.10.02 [pre8] [ak] added patch by Wayne Davison <wayne@opencoder.net>
                       scale-down rotation quirk.
  20.10.02 [pre7] [ak] added patch by Kim Rasmussen <kr@get2net.dk>
                       fixed WM "wmx v6" centering problem.
  04.10.02 [pre6] [ak] added patch by Lin Zhemin <ljm@ljm.idv.tw>
                       A-key to copy images to "./.qiv-select".
- 26.09.02 [pre5] [ak] added patch by Wayne Davison <wayned@users.sourceforge.net>
+ 26.09.02 [pre5] [ak] added patch by Wayne Davison <wayne@opencoder.net>
                       (some small changes)
  11.09.02 [pre4] [ak] added patch by Geoff Richards <qef@rosies-dumplings.co.uk>
                       great patch to reduce flicker while moving in fullscreen :-)
