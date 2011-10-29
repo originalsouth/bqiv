@@ -302,6 +302,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
         /* [tw]: I think buttons 4-7 don't work in GDK-2.0 as button events,
          *       they are now GDK_SCROLL events */
         case 1:        /* left button pressed */
+          displaying_textwindow = FALSE;
           if (q->drag) {
             int move_x, move_y;
             move_x = (int)(ev->button.x - q->drag_start_x);
@@ -317,10 +318,13 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             q->drag = 0;
           }
         case 5:        /* scroll wheel down emulated by button 5 */
+          displaying_textwindow = FALSE;
           goto next_image;
         case 8:
+          displaying_textwindow = FALSE;
           goto zoom_out;
         case 9:
+          displaying_textwindow = FALSE;
           goto zoom_in;
         default:
           g_print("unmapped button event %d, exiting\n",ev->button.button);
@@ -329,6 +333,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           break;
         case 3:        /* right button pressed */
         case 4:        /* scroll wheel up emulated by button 4 */
+          displaying_textwindow = FALSE;
           goto previous_image;
           break;
       }
