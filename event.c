@@ -95,7 +95,7 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
                              const char *strs[], const char *continue_msg)
 {
   int temp, text_w = 0, text_h, i, maxlines;
-  int width, height, text_left;
+  int x, y, width, height, text_left;
 
   int ascent;
   int descent;
@@ -104,9 +104,18 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   descent = PANGO_PIXELS(pango_font_metrics_get_descent(metrics));
 
   if (fullscreen) {
+#ifdef GTD_XINERAMA
+    x = preferred_screen->x_org;
+    y = preferred_screen->y_org;
+    width = preferred_screen->width;
+    height = preferred_screen->height;
+#else
+    x = y = 0;
     width = screen_x;
     height = screen_y;
+#endif
   } else {
+    x = y = 0;
     width = q->win_w;
     height = q->win_h;
   }
@@ -133,17 +142,17 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   text_left = width/2 - text_w/2 - 4;
   if (text_left < 2)  text_left = 2;            /* if window/screen is smaller than text */
 
-  gdk_draw_rectangle(q->win, q->bg_gc, 0,
-                     text_left,
-                     height/2 - text_h/2 - 4,
-                     text_w + 7, text_h + 7);
-  gdk_draw_rectangle(q->win, q->status_gc, 1,
-                     text_left + 1,
-                     height/2 - text_h/2 - 3,
-                     text_w + 6, text_h + 6);
+  gdk_draw_rectangle(q->win, q->bg_gc, y,
+                     x + text_left,
+                     y + height/2 - text_h/2 - 4,
+                     x + text_w + 7, text_h + 7);
+  gdk_draw_rectangle(q->win, q->status_gc, y + 1,
+                     x + text_left + 1,
+                     y + height/2 - text_h/2 - 3,
+                     x + text_w + 6, text_h + 6);
   for (i = 0; strs[i] && i < maxlines; i++) {
        pango_layout_set_text(layout, strs[i], -1);
-       gdk_draw_layout (q->win, q->text_gc, text_left + 4, height/2 - text_h/2  +
+       gdk_draw_layout (q->win, q->text_gc, x + text_left + 4, y + height/2 - text_h/2  +
                   i * (ascent + descent), layout);
   }
 
@@ -151,8 +160,8 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   pango_layout_set_text(layout, continue_msg, -1);
   pango_layout_get_pixel_size (layout, &temp, NULL);
   gdk_draw_layout (q->win, q->text_gc, 
-                   width/2 - temp/2,
-                   height/2 - text_h/2 - descent + (i+1) * (ascent + descent),
+                   x + width/2 - temp/2,
+                   y + height/2 - text_h/2 - descent + (i+1) * (ascent + descent),
                    layout);
   displaying_textwindow = TRUE;
 
