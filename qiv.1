@@ -165,9 +165,15 @@ Autorotate JPEGs according to EXIF rotation tag.
 .B \-X, \-\-xineramascreen \fIx\fB
 Use screen \fIx\fR as preferred Xinerama screen
 .TP
+.B \-Y, \-\-source_profile \fIx\fB
+Use color profile file x as source profile for all images
+.TP
+.B \-Z, \-\-display_profile \fIx\fB
+Use color profile file x as display profile for all images
+.TP
 .B \-B, \-\-browse
-This option is useful when configuring qiv to be used with a file manager.
-qiv will scan the directory of the clicked image and allow you to scroll
+This option is useful when configuring qiv to be used with a file manager. qiv 
+will scan the directory of the clicked image and allow you to scroll
 through those images.
 .SH EXAMPLES
 qiv \-atsd2 *.jpg

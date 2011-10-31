@@ -36,6 +36,11 @@ Authors:
 
 2.2.5pre
 =====
+  30.10.2011
+  		    [wd] Notice when a mouse click makes the display-text disappear.
+		    [wd] Center display-text on the preferred xinerama screen.
+		    [wd] Simplify image-move checking code and allow it to move
+		         an image farther.
   22.10.2011
                     [tw] Replace GDK_<keyname> with GDK_KEY_<keyname>
   16.10.2011
