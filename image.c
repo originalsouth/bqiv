@@ -234,7 +234,6 @@ void qiv_load_image(qiv_image *q)
     }
   }
 
-  check_size(q, TRUE);
 
   if (rotation>0) {
     correct_image_position(q);
@@ -242,8 +241,13 @@ void qiv_load_image(qiv_image *q)
 
   if (first) {
     setup_win(q);
+/*    if(fullscreen) {
+      usleep(150000);
+    }*/
     first = 0;
   }
+  
+  check_size(q, TRUE);
 
   /* desktop-background -> exit */
   if (to_root || to_root_t || to_root_s) {
@@ -258,11 +262,11 @@ void qiv_load_image(qiv_image *q)
   gdk_window_set_background(q->win, im ? &image_bg : &error_bg);
 
   if (do_grab || (fullscreen && !disable_grab) ) {
-    gdk_keyboard_grab(q->win, FALSE, CurrentTime);
+  /*  gdk_keyboard_grab(q->win, FALSE, CurrentTime);
     gdk_pointer_grab(q->win, FALSE,
       GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK |
       GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK, NULL, NULL, CurrentTime);
-  }
+  */}
   gettimeofday(&load_after, 0);
   load_elapsed = ((load_after.tv_sec +  load_after.tv_usec / 1.0e6) -
                  (load_before.tv_sec + load_before.tv_usec / 1.0e6));
@@ -325,13 +329,6 @@ static void setup_win(qiv_image *q)
     attr.height = q->win_h;
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
 
-    /* create the icon only once */
-    if(icon_list.data==NULL)
-    {
-      icon_list.data = gdk_pixbuf_new_from_inline (-1, qiv_icon, FALSE, NULL);
-    }
-    gdk_window_set_icon_list(q->win, &icon_list);
-
     if (center) {
       GdkGeometry geometry = {
         .min_width = q->win_w,
@@ -359,17 +356,33 @@ static void setup_win(qiv_image *q)
 
   } else { /* fullscreen */
 
-    attr.window_type=GDK_WINDOW_TEMP;
+    attr.window_type=GDK_WINDOW_TOPLEVEL;
     attr.wclass=GDK_INPUT_OUTPUT;
     attr.event_mask=GDK_ALL_EVENTS_MASK;
-    attr.x = attr.y = 0;
-    attr.width=screen_x;
-    attr.height=screen_y;
+//    attr.x = 0;
+//    attr.y = 0;
+    attr.x = monitor[q->mon_id].x;
+    attr.y = monitor[q->mon_id].y;
+//    printf("mon_id %d \n",q->mon_id);
+    attr.width=monitor[q->mon_id].width;
+    attr.height=monitor[q->mon_id].height;
+
+//    q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y|GDK_WA_TYPE_HINT);
     q->win = gdk_window_new(NULL, &attr, GDK_WA_X|GDK_WA_Y);
     gdk_window_set_cursor(q->win, cursor);
     if (!(to_root || to_root_t || to_root_s))
+    {
+      gdk_window_fullscreen(q->win);
       gdk_window_show(q->win);
+    }
   }
+
+  /* create the icon only once */
+  if(icon_list.data==NULL)
+  {
+    icon_list.data = gdk_pixbuf_new_from_inline (-1, qiv_icon, FALSE, NULL);
+  }
+  gdk_window_set_icon_list(q->win, &icon_list);
 
   q->bg_gc = gdk_gc_new(q->win);
   q->text_gc = gdk_gc_new(q->win); /* black is default */
@@ -532,13 +545,9 @@ void zoom_out(qiv_image *q)
 
 void zoom_maxpect(qiv_image *q)
 {
-#ifdef GTD_XINERAMA
-  double zx = (double)preferred_screen->width / (double)q->orig_w;
-  double zy = (double)preferred_screen->height / (double)q->orig_h;
-#else
-  double zx = (double)screen_x / (double)q->orig_w;
-  double zy = (double)screen_y / (double)q->orig_h;
-#endif
+  double zx = (double)monitor[q->mon_id].width / (double)q->orig_w;
+  double zy = (double)monitor[q->mon_id].height / (double)q->orig_h;
+
   /* titlebar and frames ignored on purpose to use full height/width of screen */
   q->win_w = (gint)(q->orig_w * MIN(zx, zy));
   q->win_h = (gint)(q->orig_h * MIN(zx, zy));
@@ -592,12 +601,27 @@ void reload_image(qiv_image *q)
 
 void check_size(qiv_image *q, gint reset)
 {
-  if (maxpect || (scale_down && (q->orig_w>screen_x || q->orig_h>screen_y))) {
+  if (maxpect || (scale_down && (q->orig_w>monitor[q->mon_id].width || q->orig_h>monitor[q->mon_id].height))) {
     zoom_maxpect(q);
   } else if (reset || (scale_down && (q->win_w<q->orig_w || q->win_h<q->orig_h))) {
     reset_coords(q);
   }
-  if (center) center_image(q);
+  if (center){
+    center_image(q);
+  }
+  else if (fullscreen) { 
+    if (q->win_x >  monitor[q->mon_id].x)
+      q->win_x -= monitor[q->mon_id].x;
+    if (q->win_y >  monitor[q->mon_id].y)
+      q->win_y -= monitor[q->mon_id].y;
+  }
+  else {
+    if (q->win_x <  monitor[q->mon_id].x)
+      q->win_x += monitor[q->mon_id].x;
+    if (q->win_y <  monitor[q->mon_id].y)
+      q->win_y += monitor[q->mon_id].y;
+  }
+
 }
 
 void reset_coords(qiv_image *q)
@@ -749,13 +773,8 @@ void update_image(qiv_image *q, int mode)
   } // if (!fullscreen)
   else
   {
-#ifdef GTD_XINERAMA
-# define statusbar_x (statusbar_screen->x_org + statusbar_screen->width)
-# define statusbar_y (statusbar_screen->y_org + statusbar_screen->height)
-#else
-# define statusbar_x screen_x
-# define statusbar_y screen_y
-#endif
+# define statusbar_x monitor[q->mon_id].width
+# define statusbar_y monitor[q->mon_id].height
     if (mode == FULL_REDRAW) {
       gdk_window_clear(q->win);
     } else {
@@ -819,6 +838,8 @@ void update_image(qiv_image *q, int mode)
     q->text_ow = q->text_w;
     q->text_oh = q->text_h;
     q->statusbar_was_on = statusbar_fullscreen;
+    gdk_window_move_resize(q->win, monitor[q->mon_id].x, monitor[q->mon_id].y,
+        monitor[q->mon_id].width, monitor[q->mon_id].height);
   }
   gdk_flush();
 }
@@ -953,55 +974,17 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
   gdk_flush();
 }
 
-#ifdef GTD_XINERAMA
 void center_image(qiv_image *q)
 {
-//  g_print("before: q->win_x = %d, q->win_y = %d, q->win_w = %d\n", q->win_x, q->win_y, q->win_w);
-  XineramaScreenInfo * pscr = preferred_screen;
 
-//  g_print("screen_x = %d, pscr->x_org = %d, pscr->width = %d\n", screen_x, pscr->x_org, pscr->width);
-
-  /* Figure out x position */
-  if (q->win_w <= pscr->width) {
-    /* If image fits on screen try to center image
-     * within preferred (sub)screen */
-    q->win_x = (pscr->width - q->win_w) / 2 + pscr->x_org;
-    /* Ensure image actually lies within screen boundaries */
-    if (q->win_x < 0) {
-      q->win_x = 0;
-    }
-    else if (q->win_x + q->win_w > screen_x) {
-      q->win_x = screen_x - q->win_w;
-    }
+  q->win_x = (monitor[q->mon_id].width  - q->win_w) / 2;
+  q->win_y = (monitor[q->mon_id].height - q->win_h) / 2;
+  if(!fullscreen)
+  {
+    q->win_x += monitor[q->mon_id].x;
+    q->win_y += monitor[q->mon_id].y;
   }
-  else {
-    /* If image wider than screen, just center it over all screens */
-    q->win_x = (screen_x - q->win_w) / 2;
-//    g_print("q->win_x = %d, screen_x = %d, q->win_w = %d, pscr->width = %d\n", q->win_x, screen_x, q->win_w, pscr->width);
-  }
-
-  /* Same thing for y position */
-  if (q->win_h <= screen_y) {
-    q->win_y = (pscr->height - q->win_h) / 2 + pscr->y_org;
-    if (q->win_y < 0) {
-      q->win_y = 0;
-    }
-    else if (q->win_y + q->win_h > screen_y) {
-      q->win_y = screen_y - q->win_h;
-    }
-  }
-  else {
-    q->win_y = (screen_y - q->win_h) / 2;
-  }
-//  g_print("after:  q->win_x = %d, q->win_y = %d, q->win_w = %d\n", q->win_x, q->win_y, q->win_w);
 }
-#else
-void center_image(qiv_image *q)
-{
-  q->win_x = (screen_x - q->win_w) / 2;
-  q->win_y = (screen_y - q->win_h) / 2;
-}
-#endif
 
 void correct_image_position(qiv_image *q)
 {

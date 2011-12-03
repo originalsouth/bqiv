@@ -5,6 +5,10 @@ int		first = 1; /* TRUE if this is first image or after fullscreen or iconifying
 char		infotext[BUF_LEN];
 GMainLoop	*qiv_main_loop;
 gint		screen_x, screen_y; /* Size of the screen in pixels */
+gint            num_monitors;
+GdkScreen       *screen;
+GdkRectangle    *monitor;
+
 GdkColormap	*cmap; /* global colormap */
 char		*image_bg_spec = IMAGE_BG;
 GdkColor	image_bg; /* default background */
@@ -48,23 +52,17 @@ int	to_root_t; /* display on root (tiled) */
 int	to_root_s; /* display on root (stretched) */
 int	transparency; /* transparency on/off */
 int	do_grab; /* grab keboard/pointer (default off) */
-int disable_grab; /* disable keyboard/mouse grabbing in fullscreen mode */
+int	disable_grab; /* disable keyboard/mouse grabbing in fullscreen mode */
 int	max_rand_num; /* the largest random number range we will ask for */
 int	fixed_window_size = 0; /* window width fixed size/off */
 int	fixed_zoom_factor = 0; /* window fixed zoom factor (percentage)/off */
 int zoom_factor = 0; /* zoom factor/off */
 int watch_file = 0; /* watch current files Timestamp, reload if changed */
 int magnify = 0; /* [lc] */
-int user_screen = -1; /* preferred (by user) Xinerama screen */
+int user_screen = 0; /* preferred (by user) monitor */
 int browse = 0; /* scan directory of file for browsing */
 int autorotate = 0; /* autorotate JPEGs according to EXIF tag */
 int rotation = 0; /* rotation x degrees clockwise, 1=90degrees 2=180degrees 3=270degrees */
-
-#ifdef GTD_XINERAMA
-int number_xinerama_screens = 0;
-XineramaScreenInfo preferred_screen[1];
-XineramaScreenInfo statusbar_screen[1];
-#endif
 
 #ifdef SUPPORT_LCMS
 const char* source_profile = NULL;
@@ -101,7 +99,7 @@ const char *helpstrs[] =
     "f                    fullscreen mode on/off",
     "m                    scale to screen size on/off",
     "t                    scale down on/off",
-    "X                    cycle through xinerama screens",
+    "X                    cycle through monitors",
     "s                    slide show on/off",
     "p                    transparency on/off",
     "r                    random order on/off",

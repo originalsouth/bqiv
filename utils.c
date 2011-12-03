@@ -503,9 +503,7 @@ void show_help(char *name, int exit_status)
           "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
 #endif
           "    --rotate, -q x         Rotate 90(x=1),180(x=2),270(x=3) degrees clockwise\n"
-#ifdef GTD_XINERAMA
-          "    --xineramascreen, -X x Use screen x as preferred Xinerama screen\n"
-#endif
+          "    --xineramascreen, -X x Use monitor x as preferred screen\n"
 #ifdef SUPPORT_LCMS
           "    --source_profile, -Y x Use color profile file x as source profile for all images\n"
           "    --display_profile,-Z x Use color profile file x as display profile for all images\n"
@@ -730,101 +728,6 @@ int find_image(int images, char **image_names, char *name)
   }
   return 0;
 }
-
-#ifdef GTD_XINERAMA
-/**
- * Find screen which maximizes f(screen)
- */
-static XineramaScreenInfo *
-xinerama_maximize_screen_function (XineramaScreenInfo * screens, int nscreens,
-                         long (*f)(XineramaScreenInfo *))
-{
-  XineramaScreenInfo * screen;
-  long value;
-  long maxvalue = 0;
-  XineramaScreenInfo * maximal_screen = screens;
-
-  for (screen = screens; nscreens--; screen++) {
-    //g_print("screen: %i\n", screen->screen_number);
-    value = f(screen);
-    if (value > maxvalue) {
-      maxvalue = value;
-      maximal_screen = screen;
-    }
-  }
-  return maximal_screen;
-}
-
-static long
-xinerama_screen_number_pixels (XineramaScreenInfo * screen)
-{
-//  g_print("npixels: screen->width = %d, screen->height = %d\n", screen->width, screen->height);
-  return screen->width * screen->height;
-}
-
-/**
- * We will want to find the lower-rightmost screen (on which we
- * would like to display the statusbar in full-screen mode).
- *
- * In the general case (screens of differing sizes and arbitrarily placed)
- * the "lower-rightmost" screen is not particularly well defined.  We
- * take the definition as follows:
- *
- * Let (l_i, r_i) be the absolute pixel coordinates of the lower right corner
- * corner of screen i.  The lower-rightmost screen is the one for which
- * l_i + r_i is a maximum.
- */
-static long
-xinerama_screen_lower_rightness (XineramaScreenInfo * screen)
-{
-  return screen->x_org + screen->y_org + screen->width + screen->height;
-}
-
-void
-get_preferred_xinerama_screens(void)
-{
-  Display * dpy;
-  XineramaScreenInfo *screens = 0;
-
-  dpy = XOpenDisplay(gdk_get_display());
-  if (dpy && XineramaIsActive(dpy))
-    screens = XineramaQueryScreens(dpy, &number_xinerama_screens);
-
-//  g_print("number_xinerama_screens: %i\n", number_xinerama_screens);
-  if (screens) {
-//    g_print("xinerama screen: %i\n", user_screen);
-    if (user_screen > -1 && user_screen < number_xinerama_screens) {
-      // set user selected screen
-      *preferred_screen = screens[user_screen];
-//      g_print("preferred screen (user): %i\n", preferred_screen->screen_number);
-    } else {
-      // auto select largest screen
-      *preferred_screen
-        = *xinerama_maximize_screen_function(screens, number_xinerama_screens,
-                                             xinerama_screen_number_pixels);
-//      g_print("preferred screen (auto): %i\n", preferred_screen->screen_number);
-    }
-
-    // find lower rightmost screens for the statusbar
-    *statusbar_screen
-      = *xinerama_maximize_screen_function(screens, number_xinerama_screens,
-                                 xinerama_screen_lower_rightness);
-    XFree(screens);
-  }
-  else {
-    /* If we don't have Xinerama, fake it: */
-    preferred_screen->screen_number = 0;
-    preferred_screen->x_org = 0;
-    preferred_screen->y_org = 0;
-    preferred_screen->width = gdk_screen_width();
-    preferred_screen->height = gdk_screen_height();
-
-    *statusbar_screen = *preferred_screen;
-  }
-  if (dpy)
-    XCloseDisplay(dpy);
-}
-#endif
 
 #ifdef SUPPORT_LCMS
 char *get_icc_profile(char *filename)

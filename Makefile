@@ -7,7 +7,7 @@
 PREFIX = /usr/local
 
 # Font to use for statusbar in fullscreen mode
-STATUSBAR_FONT = "fixed"
+STATUSBAR_FONT = "Monospace 9"
 
 # Cursor to use on qiv windows - see
 # /usr/X11R6/include/X11/cursorfont.h for more choices.
@@ -31,10 +31,6 @@ GETOPT_LONG = -DHAVE_GETOPT_LONG
 # This program will be run on the manual page after it is installed.
 # If you don't want to compress the manpage, change it to 'true'.
 COMPRESS_PROG = gzip -9f
-
-# Comment this line out if your system doesn't have libXinerama
-# installed (for centering on dual-screen)
-GTD_XINERAMA = -DGTD_XINERAMA
 
 # Comment this line out if your system doesn't have lcms2 installed
 # (for minimal Color Management support)
@@ -79,16 +75,11 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DFILTER=$(FILTER) \
             -DCURSOR=$(CURSOR) \
             $(MAGIC) \
-            $(GTD_XINERAMA) \
             $(LCMS)
 
 ifndef GETOPT_LONG
 OBJS     += lib/getopt.o lib/getopt1.o
 OBJS_G   += lib/getopt.g lib/getopt1.g
-endif
-
-ifdef GTD_XINERAMA
-LIBS     += -L/usr/X11R6/lib -lXinerama
 endif
 
 ifdef LCMS

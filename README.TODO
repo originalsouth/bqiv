@@ -1,9 +1,3 @@
-- wishlist for the XINERAMA support:  (like feh does it)
-  + fullscreen mode: unused screens shouldn't go black
-     see patch by Tim Connors (mercurial branch "fullscreen-window")
-  + ungrab mouse and keyboard in unused screens
-
-
 - magnifying glass: [lc]
   + if the image is smaller than the magnifying window
      then it is stretched - would (black) borders be better?

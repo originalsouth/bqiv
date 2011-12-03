@@ -305,11 +305,9 @@ void options_read(int argc, char **argv, qiv_image *q)
                 break;
             case 'W': fixed_zoom_factor = (checked_atoi(optarg) - 100) / 10;
                 break;
-#ifdef GTD_XINERAMA
             case 'X': user_screen = checked_atoi(optarg);
 //               g_print("set xinerama screen: %i\n", user_screen);
                 break;
-#endif
 #ifdef SUPPORT_LCMS
             case 'Y': source_profile = optarg;
 	        cms_transform = 1;

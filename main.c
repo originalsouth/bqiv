@@ -38,6 +38,7 @@ static int check_magic(const char *name);
 int main(int argc, char **argv)
 {
   struct timeval tv;
+  int i;
 
   // [as] workaround for problem with X composite extension
   // is this still needed with imlib2 ??
@@ -118,6 +119,19 @@ int main(int argc, char **argv)
   screen_x = gdk_screen_width();
   screen_y = gdk_screen_height();
 
+  screen  = gdk_screen_get_default();
+  num_monitors = gdk_screen_get_n_monitors(screen);
+  monitor = malloc( num_monitors * sizeof(GdkRectangle));
+  for(i=0; i< num_monitors ; i++)
+  {
+      gdk_screen_get_monitor_geometry(screen, i, &monitor[i]);
+  }
+  
+  if(user_screen < num_monitors)
+  {
+    main_img.mon_id = user_screen;
+  }
+
  /* statusbar with pango */
   layout = pango_layout_new(gdk_pango_context_get()); 
   fontdesc = pango_font_description_from_string (STATUSBAR_FONT);
@@ -129,28 +143,6 @@ int main(int argc, char **argv)
   }
   metrics = pango_context_get_metrics (gdk_pango_context_get(), fontdesc, NULL);
   pango_layout_set_font_description (layout, fontdesc); 
-
-/*
-  // [as] thinks that this is not portable enough
-  // [lc]
-  // I use a virtual screen of 1600x1200, and the resolution is 1024x768,
-  // so I changed how screen_[x,y] is obtained; it seems that gtk 1.2
-  // cannot give the geometry of viewport, so I borrowed from the source of
-  // xvidtune the code for calling XF86VidModeGetModeLine, this requires
-  // the linking option -lXxf86vm.
-  XF86VidModeGetModeLine(GDK_DISPLAY(), DefaultScreen(GDK_DISPLAY()),
-                         &dot_clock, &modeline);
-  //printf("> hdisplay %d vdisplay %d\n", modeline.hdisplay, modeline.vdisplay);
-  screen_x=MIN(screen_x, modeline.hdisplay);
-  screen_y=MIN(screen_y, modeline.vdisplay);
-*/
-
-#ifdef GTD_XINERAMA
-  get_preferred_xinerama_screens();
-//  screen_x=MIN(screen_x, preferred_screen->width);
-//  screen_y=MIN(screen_y, preferred_screen->height);
-#endif
-
 
   max_rand_num = images;
 

@@ -67,8 +67,8 @@ static void qiv_drag_image(qiv_image *q, int move_to_x, int move_to_y,
 
   if (move_to_x < 0 - q->win_w)
     move_to_x = 0 - q->win_w;
-  else if (move_to_x > screen_x)
-    move_to_x = screen_x;
+  else if (move_to_x > monitor[q->mon_id].width)
+    move_to_x = monitor[q->mon_id].width;
   if (q->win_x != move_to_x) {
     q->win_x = move_to_x;
     moved = 1;
@@ -76,8 +76,8 @@ static void qiv_drag_image(qiv_image *q, int move_to_x, int move_to_y,
 
   if (move_to_y < 0 - q->win_h)
     move_to_y = 0 - q->win_h;
-  else if (move_to_y > screen_y)
-    move_to_y = screen_y;
+  else if (move_to_y > monitor[q->mon_id].height)
+    move_to_y = monitor[q->mon_id].height;
   if (q->win_y != move_to_y) {
     q->win_y = move_to_y;
     moved = 1;
@@ -103,16 +103,9 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   descent = PANGO_PIXELS(pango_font_metrics_get_descent(metrics));
 
   if (fullscreen) {
-#ifdef GTD_XINERAMA
-    x = preferred_screen->x_org;
-    y = preferred_screen->y_org;
-    width = preferred_screen->width;
-    height = preferred_screen->height;
-#else
     x = y = 0;
-    width = screen_x;
-    height = screen_y;
-#endif
+    width = monitor[q->mon_id].width;
+    height = monitor[q->mon_id].height;
   } else {
     x = y = 0;
     width = q->win_w;
@@ -185,13 +178,13 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
   // (because the user might have moved the window our since last redraw)
   if (!fullscreen) {
     gdk_window_get_position(q->win, &q->win_x, &q->win_y);
-//    g_print("position   : q->win_x = %d, q->win_y = %d, q->win_w = %d\n", q->win_x, q->win_y, q->win_w);
-//    gdk_window_get_origin(q->win, &q->win_x, &q->win_y);
-//    gdk_window_get_root_origin(q->win, &q->win_x, &q->win_y);
+//    g_print("position   : q->win_x = %d, q->win_y = %d, q->win_w = %d, mon = %d\n", q->win_x, q->win_y, q->win_w,q->mon_id);
   }
+  q->mon_id = gdk_screen_get_monitor_at_window(screen, q->win);
 
   switch(ev->type) {
     case GDK_DELETE:
+      break;
       qiv_exit(0);
       break;
 
@@ -200,13 +193,28 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
         q->exposed = 1;
         qiv_set_cursor_timeout(q);
       }
+      if(fullscreen) {
+        if(center) center_image(q);
+        update_image(q, FULL_REDRAW);
+      }
       break;
 
     case GDK_LEAVE_NOTIFY:
       if (magnify && !fullscreen) {
         gdk_window_hide(magnify_img.win);
       }
+      gdk_pointer_ungrab(CurrentTime);
+      gdk_keyboard_ungrab(CurrentTime);
       break;
+
+    case GDK_ENTER_NOTIFY:
+      if(fullscreen)
+      {
+        gdk_keyboard_grab(q->win, FALSE, CurrentTime);
+        gdk_pointer_grab(q->win, FALSE,
+            GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK |
+            GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK, NULL, NULL, CurrentTime);
+      }
 
     case GDK_CONFIGURE:
       if (magnify && !fullscreen) {
@@ -216,7 +224,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
         //        magnify_img.frame_x, magnify_img.frame_y);
       }
       // gdk_draw_rectangle(q->win, q->status_gc, 1, 10, 10, 50, 50);
-      if (statusbar_window) {
+      if (statusbar_window && !fullscreen) {
 #ifdef DEBUG
         g_print("*** print statusbar at (%d, %d)\n", MAX(2,q->win_w-q->text_w-10), MAX(2,q->win_h-q->text_h-10));
 #endif
@@ -242,8 +250,10 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       qiv_cancel_cursor_timeout(q);
       if (fullscreen && ev->button.button == 1) {
         q->drag = 1;
-        q->drag_start_x = ev->button.x;
-        q->drag_start_y = ev->button.y;
+//        q->drag_start_x = ev->button.x;
+//        q->drag_start_y = ev->button.y;
+        q->drag_start_x = ev->button.x_root;
+        q->drag_start_y = ev->button.y_root;
         q->drag_win_x = q->win_x;
         q->drag_win_y = q->win_y;
         qiv_enable_mouse_events(q);
@@ -253,8 +263,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
     case GDK_MOTION_NOTIFY:
       if (q->drag) {
         int move_x, move_y;
-        move_x = (int)(ev->button.x - q->drag_start_x);
-        move_y = (int)(ev->button.y - q->drag_start_y);
+        move_x = (int)(ev->button.x_root - q->drag_start_x);
+        move_y = (int)(ev->button.y_root - q->drag_start_y);
         if (q->drag == 1 && (ABS(move_x) > 3 || ABS(move_y) > 3)) {
           /* distinguish from simple mouse click... */
           q->drag = 2;
@@ -267,13 +277,15 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           qiv_drag_image(q, q->drag_win_x + move_x, q->drag_win_y + move_y, "(Drag)", NULL);
           /* el cheapo mouse motion compression */
           while (gdk_events_pending()) {
-            e = gdk_event_get();
-            if (e->type == GDK_BUTTON_RELEASE) {
-              gdk_event_put(e);
+            /* [tw] why check if "e" not NULL? */
+            if((e = gdk_event_get())) {
+              if (e->type == GDK_BUTTON_RELEASE) {
+                gdk_event_put(e);
+                gdk_event_free(e);
+                break;
+              }
               gdk_event_free(e);
-              break;
             }
-            gdk_event_free(e);
           }
           qiv_enable_mouse_events(q);
         }
@@ -305,8 +317,10 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           displaying_textwindow = FALSE;
           if (q->drag) {
             int move_x, move_y;
-            move_x = (int)(ev->button.x - q->drag_start_x);
-            move_y = (int)(ev->button.y - q->drag_start_y);
+//            move_x = (int)(ev->button.x - q->drag_start_x);
+//            move_y = (int)(ev->button.y - q->drag_start_y);
+            move_x = (int)(ev->button.x_root - q->drag_start_x);
+            move_y = (int)(ev->button.y_root - q->drag_start_y);
             qiv_disable_mouse_events(q);
             qiv_set_cursor_timeout(q);
 
@@ -539,7 +553,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_KP_Left:
             if (fullscreen) {
               if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_4) {
-                move_step = (MIN(screen_x, q->win_w) / STEP);
+                move_step = (MIN(monitor[q->mon_id].width, q->win_w) / STEP);
               } else {
                 move_step = (q->win_w / 100);
               }
@@ -560,7 +574,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_KP_Right:
             if (fullscreen) {
               if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_6) {
-                move_step = (MIN(screen_x, q->win_w) / STEP);
+                move_step = (MIN(monitor[q->mon_id].width, q->win_w) / STEP);
               } else {
                 move_step = (q->win_w / 100);
               }
@@ -581,7 +595,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_KP_Down:
             if (fullscreen) {
               if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_2) {
-                move_step = (MIN(screen_y, q->win_h) / STEP);
+                move_step = (MIN(monitor[q->mon_id].height, q->win_h) / STEP);
               } else {
                 move_step = (q->win_h / 100);
               }
@@ -602,7 +616,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_KP_Up:
             if (fullscreen) {
               if (ev->key.state & GDK_SHIFT_MASK || ev->key.keyval == GDK_KEY_KP_8) {
-                move_step = (MIN(screen_y, q->win_h) / STEP);
+                move_step = (MIN(monitor[q->mon_id].height, q->win_h) / STEP);
               } else {
                 move_step = (q->win_h / 100);
               }
@@ -924,31 +938,14 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             update_image(q,MOVED);
             break;
 
-#ifdef GTD_XINERAMA
-            /* go to next xinerama screen */
-          case 'X':
-            if (number_xinerama_screens) {
-              user_screen++;
-              user_screen %= number_xinerama_screens;
-              // g_print("user_screen = %d, number_xinerama_screens = %d\n", user_screen, number_xinerama_screens);
-            }
-            get_preferred_xinerama_screens();     // reselect appropriate screen
-            snprintf(infotext, sizeof infotext,
-                     "(xinerama screen: %i)", user_screen);
-            if (center) center_image(q);
-            update_image(q, FULL_REDRAW);
-          break;
-#else
           case 'X':
           {
-            int numlines = 0;
-            const char **lines;
-            run_command(q, ev->key.string, image_names[image_idx], &numlines, &lines);
-            if (lines && numlines)
-              qiv_display_text_window(q, "(Command output)", lines, "Push any key...");
+            if(num_monitors > 1) {
+              q->mon_id = (q->mon_id + 1) % num_monitors;
+              qiv_load_image(q);
+            }
           }
           break;
-#endif
 
             /* run qiv-command */
           case '^':    // special command with options

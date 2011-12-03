@@ -8,10 +8,6 @@
 #include <Imlib2.h>
 #include <unistd.h>
 #include <stdlib.h>
-#ifdef GTD_XINERAMA
-# include <X11/Xlib.h>
-# include <X11/extensions/Xinerama.h>
-#endif
 #ifdef SUPPORT_LCMS
 #include <lcms2.h>
 #include <jpeglib.h>
@@ -60,7 +56,7 @@ typedef struct _qiv_image {
   GdkPixmap *p; /* Pixmap of the image to display */
   GdkWindow *win; /* Main window for windowed and fullscreen mode */
   int error; /* 1 if Imlib couldn't load image */
-  gint win_x, win_y, win_w, win_h; /* window co-ordinates */
+  gint win_x, win_y, win_w, win_h, mon_id; /* window co-ordinates */
   gint orig_w, orig_h; /* Size of original image in pixels */
   GdkGC *bg_gc;     /* image window background */
   GdkGC *text_gc;   /* statusbar text color */
@@ -100,6 +96,9 @@ extern int              first;
 extern char             infotext[BUF_LEN];
 extern GMainLoop        *qiv_main_loop;
 extern gint             screen_x, screen_y;
+extern gint             num_monitors;
+extern GdkScreen        *screen;
+extern GdkRectangle     *monitor;
 extern GdkFont          *text_font;
 extern GdkColormap      *cmap;
 extern char             *image_bg_spec;
@@ -154,13 +153,7 @@ extern int     rotation;
 
 extern const char   *helpstrs[], **helpkeys, *image_extensions[];
 
-#ifdef GTD_XINERAMA
-extern XineramaScreenInfo preferred_screen[1];
-extern XineramaScreenInfo statusbar_screen[1];
 extern int user_screen;
-extern int number_xinerama_screens;
-extern void get_preferred_xinerama_screens(void);
-#endif
 
 #ifdef SUPPORT_LCMS
 extern const char* source_profile;

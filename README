@@ -14,8 +14,6 @@ Installation (Linux/Solaris/FreeBSD):
 
  Various compile-time options are in the Makefile; be sure to at least
  read over them before typing "make install"... :)
- Remove the "#" if you want to use the libXinerama for centering on
- dual-screen:  #GTD_XINERAMA = -DGTD_XINERAMA
 
  qiv-command
  -----------
