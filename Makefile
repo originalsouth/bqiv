@@ -46,7 +46,7 @@ MAGIC = -DHAVE_MAGIC
 ######################################################################
 
 CC        = gcc
-#CFLAGS    = -O -g -Wall
+#CFLAGS    = -O0 -g -Wall
 CFLAGS    = -O2 -Wall \
 	    -fcaller-saves -ffast-math -fno-strength-reduce \
 	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
@@ -84,7 +84,7 @@ endif
 
 ifdef LCMS
 INCLUDES  += $(shell pkg-config --cflags lcms2)
-LIBS      += $(shell pkg-config --libs lcms2) -ljpeg
+LIBS      += $(shell pkg-config --libs lcms2) -ljpeg -ltiff
 endif
 
 ifdef MAGIC

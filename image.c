@@ -716,6 +716,7 @@ void update_image(qiv_image *q, int mode)
       elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
                  (before.tv_sec + before.tv_usec / 1.0e6));
 
+      /*TODO: Hier gibt es XID collision, wenn am Bild eigentlich nix geändert wurde*/
       q->p = gdk_pixmap_foreign_new(x_pixmap);
       gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
 				gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));

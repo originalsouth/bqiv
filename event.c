@@ -184,7 +184,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
 
   switch(ev->type) {
     case GDK_DELETE:
-      break;
       qiv_exit(0);
       break;
 
