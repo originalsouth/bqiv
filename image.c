@@ -261,12 +261,6 @@ void qiv_load_image(qiv_image *q)
 
   gdk_window_set_background(q->win, im ? &image_bg : &error_bg);
 
-  if (do_grab || (fullscreen && !disable_grab) ) {
-  /*  gdk_keyboard_grab(q->win, FALSE, CurrentTime);
-    gdk_pointer_grab(q->win, FALSE,
-      GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK |
-      GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK, NULL, NULL, CurrentTime);
-  */}
   gettimeofday(&load_after, 0);
   load_elapsed = ((load_after.tv_sec +  load_after.tv_usec / 1.0e6) -
                  (load_before.tv_sec + load_before.tv_usec / 1.0e6));
@@ -717,7 +711,9 @@ void update_image(qiv_image *q, int mode)
                  (before.tv_sec + before.tv_usec / 1.0e6));
 
       /*TODO: Hier gibt es XID collision, wenn am Bild eigentlich nix geändert wurde*/
+      printf("lookup %X \n",(unsigned int) gdk_xid_table_lookup (x_pixmap));
       q->p = gdk_pixmap_foreign_new(x_pixmap);
+      printf("q->p %X \n",(unsigned int) q->p);
       gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
 				gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));
       m = x_mask == None ? NULL : gdk_pixmap_foreign_new(x_mask);

@@ -207,7 +207,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       break;
 
     case GDK_ENTER_NOTIFY:
-      if(fullscreen)
+      if(do_grab || (fullscreen && !disable_grab))
       {
         gdk_keyboard_grab(q->win, FALSE, CurrentTime);
         gdk_pointer_grab(q->win, FALSE,
