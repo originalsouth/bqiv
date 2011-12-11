@@ -711,9 +711,7 @@ void update_image(qiv_image *q, int mode)
                  (before.tv_sec + before.tv_usec / 1.0e6));
 
       /*TODO: Hier gibt es XID collision, wenn am Bild eigentlich nix geändert wurde*/
-      printf("lookup %X \n",(unsigned int) gdk_xid_table_lookup (x_pixmap));
       q->p = gdk_pixmap_foreign_new(x_pixmap);
-      printf("q->p %X \n",(unsigned int) q->p);
       gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
 				gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));
       m = x_mask == None ? NULL : gdk_pixmap_foreign_new(x_mask);
