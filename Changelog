@@ -36,6 +36,8 @@ Authors:
 
 2.2.5pre
 =====
+  12.12.2011
+                    [tw] Add runtime option to toggle grab mode
   09.12.2011
                     [tw] Add support for embedded color profiles in tiff
   02.12.2011

@@ -938,13 +938,36 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             break;
 
           case 'X':
-          {
             if(num_monitors > 1) {
               q->mon_id = (q->mon_id + 1) % num_monitors;
               qiv_load_image(q);
             }
-          }
-          break;
+            break;
+          case ',':
+            if(fullscreen) 
+            {
+              disable_grab ^= 1;
+              snprintf(infotext, sizeof infotext, "(grab %s)", (disable_grab ? "off" : "on"));
+            }
+            else
+            {
+              do_grab ^= 1;
+              snprintf(infotext, sizeof infotext, "(grab %s)", (do_grab ? "on" : "off"));
+            }
+            if((!fullscreen && do_grab) || (fullscreen && !disable_grab))
+            {
+              gdk_keyboard_grab(q->win, FALSE, CurrentTime);
+              gdk_pointer_grab(q->win, FALSE,
+                  GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK |
+                  GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK, NULL, NULL, CurrentTime);
+            }
+            else
+            {
+              gdk_pointer_ungrab(CurrentTime);
+              gdk_keyboard_ungrab(CurrentTime);
+            }
+            update_image(q, REDRAW);
+            break;
 
             /* run qiv-command */
           case '^':    // special command with options

@@ -124,6 +124,7 @@ const char *helpstrs[] =
     "x                    center image on background",
     "y                    tile image on background",
     "z                    stretch image on background",
+    ",                    grab on/off",
     "<                    turn on/off magnifying window",
     "arrow keys                 move image (in fullscreen mode)",
     "arrow keys+Shift           move image faster (in fullscreen mode)",
