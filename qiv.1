@@ -49,6 +49,11 @@ affect other file names passed on the command-line.
 Change the behavior of qiv to recursively descend into the directories given
 on the command line.
 .TP
+.B \-L, \-\-followlinks
+With \-\-recursivedir, this allows a symlink to point to a directory.  This
+is useful for organizing photo dirs into categories, but it is up to you to
+ensure that there are no symlink loops that would cause an infinite scan.
+.TP
 .B \-e, \-\-center
 Disable window centering.
 .TP

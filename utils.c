@@ -500,6 +500,7 @@ void show_help(char *name, int exit_status)
           "    --transparency, -p     Enable transparency for transparent images\n"
           "    --watch, -T            Reload the image if it has changed on disk\n"
           "    --recursivedir, -u     Recursively include all files\n"
+          "    --followlinks, -L      Follow symlinks to directories (requires --recursivedir)\n"
           "    --select_dir, -A x     Store the selected files in dir x (default is .qiv-select)\n"
 #if GDK_PIXBUF_MINOR >= 12
           "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
@@ -596,7 +597,7 @@ int rreaddir(const char *dirname, int recursive)
         strcmp(entry->d_name,TRASH_DIR) == 0)
       continue;
     snprintf(name, sizeof name, "%s/%s", cdirname, entry->d_name);
-    if (lstat(name, &sb) >= 0) {
+    if ((followlinks ? stat(name, &sb) : lstat(name, &sb)) >= 0) {
       if (S_ISDIR(sb.st_mode)) {
         if (!recursive)
           continue;

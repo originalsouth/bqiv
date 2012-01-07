@@ -47,6 +47,7 @@ int	statusbar_window = 0; /* FALSE if statusbar in window is turned off (default
 int	slide; /* 1=slide show running */
 int	scale_down; /* resize down if image x/y > screen */
 int	recursive; /* descend recursively */
+int	followlinks; /* follow symlinks to dirs */
 int	to_root; /* display on root (centered) */
 int	to_root_t; /* display on root (tiled) */
 int	to_root_s; /* display on root (stretched) */

@@ -23,7 +23,7 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 
-static char *short_options = "ab:c:Cd:efg:hilmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:Y:Z:";
+static char *short_options = "ab:c:Cd:efg:hilLmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:Y:Z:";
 static struct option long_options[] =
 {
     {"do_grab",          0, NULL, 'a'},
@@ -47,6 +47,7 @@ static struct option long_options[] =
     {"slide",            0, NULL, 's'},
     {"scale_down",       0, NULL, 't'},
     {"recursivedir",     0, NULL, 'u'},
+    {"followlinks",      0, NULL, 'L'},
     {"version",          0, NULL, 'v'},
     {"fixed_width",      1, NULL, 'w'},
     {"root",             0, NULL, 'x'},
@@ -262,6 +263,8 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 't': scale_down=1;
                 break;
             case 'u': recursive = 1;
+                break;
+            case 'L': followlinks=1;
                 break;
             case 'v': g_print("qiv (Quick Image Viewer) v%s\n", VERSION);
                 gdk_exit(0);

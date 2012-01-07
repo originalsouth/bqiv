@@ -134,6 +134,7 @@ extern int     statusbar_window;
 extern int     slide;
 extern int     scale_down;
 extern int     recursive;
+extern int     followlinks;
 extern int     to_root;
 extern int     to_root_t;
 extern int     to_root_s;
