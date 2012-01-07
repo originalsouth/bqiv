@@ -230,11 +230,13 @@ void qiv_load_image(qiv_image *q)
     /* conditional rotation -- apply rotation only if image fits better */
 #ifdef GTD_XINERAMA
     int screen_is_wide = preferred_screen->width > preferred_screen->height;
+    int does_not_fit = q->orig_w > preferred_screen->width || q->orig_h > preferred_screen->height;
 #else
     int screen_is_wide = screen_x > screen_y;
+    int does_not_fit = q->orig_w > screen_x || q->orig_h > screen_y;
 #endif
     int image_is_wide = q->orig_w > q->orig_h;
-    if (screen_is_wide ^ image_is_wide)
+    if (screen_is_wide != image_is_wide && does_not_fit)
       rot = rotation - 10; /* we want the rotation (will be 11 -> 1 or 13 -> 3) */
     else
       rot = 0; /* don't rotate */
