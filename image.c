@@ -192,7 +192,7 @@ void qiv_load_image(qiv_image *q)
   struct stat statbuf;
   const char * image_name = image_names[ image_idx];
   Imlib_Image * im=NULL;
-  int has_alpha=0;
+  int has_alpha=0, rot;
 
   gettimeofday(&load_before, 0);
 
@@ -226,18 +226,32 @@ void qiv_load_image(qiv_image *q)
     q->orig_h = imlib_image_get_height();
   }
 
-  if (rotation>0) {
-    imlib_image_orientate(rotation);
-    if (rotation!=2) {
+  if (rotation > 10) {
+    /* conditional rotation -- apply rotation only if image fits better */
+#ifdef GTD_XINERAMA
+    int screen_is_wide = preferred_screen->width > preferred_screen->height;
+#else
+    int screen_is_wide = screen_x > screen_y;
+#endif
+    int image_is_wide = q->orig_w > q->orig_h;
+    if (screen_is_wide ^ image_is_wide)
+      rot = rotation - 10; /* we want the rotation (will be 11 -> 1 or 13 -> 3) */
+    else
+      rot = 0; /* don't rotate */
+  } else
+    rot = rotation;
+
+  if (rot) {
+    imlib_image_orientate(rot);
+    if (rot != 2) {
       swap(&q->orig_w, &q->orig_h);
       swap(&q->win_w, &q->win_h);
     }
   }
 
 
-  if (rotation>0) {
+  if (rot && rot != 2)
     correct_image_position(q);
-  }
 
   if (first) {
     setup_win(q);

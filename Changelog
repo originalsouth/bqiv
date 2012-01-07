@@ -36,6 +36,9 @@ Authors:
 
 2.2.5pre
 =====
+  07.01.2012
+                    [wd] Fixed inconsistency with rotate option, add
+                         conditional rotation
   06.01.2012
                     [tw] Add runtime option to display Exif information	
   12.12.2011

@@ -504,7 +504,7 @@ void show_help(char *name, int exit_status)
 #if GDK_PIXBUF_MINOR >= 12
           "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
 #endif
-          "    --rotate, -q x         Rotate 90(x=1),180(x=2),270(x=3) degrees clockwise\n"
+          "    --rotate, -q x         Rotate 90(x=1),180(x=2),270(x=3) degrees clockwise (11 & 13 for conditional)\n"
           "    --xineramascreen, -X x Use monitor x as preferred screen\n"
 #ifdef SUPPORT_LCMS
           "    --source_profile, -Y x Use color profile file x as source profile for all images\n"

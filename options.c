@@ -42,7 +42,7 @@ static struct option long_options[] =
     {"no_filter",        0, NULL, 'n'},
     {"bg_color",         1, NULL, 'o'},
     {"transparency",     0, NULL, 'p'},
-    {"rotation",         1, NULL, 'q'},
+    {"rotate",           1, NULL, 'q'},
     {"random",           0, NULL, 'r'},
     {"slide",            0, NULL, 's'},
     {"scale_down",       0, NULL, 't'},
@@ -252,7 +252,7 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'p': transparency=1;
                 break;
             case 'q': rotation=checked_atoi(optarg);
-                if ((rotation<0) || (rotation>3))
+                if (rotation < 0 || (rotation > 3 && rotation != 11 && rotation != 13))
                     usage(argv[0],1);
                 break;
             case 'r': random_order=1;
