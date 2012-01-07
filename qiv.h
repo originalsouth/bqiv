@@ -164,6 +164,9 @@ extern cmsHTRANSFORM h_cms_transform;
 extern int cms_transform;
 extern char *get_icc_profile(char *filename);
 #endif
+#ifdef HAVE_EXIF
+extern char **get_exif_values(char *filename);
+#endif
 
 /* main.c */
 

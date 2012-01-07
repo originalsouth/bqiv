@@ -20,6 +20,7 @@
 #include "qiv.h"
 #include "xmalloc.h"
 #include <tiffio.h>
+#include <libexif/exif-loader.h>
 
 #ifdef STAT_MACROS_BROKEN
 #undef S_ISDIR
@@ -859,5 +860,79 @@ char *get_icc_profile(char *filename)
 
   fclose(infile);
   return NULL;
+}
+#endif
+
+#ifdef HAVE_EXIF
+char **get_exif_values(char *filename)
+{
+  ExifData *ed;
+  ExifEntry *entry;
+  int i,j;
+  char *line;
+  char **exif_lines=NULL;
+  char buffer[256];
+
+  /* displayed exif tags, when available */
+  struct {
+    ExifTag tag;
+    ExifIfd ifd;
+  } tags[] = {
+    {EXIF_TAG_DOCUMENT_NAME, EXIF_IFD_0},
+    {EXIF_TAG_IMAGE_WIDTH, EXIF_IFD_0},
+    {EXIF_TAG_IMAGE_LENGTH, EXIF_IFD_0},
+    {EXIF_TAG_MAKE, EXIF_IFD_0},
+    {EXIF_TAG_MODEL, EXIF_IFD_0},
+    {EXIF_TAG_SOFTWARE, EXIF_IFD_0},
+    {EXIF_TAG_DATE_TIME, EXIF_IFD_0},
+    {EXIF_TAG_ARTIST, EXIF_IFD_0},
+    {EXIF_TAG_ORIENTATION, EXIF_IFD_0},
+    {EXIF_TAG_FLASH, EXIF_IFD_EXIF},
+    {EXIF_TAG_EXPOSURE_TIME, EXIF_IFD_EXIF},
+    {EXIF_TAG_ISO_SPEED_RATINGS, EXIF_IFD_EXIF},
+    {EXIF_TAG_APERTURE_VALUE, EXIF_IFD_EXIF},
+    {EXIF_TAG_FOCAL_LENGTH, EXIF_IFD_EXIF},
+    {EXIF_TAG_SHUTTER_SPEED_VALUE, EXIF_IFD_EXIF},
+    {EXIF_TAG_SUBJECT_DISTANCE, EXIF_IFD_EXIF},
+    {EXIF_TAG_METERING_MODE, EXIF_IFD_EXIF},
+    {EXIF_TAG_EXPOSURE_MODE, EXIF_IFD_EXIF},
+    {EXIF_TAG_WHITE_BALANCE, EXIF_IFD_EXIF},
+    {EXIF_TAG_CONTRAST, EXIF_IFD_EXIF},
+    {EXIF_TAG_SATURATION, EXIF_IFD_EXIF},
+    {EXIF_TAG_SHARPNESS, EXIF_IFD_EXIF},
+    {EXIF_TAG_DIGITAL_ZOOM_RATIO, EXIF_IFD_EXIF},
+    {EXIF_TAG_GPS_LATITUDE, EXIF_IFD_GPS}, 
+    {EXIF_TAG_GPS_LATITUDE_REF, EXIF_IFD_GPS}, 
+    {EXIF_TAG_GPS_LONGITUDE, EXIF_IFD_GPS}, 
+    {EXIF_TAG_GPS_LONGITUDE_REF, EXIF_IFD_GPS}, 
+    {EXIF_TAG_GPS_ALTITUDE, EXIF_IFD_GPS}, 
+    {EXIF_TAG_GPS_ALTITUDE_REF, EXIF_IFD_GPS}, 
+  };
+
+  j=0;
+  ed = exif_data_new_from_file(filename);
+  if(ed)
+  {
+    /* one too much to make sure the last one will allways be NULL */
+    exif_lines=calloc(1+sizeof(tags)/sizeof(tags[0]),sizeof(char*));
+    for(i=0; i < sizeof(tags)/sizeof(tags[0]); i++)
+    {
+      entry=exif_content_get_entry( ed->ifd[tags[i].ifd], tags[i].tag);
+      if(entry)
+      {
+        line=malloc(100); 
+        exif_entry_get_value (entry, buffer, 255);
+        snprintf(line, 100, "%-17s: %s\n", exif_tag_get_name_in_ifd(tags[i].tag,tags[i].ifd), buffer);
+        exif_lines[j]=line;
+        j++;
+      }
+    }
+  }
+  if(j==0)
+  {
+    free(exif_lines);
+    return NULL;
+  }
+  return exif_lines;
 }
 #endif

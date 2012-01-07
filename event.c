@@ -472,6 +472,27 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             update_image(q, MOVED);
             break;
 
+            /* Display exif information */
+#ifdef HAVE_EXIF
+          case 'E':
+            {
+              char **lines;
+              int i=0;
+              lines=get_exif_values(image_names[image_idx]);
+              if(lines)
+              {
+                qiv_display_text_window(q, "(Exif Info)", (const char**) lines,"Press any key...");
+                /* free all the mem malloc'ed by get_exif_values func */
+                while(*(lines+i) != NULL)
+                {
+                  free(*(lines+i));
+                  i++;
+                }
+                free(lines);
+              }
+            }
+            break;
+#endif
             /* Transparency on/off */
 
           case 'p':
@@ -993,7 +1014,9 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case '9':
           case 'A':
           case 'D':
+#ifndef HAVE_EXIF
           case 'E':
+#endif
           case 'F':
           case 'H':
           case 'J':

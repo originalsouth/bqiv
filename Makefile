@@ -40,6 +40,10 @@ LCMS = -DSUPPORT_LCMS
 # identify if a file is an image
 MAGIC = -DHAVE_MAGIC
 
+# Comment this line out if you do not want to use libexif to
+# display the exif contents of a jpg 
+EXIF = -DHAVE_EXIF
+
 ######################################################################
 # Variables and Rules
 # Do not edit below here!
@@ -75,6 +79,7 @@ DEFINES   = $(patsubst %,-DEXTN_%, $(EXTNS)) \
             -DFILTER=$(FILTER) \
             -DCURSOR=$(CURSOR) \
             $(MAGIC) \
+            $(EXIF) \
             $(LCMS)
 
 ifndef GETOPT_LONG
@@ -85,6 +90,10 @@ endif
 ifdef LCMS
 INCLUDES  += $(shell pkg-config --cflags lcms2)
 LIBS      += $(shell pkg-config --libs lcms2) -ljpeg -ltiff
+endif
+
+ifdef EXIF
+LIBS      += -lexif
 endif
 
 ifdef MAGIC

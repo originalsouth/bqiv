@@ -118,6 +118,9 @@ const char *helpstrs[] =
     "jfx<return>          jump forward x images",
     "jbx<return>          jump backward x images",
     "enter/return         reset zoom, rotation and color settings",
+#ifdef HAVE_EXIF
+    "E                    display Exif information",
+#endif
     "i                    statusbar on/off",
     "I                    iconify window",
     "w                    watch file on/off",
