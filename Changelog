@@ -37,6 +37,8 @@ Authors:
 2.2.5pre
 =====
   07.01.2012
+                    [wd] Make conditional rotate leave images that fit alone.
+                    [wd] Add --followlinks option to all symlinks to dirs.
                     [wd] Fixed inconsistency with rotate option, add
                          conditional rotation
   06.01.2012

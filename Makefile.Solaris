@@ -91,7 +91,8 @@ LIBS      += $(shell pkg-config --libs lcms2) -ljpeg -ltiff
 endif
 
 ifdef EXIF
-LIBS      += -lexif
+INCLUDES  += $(shell pkg-config --cflags libexif)
+LIBS      += $(shell pkg-config --libs libexif)
 endif
 
 ifdef MAGIC

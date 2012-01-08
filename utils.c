@@ -17,10 +17,10 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <tiffio.h>
+#include <exif-loader.h>
 #include "qiv.h"
 #include "xmalloc.h"
-#include <tiffio.h>
-#include <libexif/exif-loader.h>
 
 #ifdef STAT_MACROS_BROKEN
 #undef S_ISDIR
