@@ -228,9 +228,9 @@ void qiv_load_image(qiv_image *q)
 
   if (rotation > 10) {
     /* conditional rotation -- apply rotation only if image fits better */
-    int screen_is_wide = screen_x > screen_y;
-    int does_not_fit = q->orig_w > screen_x || q->orig_h > screen_y;
+    int screen_is_wide = monitor[q->mon_id].width > monitor[q->mon_id].height;
     int image_is_wide = q->orig_w > q->orig_h;
+    int does_not_fit = q->orig_w > monitor[q->mon_id].width || q->orig_h > monitor[q->mon_id].height;
     if (screen_is_wide != image_is_wide && does_not_fit)
       rot = rotation - 10; /* we want the rotation (will be 11 -> 1 or 13 -> 3) */
     else
