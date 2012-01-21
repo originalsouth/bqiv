@@ -201,6 +201,7 @@ void qiv_load_image(qiv_image *q)
 
   stat(image_name, &statbuf);
   current_mtime = statbuf.st_mtime;
+  file_size = statbuf.st_size;
 
 #ifdef DEBUG
   g_print("loading %s\n",image_name);
@@ -252,9 +253,6 @@ void qiv_load_image(qiv_image *q)
 
   if (first) {
     setup_win(q);
-/*    if(fullscreen) {
-      usleep(150000);
-    }*/
     first = 0;
   }
   
@@ -324,6 +322,8 @@ static void setup_win(qiv_image *q)
   GdkPixmap *cursor_pixmap;
   static GList  icon_list = {NULL, NULL, NULL};
 
+  destroy_image(q);
+
   if (!fullscreen) {
     attr.window_type=GDK_WINDOW_TOPLEVEL;
     attr.wclass=GDK_INPUT_OUTPUT;
@@ -382,24 +382,24 @@ static void setup_win(qiv_image *q)
     }
   }
 
-  /* create the icon only once */
+  /* this is all done only once */
   if(icon_list.data==NULL)
   {
     icon_list.data = gdk_pixbuf_new_from_inline (-1, qiv_icon, FALSE, NULL);
+    cursor_pixmap = gdk_bitmap_create_from_data(q->win, blank_cursor, 1, 1);
+    invisible_cursor = gdk_cursor_new_from_pixmap(cursor_pixmap, cursor_pixmap,
+        &text_bg, &text_bg, 0, 0);
+    cursor = visible_cursor = gdk_cursor_new(CURSOR);
   }
+
   gdk_window_set_icon_list(q->win, &icon_list);
+  gdk_window_set_cursor(q->win, cursor);
 
   q->bg_gc = gdk_gc_new(q->win);
   q->text_gc = gdk_gc_new(q->win); /* black is default */
   q->status_gc = gdk_gc_new(q->win);
   gdk_gc_set_foreground(q->bg_gc, &image_bg);
   gdk_gc_set_foreground(q->status_gc, &text_bg);
-
-  cursor_pixmap = gdk_bitmap_create_from_data(q->win, blank_cursor, 1, 1);
-  invisible_cursor = gdk_cursor_new_from_pixmap(cursor_pixmap, cursor_pixmap,
-                                                &text_bg, &text_bg, 0, 0);
-  cursor = visible_cursor = gdk_cursor_new(CURSOR);
-  gdk_window_set_cursor(q->win, cursor);
 
   setup_imlib_for_drawable(GDK_DRAWABLE(q->win));
 }
@@ -648,9 +648,9 @@ void reset_coords(qiv_image *q)
 
 void update_image(qiv_image *q, int mode)
 {
-  GdkPixmap * m = NULL;
+  static GdkPixmap * m = NULL;
   Pixmap x_pixmap, x_mask;
-  double elapsed;
+  double elapsed=0;
   struct timeval before, after;
   int i;
 
@@ -687,11 +687,12 @@ void update_image(qiv_image *q, int mode)
     if (mode == MOVED) {
       if (transparency && used_masks_before) {
         /* there should be a faster way to update the mask, but how? */
-	if (q->p)
-	{
-	  imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
-	  g_object_unref(q->p);
-	}
+        if (q->p)
+        {
+          imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
+          g_object_unref(q->p);
+        }
+        if (m) g_object_unref(m);
 	imlib_render_pixmaps_for_whole_image_at_size(&x_pixmap, &x_mask, q->win_w, q->win_h);
 	q->p = gdk_pixmap_foreign_new(x_pixmap);
 	gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
@@ -709,23 +710,28 @@ void update_image(qiv_image *q, int mode)
     } // mode == MOVED
     else
     {
-      if (q->p) {
-	imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
-	g_object_unref(q->p);
+      if(mode != MIN_REDRAW)
+      {
+        if (q->p) {
+          imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
+          g_object_unref(q->p);
+        }
+        if (m) g_object_unref(m);
+
+        /* calculate elapsed time while we render image */
+        gettimeofday(&before, 0);
+        imlib_render_pixmaps_for_whole_image_at_size(&x_pixmap, &x_mask, q->win_w, q->win_h);
+        gettimeofday(&after, 0);
+        elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
+            (before.tv_sec + before.tv_usec / 1.0e6));
+
+        /*TODO: Hier gibt es XID collision, wenn am Bild eigentlich nix geändert wurde*/
+        q->p = gdk_pixmap_foreign_new_for_screen(screen, x_pixmap, q->win_w, q->win_h, 24);
+        gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
+            gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));
+//        m = x_mask == None ? NULL : gdk_pixmap_foreign_new(x_mask);
+        m = x_mask == None ? NULL : gdk_pixmap_foreign_new_for_screen(screen, x_mask, q->win_w, q->win_h, 1);
       }
-
-      /* calculate elapsed time while we render image */
-      gettimeofday(&before, 0);
-      imlib_render_pixmaps_for_whole_image_at_size(&x_pixmap, &x_mask, q->win_w, q->win_h);
-      gettimeofday(&after, 0);
-      elapsed = ((after.tv_sec +  after.tv_usec / 1.0e6) -
-                 (before.tv_sec + before.tv_usec / 1.0e6));
-
-      /*TODO: Hier gibt es XID collision, wenn am Bild eigentlich nix geändert wurde*/
-      q->p = gdk_pixmap_foreign_new(x_pixmap);
-      gdk_drawable_set_colormap(GDK_DRAWABLE(q->p),
-				gdk_drawable_get_colormap(GDK_DRAWABLE(q->win)));
-      m = x_mask == None ? NULL : gdk_pixmap_foreign_new(x_mask);
 
 #ifdef DEBUG
       if (m)  g_print("*** image has transparency\n");
@@ -864,9 +870,16 @@ void destroy_image(qiv_image *q)
     imlib_free_pixmap_and_mask(GDK_PIXMAP_XID(q->p));
     g_object_unref(q->p);
   }
+  if (q->win) g_object_unref(q->win);
   if (q->bg_gc) g_object_unref(q->bg_gc);
   if (q->text_gc) g_object_unref(q->text_gc);
   if (q->status_gc) g_object_unref(q->status_gc);
+
+  q->p=NULL;
+  q->win=NULL;
+  q->bg_gc=NULL;
+  q->text_gc=NULL;
+  q->status_gc=NULL;
 }
 
 void setup_magnify(qiv_image *q, qiv_mgl *m)

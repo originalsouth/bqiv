@@ -22,6 +22,9 @@ time_t          current_mtime; /* modification time of file currently loaded */
 qiv_deletedfile *deleted_files;
 int		delete_idx;
 char    select_dir[FILENAME_LEN];
+char    *comment=NULL; 
+gint    jpeg_prog=0;
+off_t   file_size;
 
 /* stuff for rendering statusbar, infotext, etc ... */
 PangoLayout     *layout;

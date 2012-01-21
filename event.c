@@ -129,7 +129,7 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   text_h = (i + 2) * ( ascent + descent );
 
   snprintf(infotext, sizeof infotext, "%s", infotextdisplay);
-  update_image(q, REDRAW);
+  update_image(q, MIN_REDRAW);
 
   text_left = width/2 - text_w/2 - 4;
   if (text_left < 2)  text_left = 2;            /* if window/screen is smaller than text */
@@ -384,7 +384,15 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       if (displaying_textwindow && !extcommand ) { // [lc]
         /* Hide the text window if it is showing */
         displaying_textwindow = FALSE;
-        update_image(q, FULL_REDRAW);
+        if(fullscreen)
+        {
+          update_image(q, FULL_REDRAW);
+        }
+        else
+        {
+          update_image(q, MIN_REDRAW);
+        }
+
         break;
       }
 
@@ -419,7 +427,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             extcommand=0;
             /* Hide the text window if it is showing */
             displaying_textwindow = FALSE;
-            update_image(q, FULL_REDRAW);
+            update_image(q, MIN_REDRAW);
             run_command(q, jcmd, image_names[image_idx], &numlines, &lines);
             if (lines && numlines)
               qiv_display_text_window(q, "(Command output)", lines, "Push any key...");
@@ -500,7 +508,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             transparency ^= 1;
             snprintf(infotext, sizeof infotext, transparency ?
                      "(Transparency: on)" : "(Transparency: off)");
-            update_image(q, FULL_REDRAW);
+            update_image(q, MIN_REDRAW);
             break;
 
             /* Maxpect on/off */
@@ -553,7 +561,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
               snprintf(infotext, sizeof infotext, statusbar_window ?
                        "(Statusbar: on)" : "(Statusbar: off)");
             }
-            update_image(q, REDRAW);
+            update_image(q, MIN_REDRAW);
             break;
 
             /* Slide show on/off */
@@ -987,7 +995,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
               gdk_pointer_ungrab(CurrentTime);
               gdk_keyboard_ungrab(CurrentTime);
             }
-            update_image(q, REDRAW);
+            update_image(q, MIN_REDRAW);
             break;
 
             /* run qiv-command */

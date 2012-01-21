@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <tiffio.h>
-#include <exif-loader.h>
+#include <libexif/exif-loader.h>
 #include "qiv.h"
 #include "xmalloc.h"
 
@@ -348,7 +348,7 @@ void run_command(qiv_image *q, char *n, char *filename, int *numlines, const cha
   if (before.st_size == after.st_size &&
       before.st_ctime == after.st_ctime &&
       before.st_mtime == after.st_mtime)
-    update_image(q, FULL_REDRAW);
+    update_image(q, MIN_REDRAW);
   else
     qiv_load_image(q);
 }
@@ -780,6 +780,14 @@ char *get_icc_profile(char *filename)
     fclose(infile);
     return NULL;
   }
+
+  jpeg_prog=0;
+  if(comment)
+  {
+    free(comment);
+    comment=NULL;
+  }
+  
   /* Is pic a jpg? */
   if ( (pic_tst[0] == 0xff) && (pic_tst[1] == 0xd8) && (pic_tst[2] == 0xff) &&  ((pic_tst[3]& 0xf0) == 0xe0) )
   {
@@ -790,8 +798,10 @@ char *get_icc_profile(char *filename)
     jpeg_create_decompress(&cinfo);
     jpeg_stdio_src(&cinfo, infile); 
     jpeg_save_markers(&cinfo, 0xE2, 0xFFFF);
+    jpeg_save_markers(&cinfo, JPEG_COM, 0xFFFF);
     jpg_ok = jpeg_read_header(&cinfo, 0);
     fclose(infile);
+    jpeg_prog=cinfo.progressive_mode;
 
     for (marker = cinfo.marker_list; marker != NULL; marker = marker->next) 
     {
@@ -809,6 +819,12 @@ char *get_icc_profile(char *filename)
         (tag_ptr[marker->data[12]-1]) += 14;
 
         i++;
+      }
+      /* copy jpeg comment here to be printed out when exif data is displayed. */
+      else if(marker->marker==JPEG_COM)
+      {
+        comment=calloc(1+marker->data_length,1);
+        strncpy(comment, (char *) marker->data, marker->data_length);
       }
     }
     if(i==0)
@@ -879,25 +895,31 @@ char **get_exif_values(char *filename)
     ExifTag tag;
     ExifIfd ifd;
   } tags[] = {
-    {EXIF_TAG_DOCUMENT_NAME, EXIF_IFD_0},
-    {EXIF_TAG_IMAGE_WIDTH, EXIF_IFD_0},
-    {EXIF_TAG_IMAGE_LENGTH, EXIF_IFD_0},
     {EXIF_TAG_MAKE, EXIF_IFD_0},
     {EXIF_TAG_MODEL, EXIF_IFD_0},
+    {EXIF_TAG_DOCUMENT_NAME, EXIF_IFD_0},
+    {EXIF_TAG_PIXEL_X_DIMENSION , EXIF_IFD_EXIF},
+    {EXIF_TAG_PIXEL_Y_DIMENSION , EXIF_IFD_EXIF},
     {EXIF_TAG_SOFTWARE, EXIF_IFD_0},
     {EXIF_TAG_DATE_TIME, EXIF_IFD_0},
+    {EXIF_TAG_DATE_TIME_ORIGINAL, EXIF_IFD_EXIF},
     {EXIF_TAG_ARTIST, EXIF_IFD_0},
     {EXIF_TAG_ORIENTATION, EXIF_IFD_0},
+    {EXIF_TAG_JPEG_PROC, EXIF_IFD_1},
     {EXIF_TAG_FLASH, EXIF_IFD_EXIF},
     {EXIF_TAG_EXPOSURE_TIME, EXIF_IFD_EXIF},
     {EXIF_TAG_ISO_SPEED_RATINGS, EXIF_IFD_EXIF},
     {EXIF_TAG_APERTURE_VALUE, EXIF_IFD_EXIF},
     {EXIF_TAG_FOCAL_LENGTH, EXIF_IFD_EXIF},
+    {EXIF_TAG_FOCAL_LENGTH_IN_35MM_FILM, EXIF_IFD_EXIF},
     {EXIF_TAG_SHUTTER_SPEED_VALUE, EXIF_IFD_EXIF},
     {EXIF_TAG_SUBJECT_DISTANCE, EXIF_IFD_EXIF},
     {EXIF_TAG_METERING_MODE, EXIF_IFD_EXIF},
     {EXIF_TAG_EXPOSURE_MODE, EXIF_IFD_EXIF},
+    {EXIF_TAG_SENSING_METHOD, EXIF_IFD_EXIF},
     {EXIF_TAG_WHITE_BALANCE, EXIF_IFD_EXIF},
+    {EXIF_TAG_GAIN_CONTROL, EXIF_IFD_EXIF},
+    {EXIF_TAG_COLOR_SPACE, EXIF_IFD_EXIF},
     {EXIF_TAG_CONTRAST, EXIF_IFD_EXIF},
     {EXIF_TAG_SATURATION, EXIF_IFD_EXIF},
     {EXIF_TAG_SHARPNESS, EXIF_IFD_EXIF},
@@ -915,15 +937,15 @@ char **get_exif_values(char *filename)
   if(ed)
   {
     /* one too much to make sure the last one will allways be NULL */
-    exif_lines=calloc(1+sizeof(tags)/sizeof(tags[0]),sizeof(char*));
+    exif_lines=calloc(4+sizeof(tags)/sizeof(tags[0]),sizeof(char*));
     for(i=0; i < sizeof(tags)/sizeof(tags[0]); i++)
     {
       entry=exif_content_get_entry( ed->ifd[tags[i].ifd], tags[i].tag);
       if(entry)
       {
-        line=malloc(100); 
+        line=malloc(256); 
         exif_entry_get_value (entry, buffer, 255);
-        snprintf(line, 100, "%-17s: %s\n", exif_tag_get_name_in_ifd(tags[i].tag,tags[i].ifd), buffer);
+        snprintf(line, 255, "%-21s: %s\n", exif_tag_get_name_in_ifd(tags[i].tag,tags[i].ifd), buffer);
         exif_lines[j]=line;
         j++;
       }
@@ -934,6 +956,22 @@ char **get_exif_values(char *filename)
     free(exif_lines);
     return NULL;
   }
+  line=malloc(64);
+  snprintf(line, 63, "%-21s: %i Bytes\n", "FileSize", (int)file_size);
+  exif_lines[j++]=line;
+  if(jpeg_prog)
+  {
+    line=malloc(64);
+    snprintf(line, 63, "%-21s: %s\n", "JpegProcess", "Progressive");
+    exif_lines[j++]=line;
+  }
+  if(comment)
+  {
+    line=malloc(256);
+    snprintf(line, 255, "%-21s: %s\n", "Comment", comment);
+    exif_lines[j++]=line;
+  }
+    
   return exif_lines;
 }
 #endif

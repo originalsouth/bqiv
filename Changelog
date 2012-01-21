@@ -34,8 +34,11 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
-2.2.5pre
+2.3pre
 =====
+  21.01.2012
+                    [tw] get rid of XID collision
+                    [tw] code cleanup, mostly exif
   07.01.2012
                     [wd] Make conditional rotate leave images that fit alone.
                     [wd] Add --followlinks option to all symlinks to dirs.

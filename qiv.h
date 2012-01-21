@@ -25,8 +25,8 @@
 #include <X11/extensions/xf86vmode.h> // for XF86VidModeGetModeLine
 */
 
-#define VERSION "2.2.5pre"
-#define VERSION_FULL "QIV - Quick Image Viewer v2.2.5pre - http://qiv.spiegl.de/"
+#define VERSION "2.3pre"
+#define VERSION_FULL "QIV - Quick Image Viewer v2.3pre - http://qiv.spiegl.de/"
 #define TRASH_DIR ".qiv-trash"
 #define SELECT_DIR ".qiv-select"
 #define SLIDE_DELAY 3000 /* milliseconds */
@@ -116,6 +116,9 @@ extern char             select_dir[FILENAME_LEN];
 extern PangoLayout     *layout;
 extern PangoFontDescription *fontdesc;
 extern PangoFontMetrics *metrics;
+extern char             *comment;
+extern gint             jpeg_prog;
+extern off_t            file_size;
 
 extern int     filter;
 extern gint    center;
@@ -181,6 +184,7 @@ extern void qiv_load_image();
 #define MOVED  1
 #define ZOOMED 2
 #define FULL_REDRAW 3
+#define MIN_REDRAW 4
 
 extern void qiv_load_image(qiv_image *);
 extern void set_desktop_image(qiv_image *);
