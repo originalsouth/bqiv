@@ -18,7 +18,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <tiffio.h>
+#ifdef HAVE_EXIF
 #include <libexif/exif-loader.h>
+#endif
 #include "qiv.h"
 #include "xmalloc.h"
 
