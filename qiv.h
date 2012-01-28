@@ -82,6 +82,7 @@ typedef struct _qiv_mgl {
   GdkWindow *win; /* window for magnify */
   gint win_x, win_y, win_w, win_h; /* window coordinates */
   gint frame_x, frame_y; /* UpLeft Corner of frame (titlebar included) of */
+  double zoom;
                          /* main qiv_image */
 //  GdkGC *bg_gc;     /* image window background */
 //  int exposed;        /* window became visible */

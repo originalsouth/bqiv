@@ -888,6 +888,7 @@ void setup_magnify(qiv_image *q, qiv_mgl *m)
    GdkGeometry mgl_hints;
 
    m->win_w=300; m->win_h=200;
+   m->zoom=2.0;
 
 //   gdk_flush();
    gdk_window_get_root_origin(q->win, &m->frame_x, &m->frame_y);
@@ -895,7 +896,7 @@ void setup_magnify(qiv_image *q, qiv_mgl *m)
 
    mgl_attr.window_type=GDK_WINDOW_TOPLEVEL; // Set up attributes for GDK to create a Window
    mgl_attr.wclass=GDK_INPUT_OUTPUT;
-   mgl_attr.event_mask=GDK_STRUCTURE_MASK;
+   mgl_attr.event_mask=GDK_STRUCTURE_MASK | GDK_EXPOSURE_MASK;
    mgl_attr.width=m->win_w;
    mgl_attr.height=m->win_h;
    mgl_attr.override_redirect=TRUE;
@@ -939,36 +940,26 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
   }
 ************/
   if (mode == REDRAW ) {
-    xx=xcur * q->orig_w / q->win_w;    /* xx, yy are the coords of cursor   */
-    if (xx <= m->win_w/2)               /* xcur, ycur scaled to the original */
-      xx=0;                             /* image; they are changed so that   */
-    else                                /* the magnified part is always      */
-      if (xx >= q->orig_w - m->win_w/2) /* inside the image.                 */
-        xx=q->orig_w - m->win_w;
-      else
-        xx=xx - m->win_w/2;
 
-    yy=ycur * q->orig_h / q->win_h;
-    if (yy <= m->win_h/2)
-      yy=0;
-    else
-      if (yy >= q->orig_h - m->win_h/2)
-        yy=q->orig_h - m->win_h;
-      else
-        yy=yy - m->win_h/2;
+    /* scale position to original size */
+    xx=xcur * ((double)q->orig_w/(double)q->win_w);
+    yy=ycur * ((double)q->orig_h/(double)q->win_h);
 
-//    printf("MGL: xcur: %d, ycur: %d, xx: %d, yy: %d\n", xcur, ycur, xx, yy);
+    /* keep magnify part allways inside image */
+    if(xx + m->win_w / m->zoom > q->orig_w) {
+      xx=q->orig_w - m->win_w / m->zoom;
+    }
+    if(yy + m->win_h / m->zoom > q->orig_h) {
+      yy=q->orig_h - m->win_h / m->zoom;
+    }
+
 
     setup_imlib_for_drawable(m->win);
-    imlib_render_image_part_on_drawable_at_size(xx, yy, m->win_w, m->win_h,
+    imlib_render_image_part_on_drawable_at_size(xx, yy, m->win_w / m->zoom , m->win_h / m->zoom,
 						0, 0, m->win_w, m->win_h);
     setup_imlib_for_drawable(q->win);
     gdk_window_show(m->win);
 
-    // xcur= m->frame_x + xcur +
-    // (xcur < m->win_w/2? 50 : - 50 - m->win_w);
-    // gdk_window_get_root_origin(q->win,              // todo  [lc]
-    //        &magnify_img.frame_x, &magnify_img.frame_y);  // call not necessary
     xx= m->frame_x + xcur - 50 - m->win_w;
     yy= m->frame_y + ycur - 50 - m->win_h;
     if (xx < 0) {
@@ -984,12 +975,8 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
         yy=0;
     }
 //    printf("MGL: m->frame_x: %d, m->frame_y: %d, xx: %d, yy: %d\n", m->frame_x, m->frame_y, xx, yy);
-
-//    gdk_window_move_resize(m->win, xx, yy,    m->win_w, m->win_h);
     gdk_window_move(m->win, xx, yy);
   }
-
-// gdk_window_show(m->win);
   gdk_flush();
 }
 

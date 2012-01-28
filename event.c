@@ -676,9 +676,18 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case '+':
           case '=':
           zoom_in:
-            snprintf(infotext, sizeof infotext, "(Zoomed in)");
-            zoom_in(q);
-            update_image(q, ZOOMED);
+            if (magnify && !fullscreen) {
+              gint xcur, ycur;
+              magnify_img.zoom *= 1.1;
+              gdk_window_get_pointer(q->win, &xcur, &ycur, NULL);
+              update_magnify(q, &magnify_img,REDRAW, xcur, ycur); // [lc]
+            }
+            else
+            {
+              snprintf(infotext, sizeof infotext, "(Zoomed in)");
+              zoom_in(q);
+              update_image(q, ZOOMED);
+            }
             break;
 
             /* Resize - */
@@ -686,9 +695,22 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_KP_Subtract:
           case '-':
           zoom_out:
-            snprintf(infotext, sizeof infotext, "(Zoomed out)");
-            zoom_out(q);
-            update_image(q, ZOOMED);
+            if (magnify && !fullscreen) {
+              if (magnify_img.zoom > 2.0)
+              {
+                gint xcur, ycur;
+                magnify_img.zoom /= 1.1;
+                if (magnify_img.zoom < 2) magnify_img.zoom = 2.0;
+                gdk_window_get_pointer(q->win, &xcur, &ycur, NULL);
+                update_magnify(q, &magnify_img,REDRAW, xcur, ycur);
+              }
+            }
+            else
+            {
+              snprintf(infotext, sizeof infotext, "(Zoomed out)");
+              zoom_out(q);
+              update_image(q, ZOOMED);
+            }
             break;
 
             /* Reset Image / Original (best fit) size */
