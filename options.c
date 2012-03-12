@@ -365,7 +365,7 @@ void options_read(int argc, char **argv, qiv_image *q)
         }
     }
 
-    if (browse) {
+    if (browse && images) {
         images = 0; /* avoid displaying same filename twice */
         char *tmp = (char *)xmalloc(strlen(image_names[0])+1);
         strcpy(tmp,image_names[0]);
