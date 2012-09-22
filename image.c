@@ -162,15 +162,24 @@ Imlib_Image im_from_pixbuf_loader(char * image_name, int * has_alpha)
           TYPE_ARGB_8,
 #endif
           INTENT_PERCEPTUAL, 0);
-      cmsDoTransform(h_emb_transform, argbdata, argbdata, pb_w*pb_h);
-      cmsCloseProfile(h_emb_profile);
-      cmsDeleteTransform(h_emb_transform);
+      if(h_emb_transform)
+      {
+        cmsDoTransform(h_emb_transform, argbdata, argbdata, pb_w*pb_h);
+        cmsCloseProfile(h_emb_profile);
+        cmsDeleteTransform(h_emb_transform);
+      }
+      else
+      {
+        printf("qiv warning: %s contains corrupt color profile\n",image_name);
+      }
       free(icc_profile);
     }
 
     /* do the color transform */
     else if (cms_transform && h_cms_transform)
+    {
       cmsDoTransform(h_cms_transform, argbdata, argbdata, pb_w*pb_h);
+    }
 #endif
     im = imlib_create_image_using_copied_data(pb_w, pb_h, (DATA32*)argbdata);
     free(argbdata);

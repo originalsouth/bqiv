@@ -747,7 +747,7 @@ char *get_icc_profile(char *filename)
   unsigned char pic_tst[4];
 
   char *icc_ptr=NULL;
-  short *tag_length=NULL;
+  unsigned short *tag_length=NULL;
   unsigned char **tag_ptr=NULL;
 
   /* Jpeg ICC header:
@@ -815,8 +815,10 @@ char *get_icc_profile(char *filename)
           tag_length = calloc(seq_max, sizeof(short));
           tag_ptr    = calloc(seq_max, sizeof(char *));
         }
-
+        // hmm, in theory both should be the same (tw)
         tag_length[marker->data[12]-1] = marker->data_length - 14;
+//      tag_length[marker->data[12]-1] = (marker->data[16] << 8) +  marker->data[17];
+
         (tag_ptr[marker->data[12]-1])  = marker->data;
         (tag_ptr[marker->data[12]-1]) += 14;
 
@@ -826,6 +828,7 @@ char *get_icc_profile(char *filename)
       else if(marker->marker==JPEG_COM)
       {
         comment=calloc(1+marker->data_length,1);
+        if(comment==NULL) return NULL;
         strncpy(comment, (char *) marker->data, marker->data_length);
       }
     }
@@ -842,6 +845,7 @@ char *get_icc_profile(char *filename)
         length+= tag_length[j];
       }
       icc_ptr = malloc(length+sizeof(length));
+      if(icc_ptr==NULL) return NULL;
       *(unsigned int *)icc_ptr=length;
       length=0;
       for(j=0; j< i; j++)

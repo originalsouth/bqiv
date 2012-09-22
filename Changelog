@@ -36,6 +36,9 @@ Authors:
 
 2.3pre
 =====
+  22.09.2012
+                    [tw] fix possible segfaults when dealing with corrupt 
+                         embedded color profiles.
   12.03.2012
                     [tw] do not segfault when "browse" option is called without
                          a further argument.
