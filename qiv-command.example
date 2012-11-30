@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ###
 ### QUICK IMAGE VIEWER "qiv-command" file
@@ -51,6 +51,14 @@ case "$pressed_key" in
     # example: show EXIF Header using "exiftool" or "jhead"
     # exiftool "$filename"
     # jhead "$filename"
+    # more sophisticated for better infos (adjust paths!)
+#    if [ -r $HOME/local/var/exiftool.grep-pattern.for.qiv-command ]; then
+#      exiftool "$filename" | grep -f $HOME/local/var/exiftool.grep-pattern.for.qiv-command \
+#       | grep -v 'Orientation                     : Horizontal (normal)'
+#      jhead -nofinfo "$filename" | grep -i -E '^(JPEG Quality |Caption )'
+#    else
+#      jhead -nofinfo "$filename"
+#    fi
 
     echo -ne "0 was pushed.\nStart your own programs by editing the\n\"$0\" file!";
     ;;
@@ -62,8 +70,8 @@ case "$pressed_key" in
 
   6)
     # Modify comment header. Fire up an xterm running EDITOR to edit comment.
-    #xterm -e jhead -ce $filename
-    jhead -ce $filename
+    #xterm -e jhead -ce "$filename"
+    jhead -ce "$filename"
     ;;
 
   7)
@@ -72,27 +80,31 @@ case "$pressed_key" in
 
   8) # lossless rotation of JPG, without losing EXIF tags
     echo 2>&1 "Rotating to the left."
-    jhead -cmd "jpegtran -perfect -rotate 270 -outfile &o &i" $filename >/dev/null
-    jhead -ft $filename >/dev/null # reset timestamp
+    jhead -cmd "jpegtran -perfect -rotate 270 -outfile &o &i" "$filename" >/dev/null
+    # set timestamp of file to Date/Time when the photo was taken
+    jhead -q -ft "$filename" >/dev/null
     ;;
 
   9) # lossless rotation of JPG, without losing EXIF tags
     echo 2>&1 "Rotating to the right."
-    jhead -cmd "jpegtran -perfect -rotate 90 -outfile &o &i" $filename >/dev/null
-    jhead -ft $filename >/dev/null # reset timestamp
+    jhead -cmd "jpegtran -perfect -rotate 90 -outfile &o &i" "$filename" >/dev/null
+    # set timestamp of file to Date/Time when the photo was taken
+    jhead -q -ft "$filename" >/dev/null
     ;;
 
   # with "^"-prefix: forced (i.e. possibly NOT lossless) rotation
   ^8) # rotate JPG, but possibly losing quality
     echo 2>&1 "Forcing rotation to the left."
-    jhead -cmd "jpegtran -rotate 270 -outfile &o &i" $filename >/dev/null
-    jhead -ft $filename >/dev/null # reset timestamp
+    jhead -cmd "jpegtran -rotate 270 -outfile &o &i" "$filename" >/dev/null
+    # set timestamp of file to Date/Time when the photo was taken
+    jhead -q -ft "$filename" >/dev/null
     ;;
 
   ^9) # rotate JPG, but possibly losing quality
     echo 2>&1 "Forcing rotation to the right."
-    jhead -cmd "jpegtran -rotate 90 -outfile &o &i" $filename >/dev/null
-    jhead -ft $filename >/dev/null # reset timestamp
+    jhead -cmd "jpegtran -rotate 90 -outfile &o &i" "$filename" >/dev/null
+    # set timestamp of file to Date/Time when the photo was taken
+    jhead -q -ft "$filename" >/dev/null
     ;;
 
   ^*)
@@ -103,13 +115,13 @@ case "$pressed_key" in
     #
     # Echoing the `NEWNAME=new_img_name` line signals qiv to update it's file list
     # with the new filename.
-    img_timestamp=$(date -r `stat -f '%m' $filename` +'%y%m%d%H%M%S')
+    img_timestamp=$(date -r `stat -f '%m' "$filename"` +'%y%m%d%H%M%S')
     new_img_name=${pressed_key#^}
     new_img_name=`echo "$new_img_name" | tr ' ' '_'`
     new_img_name=${new_img_name%.[Jj][Pp][Gg]}-${img_timestamp}.jpg
 
-    [[ -f $new_img_name ]] && exit 1
-    mv $filename $new_img_name
+    [[ -f "$new_img_name" ]] && exit 1
+    mv "$filename" "$new_img_name"
     echo "NEWNAME=$new_img_name"
     ;;
 
