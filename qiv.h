@@ -169,9 +169,6 @@ extern cmsHTRANSFORM h_cms_transform;
 extern int cms_transform;
 extern char *get_icc_profile(char *filename);
 #endif
-#ifdef HAVE_EXIF
-extern char **get_exif_values(char *filename);
-#endif
 
 /* main.c */
 
@@ -235,3 +232,9 @@ extern gboolean qiv_watch_file (gpointer);
 extern int rreaddir(const char *, int);
 extern int rreadfile(const char *);
 extern int find_image(int images, char **image_names, char *name);
+#ifdef HAVE_EXIF
+extern char **get_exif_values(char *filename);
+#endif
+void dpms_check();
+void dpms_enable();
+void dpms_disable();

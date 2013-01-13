@@ -3,7 +3,7 @@ Section: graphics
 Priority: extra
 Maintainer: Bart Martens <bartm@debian.org>
 Recommends: libwmf0.2-7, librsvg2-common
-Build-Depends: cdbs, debhelper (>= 5), libimlib2-dev, libgtk2.0-dev, libx11-dev, libmagic-dev, libexif-dev
+Build-Depends: cdbs, debhelper (>= 5), libimlib2-dev, libgtk2.0-dev, libx11-dev, libmagic-dev, libexif-dev, liblcms2-dev
 Standards-Version: 3.7.3
 Homepage: http://qiv.spiegl.de/
 
