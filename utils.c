@@ -521,7 +521,8 @@ void show_help(char *name, int exit_status)
           "    --random, -r           Random order\n"
           "    --shuffle, -S          Shuffled order\n"
           "    --delay, -d x          Wait x seconds between images [default=%d]\n"
-          "\n"
+          "    --vikeys               Enable movement with h/j/k/l, vi-style\n"
+          "                           (HJKL will do what hjkl previously did)\n"          "\n"
           "Keys:\n", SLIDE_DELAY/1000);
 
     /* skip header and blank line */

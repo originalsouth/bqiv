@@ -23,6 +23,8 @@
 extern char *optarg;
 extern int optind, opterr, optopt;
 
+#define LONGOPT_VIKEYS 128
+
 static char *short_options = "ab:c:Cd:efg:hilLmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:Y:Z:";
 static struct option long_options[] =
 {
@@ -72,6 +74,7 @@ static struct option long_options[] =
     {"source_profile",   1, NULL, 'Y'},
     {"display_profile",  1, NULL, 'Z'},
 #endif
+    {"vikeys",           0, NULL, LONGOPT_VIKEYS},
     {0,                  0, NULL, 0}
 };
 
@@ -319,6 +322,8 @@ void options_read(int argc, char **argv, qiv_image *q)
 	        cms_transform = 1;
 	        break;
 #endif
+            case LONGOPT_VIKEYS: vikeys=1;
+              break;
             case 0:
             case '?': usage(argv[0], 1);
                       gdk_exit(0);

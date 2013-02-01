@@ -11,6 +11,7 @@
 #include <string.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
+#include <ctype.h>
 #include "qiv.h"
 
 #define STEP 3 //When using KP arrow, number of step for seeing all the image.
@@ -442,7 +443,23 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
                                     "Press <Return> to send, <Esc> to abort"); // [lc]
         }
       } else {
-        switch (ev->key.keyval) {
+        guint keyval = ev->key.keyval;
+        if(vikeys) {
+               if (keyval == 'h') keyval = GDK_Left;
+          else if (keyval == 'j') keyval = GDK_Down;
+          else if (keyval == 'k') keyval = GDK_Up;
+          else if (keyval == 'l') keyval = GDK_Right;
+          else
+            switch (keyval) {
+              case 'H':
+              case 'J':
+              case 'K':
+              case 'L':
+                keyval = tolower(keyval);
+                break;
+            }
+        }
+        switch (keyval) {
 
           /* Help */
 

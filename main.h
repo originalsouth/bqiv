@@ -67,6 +67,7 @@ int user_screen = 0; /* preferred (by user) monitor */
 int browse = 0; /* scan directory of file for browsing */
 int autorotate = 0; /* autorotate JPEGs according to EXIF tag */
 int rotation = 0; /* rotation x degrees clockwise, 1=90degrees 2=180degrees 3=270degrees */
+int vikeys = 0; /* option to give us some vi-like keys (for movement) */
 
 #ifdef SUPPORT_LCMS
 const char* source_profile = NULL;
