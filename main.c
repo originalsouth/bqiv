@@ -183,6 +183,14 @@ int main(int argc, char **argv)
   signal(SIGUSR1, qiv_signal_usr1);
   signal(SIGUSR2, qiv_signal_usr2);
 
+  /* check for DPMS capability and disable it if slideshow
+     was started from command options */
+  dpms_check();
+  if(slide){
+    dpms_disable();
+  }
+
+
   /* Load & display the first image */
 
   qiv_load_image(&main_img);
@@ -200,6 +208,7 @@ void qiv_exit(int code)
 {
   if (cmap) gdk_colormap_unref(cmap);
   destroy_image(&main_img);
+  dpms_enable();
 
   pango_font_description_free (fontdesc);
   g_object_unref (layout);
@@ -240,6 +249,8 @@ static gboolean qiv_handle_timer(gpointer data)
 {
   if (*(int *)data || slide) {
     next_image(0);
+    /* disable screensaver during slideshow */
+    XResetScreenSaver(GDK_DISPLAY());
     qiv_load_image(&main_img);
   }
   return FALSE;

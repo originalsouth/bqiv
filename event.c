@@ -586,9 +586,13 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case 's':
             exit_slideshow = FALSE;
             slide ^= 1;
+            if (slide) 
+            {
+              dpms_disable();
+            }
             snprintf(infotext, sizeof infotext, slide ?
                      "(Slideshow: on)" : "(Slideshow: off)");
-            update_image(q, REDRAW);
+            update_image(q, MIN_REDRAW);
             break;
 
             /* move image right */
@@ -1102,5 +1106,6 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
   }
   if (exit_slideshow) {
     slide=0;
+    dpms_enable();
   }
 }

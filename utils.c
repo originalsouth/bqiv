@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <tiffio.h>
+#include <X11/extensions/dpms.h>
 #ifdef HAVE_EXIF
 #include <libexif/exif-loader.h>
 #endif
@@ -411,6 +412,7 @@ void finish(int sig)
 {
   gdk_pointer_ungrab(CurrentTime);
   gdk_keyboard_ungrab(CurrentTime);
+  dpms_enable();
   exit(0);
 }
 
@@ -982,3 +984,39 @@ char **get_exif_values(char *filename)
   return exif_lines;
 }
 #endif
+
+/* The state of DPMS is checked at startup of qiv.
+   If the display is DPMS capable and DPMS is activated, qiv disables
+   it during a slideshow to prevent the screen from blanking. */
+BOOL dpms_enabled = 0;
+
+void dpms_check()
+{
+  int not_needed;
+  Display * disp = GDK_DISPLAY();
+  CARD16 power_level;
+
+  if(DPMSQueryExtension(disp, &not_needed, &not_needed))
+  { 
+    if(DPMSCapable(disp))
+    {
+      DPMSInfo(disp, &power_level, &dpms_enabled);
+    }
+  }
+}
+
+void dpms_enable()
+{
+  if(dpms_enabled)
+  { 
+    DPMSEnable(GDK_DISPLAY());
+  }
+}
+
+void dpms_disable()
+{
+  if(dpms_enabled)
+  { 
+    DPMSDisable(GDK_DISPLAY());
+  }
+}

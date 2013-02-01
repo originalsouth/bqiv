@@ -42,8 +42,8 @@ Authors:
   13.01.2013
                     [tw] disable screensaver and DPMS during slideshow
   30.11.2012
-                    [as] improvements to qiv-command.example (filename
-                         quoting, extract more EXIF infos)
+                    [as] improvements to qiv-command.example 
+                         (filename quoting, extract more EXIF infos)
   22.09.2012
                     [tw] fix possible segfaults when dealing with corrupt
                          embedded color profiles.
