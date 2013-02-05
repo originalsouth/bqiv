@@ -932,21 +932,22 @@ char **get_exif_values(char *filename)
     {EXIF_TAG_CONTRAST, EXIF_IFD_EXIF},
     {EXIF_TAG_SATURATION, EXIF_IFD_EXIF},
     {EXIF_TAG_SHARPNESS, EXIF_IFD_EXIF},
-    {EXIF_TAG_DIGITAL_ZOOM_RATIO, EXIF_IFD_EXIF},
-    {EXIF_TAG_GPS_LATITUDE, EXIF_IFD_GPS}, 
-    {EXIF_TAG_GPS_LATITUDE_REF, EXIF_IFD_GPS}, 
-    {EXIF_TAG_GPS_LONGITUDE, EXIF_IFD_GPS}, 
-    {EXIF_TAG_GPS_LONGITUDE_REF, EXIF_IFD_GPS}, 
-    {EXIF_TAG_GPS_ALTITUDE, EXIF_IFD_GPS}, 
-    {EXIF_TAG_GPS_ALTITUDE_REF, EXIF_IFD_GPS}, 
+    {EXIF_TAG_DIGITAL_ZOOM_RATIO, EXIF_IFD_EXIF}
+  };
+
+  ExifTag gps_tags[] = {
+    EXIF_TAG_GPS_LATITUDE, EXIF_TAG_GPS_LATITUDE_REF,
+    EXIF_TAG_GPS_LONGITUDE, EXIF_TAG_GPS_LONGITUDE_REF,
+    EXIF_TAG_GPS_ALTITUDE, EXIF_TAG_GPS_ALTITUDE
   };
 
   j=0;
   ed = exif_data_new_from_file(filename);
   if(ed)
   {
-    /* one too much to make sure the last one will allways be NULL */
-    exif_lines=calloc(4+sizeof(tags)/sizeof(tags[0]),sizeof(char*));
+    /* one too much to make sure the last one will allways be NULL
+       size of tags + gpstags(3) + extra lines(3) + 1 */ 
+    exif_lines=calloc(sizeof(tags)/sizeof(tags[0]),sizeof(char*)+3+3+1);
     for(i=0; i < sizeof(tags)/sizeof(tags[0]); i++)
     {
       entry=exif_content_get_entry( ed->ifd[tags[i].ifd], tags[i].tag);
@@ -955,6 +956,27 @@ char **get_exif_values(char *filename)
         line=malloc(256); 
         exif_entry_get_value (entry, buffer, 255);
         snprintf(line, 255, "%-21s: %s\n", exif_tag_get_name_in_ifd(tags[i].tag,tags[i].ifd), buffer);
+        exif_lines[j]=line;
+        j++;
+      }
+    }
+    for(i=0; i < 6; i+=2)
+    {
+      entry=exif_content_get_entry( ed->ifd[EXIF_IFD_GPS], gps_tags[i]);
+      if(entry)
+      {
+        line=malloc(256); 
+        exif_entry_get_value (entry, buffer, 255);
+        if((entry=exif_content_get_entry( ed->ifd[EXIF_IFD_GPS], i+1)))
+        {
+          int len=strlen(buffer);
+          if(len < 254)
+          {
+            buffer[len]=0x20;
+            exif_entry_get_value(entry, buffer+len+1, 254-len);
+          }
+        }
+        snprintf(line, 255, "%-21s: %s\n", exif_tag_get_name_in_ifd(gps_tags[i], EXIF_IFD_GPS), buffer);
         exif_lines[j]=line;
         j++;
       }
