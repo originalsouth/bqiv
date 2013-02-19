@@ -32,7 +32,7 @@ static gboolean qiv_handle_timer(gpointer);
 static void qiv_timer_restart(gpointer);
 
 #ifdef HAVE_MAGIC
-static int check_magic(const char *name);
+static int check_magic(magic_t cookie, const char *name);
 #endif
 
 int main(int argc, char **argv)
@@ -273,11 +273,17 @@ static void qiv_timer_restart(gpointer dummy)
 static void filter_images(int *images, char **image_names)
 {
   int i = 0;
+#ifdef HAVE_MAGIC
+  magic_t cookie;
+
+  cookie = magic_open(MAGIC_NONE);
+  magic_load(cookie,NULL);
+#endif
 
   while(i < *images) {
     if (check_extension(image_names[i])
 #ifdef HAVE_MAGIC
-            || check_magic(image_names[i])
+            || check_magic(cookie, image_names[i])
 #endif
        ) {
       i++;
@@ -292,6 +298,9 @@ static void filter_images(int *images, char **image_names)
       --(*images);
     }
   }
+#ifdef HAVE_MAGIC
+  magic_close(cookie);
+#endif
   if (image_idx < 0)
     image_idx = 0;
 }
@@ -310,15 +319,12 @@ static int check_extension(const char *name)
 }
 
 #ifdef HAVE_MAGIC
-static int check_magic(const char *name)
+static int check_magic(magic_t cookie, const char *name)
 {
-  magic_t cookie;
   const char *description=NULL;
   int i;
   int ret=0;
 
-  cookie = magic_open(MAGIC_NONE);
-  magic_load(cookie,NULL);
   description = magic_file(cookie, name);
   if(description)
   {
@@ -329,7 +335,6 @@ static int check_magic(const char *name)
         break;
       }
   }
-  magic_close(cookie);
   return ret;
 }
 #endif

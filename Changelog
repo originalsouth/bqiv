@@ -36,6 +36,9 @@ Authors:
 
 2.3pre
 =====
+  19.02.2013
+                    [tw] update COPYING and optimize libmagic calls
+                         Patch by Jiri Slaby		         
   05.02.2013
                     [tw] improve display of exif GPS tags    
   01.02.2013
