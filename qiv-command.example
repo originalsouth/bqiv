@@ -107,6 +107,11 @@ case "$pressed_key" in
     jhead -q -ft "$filename" >/dev/null
     ;;
 
+  ^g) # call gps2url.py to extract GPS coordinates from an image and
+      # call firefox with google maps url if the GPS info exists
+    gps2url.py "$filename"
+    ;;
+
   ^*)
     # Rename image directly from qiv. The timestamp of the current image will be
     # automatically embedded in the new filename. This action is invoked by typing:
