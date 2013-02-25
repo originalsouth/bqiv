@@ -37,6 +37,7 @@ Authors:
 2.3pre
 =====
   25.02.2013
+                    [as] center mouse cursor position in magnifying window
                     [tw] external script gps2url.py to extract GPS
 	                 coordinates from an image and call firefox
 	                 with google maps url if the GPS info exists

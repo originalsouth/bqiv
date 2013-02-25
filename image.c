@@ -954,6 +954,10 @@ void update_magnify(qiv_image *q, qiv_mgl *m, int mode, gint xcur, gint ycur)
     xx=xcur * ((double)q->orig_w/(double)q->win_w);
     yy=ycur * ((double)q->orig_h/(double)q->win_h);
 
+    /* center mouse cursor position */
+    xx -= 150 / m->zoom;
+    yy -= 100 / m->zoom;
+
     /* keep magnify part allways inside image */
     if(xx + m->win_w / m->zoom > q->orig_w) {
       xx=q->orig_w - m->win_w / m->zoom;
