@@ -175,6 +175,7 @@ extern char *get_icc_profile(char *filename);
 
 extern void qiv_exit(int);
 extern void qiv_load_image();
+extern void filter_images(int *images, char **image_names);
 
 /* image.c */
 

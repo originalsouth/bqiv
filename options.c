@@ -372,15 +372,26 @@ void options_read(int argc, char **argv, qiv_image *q)
 
     if (browse && images) {
         images = 0; /* avoid displaying same filename twice */
-        char *tmp = (char *)xmalloc(strlen(image_names[0])+1);
-        strcpy(tmp,image_names[0]);
-        rreaddir(dirname(image_names[0]),0);
-        if (need_sort) {
-            qsort(image_names, images, sizeof *image_names, my_strcmp);
+        char *tmp = (char *)xmalloc(strlen(image_names[0])+3);
+        if(strchr(image_names[0], '/')==NULL) {
+            *tmp     ='.';
+            *(tmp+1) ='/';
+            strcpy(tmp+2,image_names[0]);
         }
+        else {
+            strcpy(tmp,image_names[0]);
+        }
+        rreaddir(dirname(image_names[0]),0);
+        filter_images(&images,image_names);
+        if(need_sort)
+            qsort(image_names, images, sizeof *image_names, my_strcmp);
         image_idx = find_image(images,image_names,tmp);
         free(tmp);
-    } else if (need_sort) {
-        qsort(image_names, images, sizeof *image_names, my_strcmp);
     }
+    else {
+        filter_images(&images,image_names);
+        if(need_sort)
+            qsort(image_names, images, sizeof *image_names, my_strcmp);
+    }
+
 }

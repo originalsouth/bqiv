@@ -24,7 +24,6 @@
 qiv_image main_img;
 qiv_mgl   magnify_img; /* [lc] */
 
-static void filter_images(int *, char **);
 static int check_extension(const char *);
 static void qiv_signal_usr1();
 static void qiv_signal_usr2();
@@ -145,9 +144,6 @@ int main(int argc, char **argv)
   pango_layout_set_font_description (layout, fontdesc); 
 
   max_rand_num = images;
-
-  if (filter) /* Filter graphic images */
-    filter_images(&images,image_names);
 
   if (!images) { /* No images to display */
     g_print("qiv: cannot load any images.\n");
@@ -270,7 +266,7 @@ static void qiv_timer_restart(gpointer dummy)
 
 /* Filter images by extension */
 
-static void filter_images(int *images, char **image_names)
+void filter_images(int *images, char **image_names)
 {
   int i = 0;
 #ifdef HAVE_MAGIC
