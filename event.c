@@ -357,10 +357,10 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
       switch (ev->scroll.direction) {
         case GDK_SCROLL_UP:
           displaying_textwindow = FALSE;
-	  goto next_image;
+	  goto previous_image;
         case GDK_SCROLL_DOWN:
           displaying_textwindow = FALSE;
-	  goto previous_image;
+	  goto next_image;
         case GDK_SCROLL_LEFT:
           displaying_textwindow = FALSE;
           goto zoom_out;
