@@ -149,10 +149,20 @@ install: $(PROGRAM)
 	fi
 	install -m 0644 $(PROGRAM).1 $(PREFIX)/man/man1
 	$(COMPRESS_PROG) $(PREFIX)/man/man1/$(PROGRAM).1
+	@if [ ! -e $(PREFIX)/share/pixmaps ]; then \
+	  echo install -d -m 0755 $(PREFIX)/share/pixmaps; \
+	  install -d -m 0755 $(PREFIX)/share/pixmaps; \
+	fi
+	install -m 0644 qiv.png $(PREFIX)/share/pixmaps/qiv.png
+	@if [ ! -e $(PREFIX)/share/applications ]; then \
+	  echo install -d -m 0755 $(PREFIX)/share/applications; \
+	  install -d -m 0755 $(PREFIX)/share/applications; \
+	fi
+	install -m 0644 qiv.desktop $(PREFIX)/share/applications/qiv.desktop
 	@if ./qiv -f ./intro.jpg ; \
 	then echo "-- Test Passed --" ; \
 	else echo "-- Test Failed --" ; \
 	fi
-	@echo "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n"
+	@echo "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example $(PREFIX)/bin/qiv-command\n\n"
 
 # the end... ;-)

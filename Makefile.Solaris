@@ -151,10 +151,12 @@ install: $(PROGRAM)
 	fi
 	install -m 0644 $(PROGRAM).1 $(PREFIX)/man/man1
 	$(COMPRESS_PROG) $(PREFIX)/man/man1/$(PROGRAM).1
+	install -D -m 0644 qiv.png $(PREFIX)/share/pixmaps/qiv.png
+	install -D -m 0644 qiv.desktop $(PREFIX)/share/applications/qiv.desktop
 	@if ./qiv -f ./intro.jpg ; \
 	then echo "-- Test Passed --" ; \
 	else echo "-- Test Failed --" ; \
 	fi
-	@echo "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example /usr/local/bin/qiv-command\n\n"
+	@echo "\nDont forget to look into the \"qiv-command\" file and install it!\n-> cp qiv-command.example $(PREFIX)/bin/qiv-command\n\n"
 
 # the end... ;-)
