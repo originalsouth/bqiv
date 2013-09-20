@@ -36,6 +36,8 @@ Authors:
 
 2.3pre
 =====
+  20.09.2013
+                    [as] Removed inappropriate image/fits line from debian/qiv.mime
   19.03.2013
                     [tw] Add desktop integration. Add gps2url.py script.
   18.03.2013

@@ -12,6 +12,5 @@ image/x-bmp; qiv -tfi %s; description="BMP Image"; test=test "$DISPLAY"; nametem
 image/x-ms-bmp; qiv -tfi %s; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp; priority=4
 image/x-rgb; qiv -tfi %s; description="RGB Image"; test=test "$DISPLAY"; nametemplate=%s.rgb; priority=4
 image/targa; qiv -tfi %s; description="TARGA Image"; test=test "$DISPLAY"; nametemplate=%s.tga; priority=4
-image/fits; qiv -tfi %s; description="FITS Image"; test=test "$DISPLAY"; nametemplate=%s.fits; priority=4
 image/png; qiv -tfi %s; description="PNG Image"; test=test "$DISPLAY"; nametemplate=%s.png; priority=4
 image/pm; qiv -tfi %s; description="PM Image"; test=test "$DISPLAY"; nametemplate=%s.pm; priority=4
