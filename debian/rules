@@ -8,10 +8,12 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
 update-config::
-	[ -f qiv-command ] || mv qiv-command.example qiv-command
+	[ -f qiv-command ] || mv contrib/qiv-command.example qiv-command
+	[ -f gps2url.py ]  || mv contrib/gps2url.py gps2url.py
 
 reverse-config::
-	[ ! -f qiv-command ] || mv qiv-command qiv-command.example
+	[ ! -f qiv-command ] || mv qiv-command contrib/qiv-command.example
+	[ ! -f gps2url.py ]  || mv gps2url.py contrib/gps2url.py
 
 clean::
 	rm -f qiv xmalloc.o

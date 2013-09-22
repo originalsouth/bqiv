@@ -1,1 +1,3 @@
 qiv usr/bin
+qiv.desktop usr/share/applications
+qiv.png usr/share/pixmaps
