@@ -45,16 +45,16 @@ for k,v in exif.items():
   if k == 3:
     lng_d = v
   if k == 2:
-    lat_v = str(v[0][0]/v[0][1]) + "°" + str(v[1][0]/v[1][1]) + "'" + str(1.0* v[2][0]/v[2][1]) + "''" 
+    lat_v = str(v[0][0]/v[0][1]) + unicode("°", "utf8") + str(v[1][0]/v[1][1]) + "'" + str(1.0* v[2][0]/v[2][1]) + "''"
   if k == 4:
-    lng_v = str(v[0][0]/v[0][1]) + "°" + str(v[1][0]/v[1][1]) + "'" + str(1.0* v[2][0]/v[2][1]) + "''" 
+    lng_v = str(v[0][0]/v[0][1]) + unicode("°", "utf8") + str(v[1][0]/v[1][1]) + "'" + str(1.0* v[2][0]/v[2][1]) + "''"
 
 try:
   lat_d and lng_d and lat_v and lng_v
 except NameError:
   print "No GPS location data defined"
 else:
-  # make sure firefox is already running. 
+  # make sure firefox is already running
   url="http://maps.google.de/maps?q="+lat_v+lat_d+lng_v+lng_d
   call(["firefox", url])
 
