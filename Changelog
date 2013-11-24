@@ -34,7 +34,7 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
-2.3pre
+2.3
 =====
   23.09.2013
                     [as] unicode fix for gps2url.py
