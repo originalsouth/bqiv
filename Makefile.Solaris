@@ -57,7 +57,7 @@ CFLAGS    = -O2 -Wall -fomit-frame-pointer -finline-functions \
 	    -fthread-jumps #-march=pentium #-DSTAT_MACROS_BROKEN
 
 INCLUDES  := $(shell pkg-config --cflags gdk-2.0 imlib2)
-LIBS      := $(shell pkg-config --libs gdk-2.0 imlib2) -lX11
+LIBS      := $(shell pkg-config --libs gdk-2.0 imlib2) -lX11 lXext
 
 # [as] thinks that this is not portable enough:
 # [lc] I use a virtual screen of 1600x1200, and the resolution is 1024x768,

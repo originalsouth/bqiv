@@ -34,6 +34,11 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
+2.3.1
+=====
+  25.11.2013        [tw] Add libXext to libraries for linking in Makefile.
+                         Fixes build problems on some distributions.
+
 2.3
 =====
   23.09.2013
