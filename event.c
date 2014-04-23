@@ -418,9 +418,9 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           jcmd[jidx] = '\0';
           if (jumping) {
             jump2image(jcmd);
-          qiv_load_image(q);
-          jumping=0;
-        }
+            qiv_load_image(q);
+            jumping=0;
+          }
           else {      // extcommand=1
             int numlines = 0;
             const char **lines;
@@ -436,6 +436,23 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
         }
         /* else record keystroke if not null */
         else if(ev->key.string && *(ev->key.string) != '\0') {
+	  if (jumping) {
+            /* leave jumping mode on invalid input and process
+	     * input key as if it entered in non jumping mode */
+	    if((jidx == 0 &&
+	        (*(ev->key.string) != 'f' &&
+		 *(ev->key.string) != 'F' &&
+		 *(ev->key.string) != 'b' &&
+		 *(ev->key.string) != 'B' &&
+		 *(ev->key.string) != 't' &&
+		 *(ev->key.string) != 'T')) ||
+	       (jidx > 0 &&
+		(*(ev->key.string) < '0' || *(ev->key.string) > '9'))) {
+	      jumping = 0;
+	      qiv_handle_event(ev, data);
+	      return;
+	    }
+	  }
           jcmd[jidx++]=*(ev->key.string);
           jcmd[jidx] = '\0';
           if (extcommand)

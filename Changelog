@@ -38,7 +38,9 @@ Authors:
 ========
   23.04.2014        [tw] In case of "watch" option, check image only every 1/10 sec,
                          instead of every 200us. This was way too short for
-			 devices like RasPi etc. (Hamish)
+                         devices like RasPi etc. (Hamish)
+                    [tw] Leave jumping mode on invalid input and process input key
+                         as if it was entered in non jumping mode (Sergey Pinaev)
 
 2.3.1
 =====
