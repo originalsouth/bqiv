@@ -915,7 +915,8 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
                      "(File watching: on)" : "(File watching: off)");
             update_image(q, REDRAW);
             if(watch_file){
-              g_idle_add (qiv_watch_file, q);
+              // check every 100ms
+              g_timeout_add_full(G_PRIORITY_DEFAULT_IDLE, 100, qiv_watch_file, q, NULL);
             }
             break;
 

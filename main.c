@@ -192,7 +192,7 @@ int main(int argc, char **argv)
   qiv_load_image(&main_img);
 
   if(watch_file){
-    g_idle_add (qiv_watch_file, &main_img);
+    g_timeout_add_full(G_PRIORITY_DEFAULT_IDLE, 100, qiv_watch_file, &main_img, NULL);
   }
 
   g_main_run(qiv_main_loop); /* will never return */

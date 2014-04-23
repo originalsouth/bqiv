@@ -34,6 +34,12 @@ Authors:
   pw: Peter deWachter         <pdewacht@gmail.com>
   ap: Akos Pasztory           <akos.pasztory@gmail.com>
 
+2.3.2pre
+========
+  23.04.2014        [tw] In case of "watch" option, check image only every 1/10 sec,
+                         instead of every 200us. This was way too short for
+			 devices like RasPi etc. (Hamish)
+
 2.3.1
 =====
   25.11.2013        [tw] Add libXext to libraries for linking in Makefile.

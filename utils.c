@@ -722,7 +722,6 @@ gboolean qiv_watch_file (gpointer data)
               update_image(q, REDRAW);
           }
   }
-  usleep(200);  /* avoid eating 100% cpu */
 
   return TRUE;
 }
