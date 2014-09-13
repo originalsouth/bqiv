@@ -492,6 +492,7 @@ void show_help(char *name, int exit_status)
           "    --readonly, -R         Disable the deletion feature\n"
           "    --maxpect, -m          Zoom to screen size and preserve aspect ratio\n"
           "    --merged_case_sort, -M Sort filenames with AaBbCc... alpha order\n"
+          "    --mtime_sort, -K       Sort files by their modification time\n"
           "    --no_filter, -n        Do not filter images by extension\n"
           "    --no_statusbar, -i     Disable statusbar\n"
           "    --statusbar, -I        Enable statusbar\n"

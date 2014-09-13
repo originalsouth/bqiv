@@ -25,7 +25,7 @@ extern int optind, opterr, optopt;
 
 #define LONGOPT_VIKEYS 128
 
-static char *short_options = "ab:c:Cd:efg:hilLmno:pq:rstuvw:xyzA:BDF:GIMNPRSTW:X:Y:Z:";
+static char *short_options = "ab:c:Cd:efg:hilLmno:pq:rstuvw:xyzA:BDF:GIKMNPRSTW:X:Y:Z:";
 static struct option long_options[] =
 {
     {"do_grab",          0, NULL, 'a'},
@@ -62,6 +62,7 @@ static struct option long_options[] =
     {"file",             1, NULL, 'F'},
     {"disable_grab",     0, NULL, 'G'},
     {"statusbar",        0, NULL, 'I'},
+    {"mtime_sort",       0, NULL, 'K'},
     {"merged_case_sort", 0, NULL, 'M'},
     {"numeric_sort",     0, NULL, 'N'},
     {"ignore_path_sort", 0, NULL, 'P'},
@@ -78,7 +79,7 @@ static struct option long_options[] =
     {0,                  0, NULL, 0}
 };
 
-static int numeric_sort = 0, merged_case_sort = 0, ignore_path_sort = 0;
+static int mtime_sort = 0, numeric_sort = 0, merged_case_sort = 0, ignore_path_sort = 0;
 
 /* This array makes it easy to sort filenames into merged-case order
  * (e.g. AaBbCcDdEeFf...). */
@@ -117,6 +118,17 @@ static unsigned char casemap[256] = {
     0xF8,0xF9,0xFA,0xFB,0xFC,0xFD,0xFE,0xFF
 };
 
+
+static time_t get_mtime(unsigned char *fn) {
+    struct stat attrib;
+
+    if(stat((char *) fn, &attrib) == 0)
+      return attrib.st_mtime;
+
+    return 0;
+}
+
+
 static int my_strcmp(const void *v1, const void *v2)
 {
     unsigned char *cp1 = *(unsigned char **)v1;
@@ -128,6 +140,15 @@ static int my_strcmp(const void *v1, const void *v2)
     while (--sufptr1 > cp1 && *sufptr1 != '.') {}
     sufptr2 = cp2 + strlen((char *)cp2);
     while (--sufptr2 > cp2 && *sufptr2 != '.') {}
+
+    if(mtime_sort) {
+        time_t diff = get_mtime(cp1) - get_mtime(cp2);
+        if(diff < 0)
+            return -1;
+        if(diff > 0)
+            return 1;
+        // fall through in case of same time stamp
+    }
 
     if (ignore_path_sort) {
         unsigned char *slash;
@@ -297,6 +318,8 @@ void options_read(int argc, char **argv, qiv_image *q)
                 break;
             case 'I': force_statusbar=1;
                 break;
+            case 'K': mtime_sort = 1;
+                break;
             case 'M': merged_case_sort = 1;
                 break;
             case 'N': numeric_sort = 1;
@@ -305,7 +328,7 @@ void options_read(int argc, char **argv, qiv_image *q)
                 break;
             case 'R': readonly=1;
                 break;
-            case 'S': shuffle=1;need_sort=0;
+            case 'S': shuffle=1; need_sort=0;
                 break;
             case 'T': watch_file=1;
                 break;
@@ -330,8 +353,8 @@ void options_read(int argc, char **argv, qiv_image *q)
         }
     }
 
-    /* In case user specified -D and -P, -M, or -N */
-    need_sort = need_sort | ignore_path_sort | merged_case_sort | numeric_sort;
+    /* In case user specified -D and -K, -P, -M, or -N */
+    need_sort = need_sort | mtime_sort | ignore_path_sort | merged_case_sort | numeric_sort;
 
     /* default: show statusbar only in fullscreen mode */
     /* user wants to override? */
