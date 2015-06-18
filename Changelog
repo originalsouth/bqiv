@@ -36,6 +36,7 @@ Authors:
 
 2.3.2pre
 ========
+  18.06.2015        [as] turn on EXIF autorotation by default
   13.09.2014        [tw] Add option to sort files by modification time.
                          (patch by Stefan Rüger)
   23.04.2014        [tw] In case of "watch" option, check image only every 1/10 sec,

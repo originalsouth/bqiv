@@ -265,7 +265,7 @@ void options_read(int argc, char **argv, qiv_image *q)
             case 'i': force_statusbar=0;
                 break;
 #if GDK_PIXBUF_MINOR >= 12
-            case 'l': autorotate=1;
+            case 'l': autorotate=0;           /* turn autorotation OFF, default is ON */
                 break;
 #endif
             case 'm': maxpect=1;

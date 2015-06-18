@@ -508,7 +508,7 @@ void show_help(char *name, int exit_status)
           "    --followlinks, -L      Follow symlinks to directories (requires --recursivedir)\n"
           "    --select_dir, -A x     Store the selected files in dir x (default is .qiv-select)\n"
 #if GDK_PIXBUF_MINOR >= 12
-          "    --autorotate, -l       Autorotate JPEGs according to EXIF rotation tag\n"
+          "    --autorotate, -l       Do NOT autorotate JPEGs according to EXIF rotation tag\n"
 #endif
           "    --rotate, -q x         Rotate 90(x=1),180(x=2),270(x=3) degrees clockwise (11 & 13 for conditional)\n"
           "    --xineramascreen, -X x Use monitor x as preferred screen\n"
