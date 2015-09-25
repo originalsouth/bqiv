@@ -152,7 +152,7 @@ void qiv_display_text_window(qiv_image *q, const char *infotextdisplay,
   /* Display Push Any Key... message */
   pango_layout_set_text(layout, continue_msg, -1);
   pango_layout_get_pixel_size (layout, &temp, NULL);
-  gdk_draw_layout (q->win, q->text_gc, 
+  gdk_draw_layout (q->win, q->text_gc,
                    x + width/2 - temp/2,
                    y + height/2 - text_h/2 - descent + (i+1) * (ascent + descent),
                    layout);
@@ -603,7 +603,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case 's':
             exit_slideshow = FALSE;
             slide ^= 1;
-            if (slide) 
+            if (slide)
             {
               dpms_disable();
             }
@@ -784,7 +784,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_Page_Down:
           case GDK_KEY_KP_Page_Down:
             snprintf(infotext, sizeof infotext, "(5 pictures forward)");
-            next_image(5);
+            next_image(0.05*images);
             if(magnify && !fullscreen)    gdk_window_hide(magnify_img.win); // [lc]
             qiv_load_image(q);
             break;
@@ -804,7 +804,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
           case GDK_KEY_Page_Up:
           case GDK_KEY_KP_Page_Up:
             snprintf(infotext, sizeof infotext, "(5 pictures backward)");
-            next_image(-5);
+            next_image(-0.05*images);
             if(magnify && !fullscreen)    gdk_window_hide(magnify_img.win); // [lc]
             qiv_load_image(q);
             break;
@@ -1034,7 +1034,7 @@ void qiv_handle_event(GdkEvent *ev, gpointer data)
             }
             break;
           case ',':
-            if(fullscreen) 
+            if(fullscreen)
             {
               disable_grab ^= 1;
               snprintf(infotext, sizeof infotext, "(grab %s)", (disable_grab ? "off" : "on"));
